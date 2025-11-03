@@ -129,9 +129,10 @@
             border-radius: 8px;
             font-size: 15px;
             font-family: inherit;
-            resize: vertical;
-            min-height: 80px;
+            resize: none;
+            height: 60px;
             transition: all 0.3s;
+            text-transform: uppercase;
         }
 
         textarea:focus {
@@ -165,6 +166,24 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
         }
 
         .keywords-section {
@@ -298,16 +317,21 @@
         </div>
 
         <div class="form-group">
-            <label for="keywords">Palabras Clave</label>
+            <label for="keywords">Palabras Clave (máx. 30 caracteres por palabra)</label>
             <textarea 
                 id="keywords" 
-                placeholder="Escribe las palabras clave separadas por comas (ej: rojo, grande, oferta)"
-                rows="3"
+                placeholder="ROJO, GRANDE, OFERTA"
+                maxlength="300"
             ></textarea>
-            <small style="color: #7f8c8d; font-size: 12px; margin-top: 4px; display: block;">Presiona Enter para guardar</small>
+            <small style="color: #7f8c8d; font-size: 12px; margin-top: 4px; display: block;">
+                Solo letras, números y espacios. Presiona Enter para guardar.
+            </small>
         </div>
 
-        <button id="saveBtn" class="btn" disabled>Guardar Palabras Clave</button>
+        <div class="btn-group">
+            <button id="newBtn" class="btn btn-secondary">Nuevo</button>
+            <button id="saveBtn" class="btn" disabled>Guardar Palabras Clave</button>
+        </div>
 
         <div class="keywords-section">
             <h3 class="keywords-title">Palabras Asociadas</h3>
@@ -352,6 +376,7 @@
         const codeDisplay = document.getElementById('codeDisplay');
         const keywordsInput = document.getElementById('keywords');
         const saveBtn = document.getElementById('saveBtn');
+        const newBtn = document.getElementById('newBtn');
         const existingKeywords = document.getElementById('existingKeywords');
         const messageDiv = document.getElementById('message');
 
@@ -449,6 +474,28 @@
             }
         }
 
+        // Validate and clean keywords
+        function validateKeywords(text) {
+            // Convert to uppercase and split by comma
+            const keywords = text.toUpperCase().split(',').map(k => k.trim()).filter(k => k);
+            const validKeywords = [];
+            const errors = [];
+
+            keywords.forEach(keyword => {
+                // Remove invalid characters (only allow letters, numbers, and spaces)
+                const cleaned = keyword.replace(/[^A-Z0-9\sÑ]/g, '');
+                
+                // Check if keyword is too long
+                if (cleaned.length > 30) {
+                    errors.push(`"${cleaned.substring(0, 30)}..." excede 30 caracteres`);
+                } else if (cleaned.length > 0) {
+                    validKeywords.push(cleaned);
+                }
+            });
+
+            return { validKeywords, errors };
+        }
+
         // Save keywords
         async function saveKeywords() {
             if (!selectedArticle) return;
@@ -459,7 +506,14 @@
                 return;
             }
 
-            const newKeywords = keywordsText.split(',').map(k => k.trim()).filter(k => k);
+            const { validKeywords, errors } = validateKeywords(keywordsText);
+            
+            if (errors.length > 0) {
+                showMessage('Errores: ' + errors.join(', '), 'error');
+                return;
+            }
+
+            const newKeywords = validKeywords;
             
             if (newKeywords.length === 0) {
                 showMessage('Por favor, ingresa palabras clave válidas', 'error');
@@ -550,6 +604,18 @@
             messageDiv.textContent = '';
         }
 
+        // Reset form
+        function resetForm() {
+            selectedArticle = null;
+            articleSearch.value = '';
+            codeDisplay.textContent = '-';
+            keywordsInput.value = '';
+            saveBtn.disabled = true;
+            existingKeywords.innerHTML = '<div class="loading">Selecciona un artículo</div>';
+            dropdownList.classList.remove('active');
+            hideMessage();
+        }
+
         // Event listeners
         articleSearch.addEventListener('focus', () => {
             if (articles.length > 0) {
@@ -576,6 +642,8 @@
 
         saveBtn.addEventListener('click', saveKeywords);
 
+        newBtn.addEventListener('click', resetForm);
+
         // Handle Enter key in keywords textarea
         keywordsInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -584,6 +652,14 @@
                     saveKeywords();
                 }
             }
+        });
+
+        // Real-time validation and uppercase conversion
+        keywordsInput.addEventListener('input', (e) => {
+            // Convert to uppercase and remove invalid characters
+            let value = e.target.value.toUpperCase();
+            value = value.replace(/[^A-Z0-9\sÑ,]/g, '');
+            e.target.value = value;
         });
 
         // Initialize
