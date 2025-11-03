@@ -1877,6 +1877,103 @@ document.addEventListener('DOMContentLoaded', function() {
         formNuevoUsuario.classList.remove('active');
     });
 
+    // Autocompletar datos cuando el usuario registrado ingresa su email
+    const emailClienteInput = document.getElementById('emailClienteInput');
+    if (emailClienteInput) {
+        emailClienteInput.addEventListener('blur', function(e) {
+            const email = e.target.value.trim().toLowerCase();
+            if (email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+                // Buscar el cliente en Firebase
+                db.ref('clientes').orderByChild('email').equalTo(email).limitToFirst(1).once('value')
+                    .then(snap => {
+                        if (!snap.exists()) {
+                            alert('No se encontró el email ingresado. Por favor, regístrate como nuevo cliente.');
+                            emailClienteInput.value = '';
+                            return;
+                        }
+                        
+                        // Cliente encontrado - autocompletar datos
+                        const cli = Object.values(snap.val())[0];
+                        
+                        // Guardar datos en la variable global
+                        datosExtraCliente = {
+                            email: email,
+                            nombre: cli.nombre || '',
+                            telefono: cli.telefono || '',
+                            localidad: cli.localidad || '',
+                            direccion: cli.direccion || '',
+                            provincia: cli.provincia || '',
+                            dni: cli.dni || '',
+                            tipoCliente: cli.tipoCliente || 'mayorista'
+                        };
+                        
+                        console.log('Datos del cliente cargados:', datosExtraCliente);
+                    })
+                    .catch(e => {
+                        console.error('Error al consultar email del cliente:', e);
+                        alert('Error al buscar el cliente. Por favor, intenta de nuevo.');
+                    });
+            }
+        });
+    }
+
+    // === Validación de pedido abierto ===
+    function validarPedidoAbierto(email, callback) {
+        db.ref('pedidos')
+            .orderByChild('cliente/email')
+            .equalTo(email)
+            .once('value')
+            .then(snap => {
+                let abierto = null;
+                let pedidoId = null;
+                snap.forEach(child => {
+                    const pedido = child.val();
+                    if (pedido.status === 'ABIERTO' && !abierto) {
+                        abierto = pedido;
+                        pedidoId = pedido.id || child.key;
+                    }
+                });
+                callback(abierto, pedidoId);
+            })
+            .catch(err => {
+                console.error('Error validando pedido abierto', err);
+                callback(null, null);
+            });
+    }
+
+    function mostrarMensajePedidoAbierto(pedidoId) {
+        const clienteModal = document.getElementById('clienteModal');
+        clienteModal.style.display = 'none';
+        
+        let overlay = document.getElementById('pedido-abierto-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'pedido-abierto-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(0,0,0,0.6)';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            overlay.style.zIndex = '9999';
+            document.body.appendChild(overlay);
+        }
+        overlay.innerHTML = `
+            <div style="background: #fff; padding: 30px 40px; border-radius: 12px; text-align: center; max-width: 90vw;">
+                <h2 style='color:#d32f2f;'>¡Ya tienes un pedido abierto en proceso! 🛒</h2>
+                <p>Si quieres hacer cambios, puedes modificarlo o cancelarlo para crear uno completamente nuevo.</p>
+                <button id="verPedidoBtn" style="background:#4CAF50;color:#fff;padding:10px 30px;border:none;border-radius:6px;font-size:1.1em;cursor:pointer;">Ver Pedido</button>
+            </div>
+        `;
+        document.getElementById('verPedidoBtn').onclick = function() {
+            window.location.href = `pedidos.html?id=${pedidoId}`;
+        };
+    }
+
     // Event listener para el botón Continuar
     const continuarBtn = document.getElementById('continuarBtn');
     if (continuarBtn) {
@@ -1887,7 +1984,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (formNuevoActivo) {
                 // Validar y obtener datos del formulario de nuevo usuario
                 const nombre = document.getElementById('nombreInput').value.trim();
-                const email = document.getElementById('emailInput').value.trim();
+                const email = document.getElementById('emailInput').value.trim().toLowerCase();
                 const telefono = document.getElementById('telefonoInput').value.trim();
                 
                 if (!nombre || !email || !telefono) {
@@ -1895,38 +1992,101 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
-                // Guardar datos del cliente
-                datosExtraCliente = {
-                    nombre: nombre,
-                    email: email,
-                    telefono: telefono,
-                    direccion: document.getElementById('direccionInput').value.trim(),
-                    localidad: document.getElementById('localidadInput').value.trim(),
-                    provincia: document.getElementById('provinciaInput').value,
-                    dni: document.getElementById('dniNuevoInput').value.trim()
-                };
-                
-                // Mostrar modal de confirmación
-                mostrarModalConfirmacion();
+                // Primero verificar si el email ya existe en la base de datos
+                db.ref('clientes').orderByChild('email').equalTo(email).limitToFirst(1).once('value')
+                    .then(snap => {
+                        if (snap.exists()) {
+                            // El email ya está registrado
+                            alert('Este email ya está registrado. Por favor, selecciona "Ya soy Cliente" e ingresa tu email para continuar.');
+                            return;
+                        }
+                        
+                        // El email no existe, verificar si tiene pedido abierto (por seguridad)
+                        validarPedidoAbierto(email, (abierto, pedidoId) => {
+                            if (abierto) {
+                                mostrarMensajePedidoAbierto(pedidoId);
+                                return;
+                            }
+                            
+                            // No hay pedido abierto y el email no está registrado, continuar con el flujo normal
+                            datosExtraCliente = {
+                                nombre: nombre,
+                                email: email,
+                                telefono: telefono,
+                                direccion: document.getElementById('direccionInput').value.trim(),
+                                localidad: document.getElementById('localidadInput').value.trim(),
+                                provincia: document.getElementById('provinciaInput').value,
+                                dni: document.getElementById('dniNuevoInput').value.trim(),
+                                tipoCliente: 'mayorista'
+                            };
+                            
+                            // Mostrar modal de confirmación
+                            mostrarModalConfirmacion();
+                        });
+                    })
+                    .catch(e => {
+                        console.error('Error al verificar email:', e);
+                        alert('Error al verificar el email. Por favor, intenta de nuevo.');
+                    });
                 
             } else if (formRegistradoActivo) {
                 // Validar email del usuario registrado
-                const emailCliente = document.getElementById('emailClienteInput').value.trim();
+                const emailCliente = document.getElementById('emailClienteInput').value.trim().toLowerCase();
                 
                 if (!emailCliente) {
                     alert('Por favor ingresa tu email registrado');
                     return;
                 }
                 
-                // Por ahora, solo guardamos el email
-                // En producción, aquí buscarías los datos en Firebase
-                datosExtraCliente = {
-                    email: emailCliente,
-                    nombre: 'Cliente Registrado' // Placeholder
-                };
-                
-                // Mostrar modal de confirmación
-                mostrarModalConfirmacion();
+                // Verificar que los datos del cliente estén cargados
+                if (!datosExtraCliente || !datosExtraCliente.nombre || datosExtraCliente.nombre === 'Cliente Registrado') {
+                    // Si no están cargados, buscar en Firebase
+                    db.ref('clientes').orderByChild('email').equalTo(emailCliente).limitToFirst(1).once('value')
+                        .then(snap => {
+                            if (!snap.exists()) {
+                                alert('No se encontró el email ingresado. Por favor, regístrate como nuevo cliente.');
+                                return;
+                            }
+                            
+                            const cli = Object.values(snap.val())[0];
+                            datosExtraCliente = {
+                                email: emailCliente,
+                                nombre: cli.nombre || '',
+                                telefono: cli.telefono || '',
+                                localidad: cli.localidad || '',
+                                direccion: cli.direccion || '',
+                                provincia: cli.provincia || '',
+                                dni: cli.dni || '',
+                                tipoCliente: cli.tipoCliente || 'mayorista'
+                            };
+                            
+                            // Validar si el usuario ya tiene un pedido abierto
+                            validarPedidoAbierto(emailCliente, (abierto, pedidoId) => {
+                                if (abierto) {
+                                    mostrarMensajePedidoAbierto(pedidoId);
+                                    return;
+                                }
+                                
+                                // No hay pedido abierto, mostrar modal de confirmación
+                                mostrarModalConfirmacion();
+                            });
+                        })
+                        .catch(e => {
+                            console.error('Error al consultar email del cliente:', e);
+                            alert('Error al buscar el cliente. Por favor, intenta de nuevo.');
+                        });
+                } else {
+                    // Los datos ya están cargados, validar pedido abierto
+                    validarPedidoAbierto(emailCliente, (abierto, pedidoId) => {
+                        if (abierto) {
+                            mostrarMensajePedidoAbierto(pedidoId);
+                            return;
+                        }
+                        
+                        // No hay pedido abierto, mostrar modal de confirmación
+                        mostrarModalConfirmacion();
+                    });
+                }
                 
             } else {
                 alert('Por favor selecciona si eres nuevo cliente o ya estás registrado');
