@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Palabras Clave</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .search-select {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-list.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dropdown-item:hover {
+            background: #f5f5f5;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .code-display {
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            color: #495057;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            border: 2px solid #e9ecef;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #34495e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #2c3e50;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .keywords-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .keywords-title {
+            color: #333;
+            margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .keywords-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .keyword-tag {
+            background: #34495e;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeIn 0.3s;
+        }
+
+        .keyword-tag .remove-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .keyword-tag .remove-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 30px;
+            font-style: italic;
+        }
+
+        .loading {
+            text-align: center;
+            color: #3498db;
+            padding: 20px;
+            font-weight: 600;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #fcc;
+        }
+
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #cfc;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 Palabras Clave</h1>
+        <p class="subtitle">Asocia palabras clave a tus artículos</p>
+
+        <div id="message"></div>
+
+        <div class="form-group">
+            <label for="articleSearch">Seleccionar Artículo</label>
+            <div class="search-select">
+                <input 
+                    type="text" 
+                    id="articleSearch" 
+                    class="search-input" 
+                    placeholder="Buscar artículo..."
+                    autocomplete="off"
+                >
+                <div id="dropdownList" class="dropdown-list"></div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Código Interno</label>
+            <div id="codeDisplay" class="code-display">-</div>
+        </div>
+
+        <div class="form-group">
+            <label for="keywords">Palabras Clave</label>
+            <textarea 
+                id="keywords" 
+                placeholder="Escribe las palabras clave separadas por comas (ej: rojo, grande, oferta)"
+                rows="3"
+            ></textarea>
+            <small style="color: #7f8c8d; font-size: 12px; margin-top: 4px; display: block;">Presiona Enter para guardar</small>
+        </div>
+
+        <button id="saveBtn" class="btn" disabled>Guardar Palabras Clave</button>
+
+        <div class="keywords-section">
+            <h3 class="keywords-title">Palabras Asociadas</h3>
+            <div id="existingKeywords" class="loading">Selecciona un artículo</div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+        import { getDatabase, ref, set, get, update, remove } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+        // Firebase configuration for keywords
+        const firebaseConfig = {
+            apiKey: "AIzaSyCf4oIhAZOtMZVLGpSfIV9dgsJ4Ag0MHno",
+            authDomain: "keywords-n--codes.firebaseapp.com",
+            databaseURL: "https://keywords-n--codes-default-rtdb.firebaseio.com",
+            projectId: "keywords-n--codes",
+            storageBucket: "keywords-n--codes.firebasestorage.app",
+            messagingSenderId: "590611671463",
+            appId: "1:590611671463:web:a4ef7fa29b3f35a771ee82"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Google Sheets configuration
+        const GOOGLE_SHEETS_CONFIG = {
+            API_KEY: 'AIzaSyD9h4SH9laGhvh-NRhDjYgbCThVEbM8HTo',
+            SPREADSHEET_ID: '1cD50d0-oSTogEe9tYo9ABUSP1ONCy3SAV92zsYYIG84',
+            RANGO: 'Lista!A2:Z'
+        };
+
+        // State
+        let articles = [];
+        let selectedArticle = null;
+
+        // DOM elements
+        const articleSearch = document.getElementById('articleSearch');
+        const dropdownList = document.getElementById('dropdownList');
+        const codeDisplay = document.getElementById('codeDisplay');
+        const keywordsInput = document.getElementById('keywords');
+        const saveBtn = document.getElementById('saveBtn');
+        const existingKeywords = document.getElementById('existingKeywords');
+        const messageDiv = document.getElementById('message');
+
+        // Fetch articles from Google Sheets
+        async function fetchArticles() {
+            try {
+                showMessage('Cargando artículos...', 'loading');
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/values/${GOOGLE_SHEETS_CONFIG.RANGO}?key=${GOOGLE_SHEETS_CONFIG.API_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.values) {
+                    articles = data.values.map(row => ({
+                        code: row[2] || '', // Column C
+                        name: row[3] || ''  // Column D
+                    })).filter(article => article.name.trim() !== '');
+                    
+                    hideMessage();
+                }
+            } catch (error) {
+                console.error('Error fetching articles:', error);
+                showMessage('Error al cargar los artículos', 'error');
+            }
+        }
+
+        // Filter and display dropdown
+        function filterArticles(searchTerm) {
+            const filtered = articles.filter(article => 
+                article.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                article.code.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                dropdownList.innerHTML = '<div class="dropdown-item">No se encontraron artículos</div>';
+            } else {
+                dropdownList.innerHTML = filtered.map(article => 
+                    `<div class="dropdown-item" data-code="${article.code}" data-name="${article.name}">
+                        ${article.name} <span style="color: #999; font-size: 12px;">(${article.code})</span>
+                    </div>`
+                ).join('');
+            }
+
+            dropdownList.classList.add('active');
+        }
+
+        // Select article
+        async function selectArticle(code, name) {
+            selectedArticle = { code, name };
+            articleSearch.value = name;
+            codeDisplay.textContent = code;
+            dropdownList.classList.remove('active');
+            saveBtn.disabled = false;
+            keywordsInput.value = '';
+            
+            await loadExistingKeywords(code);
+        }
+
+        // Load existing keywords from Firebase
+        async function loadExistingKeywords(code) {
+            try {
+                existingKeywords.innerHTML = '<div class="loading">Cargando...</div>';
+                const keywordsRef = ref(db, 'keywords/' + code);
+                const snapshot = await get(keywordsRef);
+
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    displayKeywords(data.keywords || []);
+                } else {
+                    displayKeywords([]);
+                }
+            } catch (error) {
+                console.error('Error loading keywords:', error);
+                existingKeywords.innerHTML = '<div class="error">Error al cargar las palabras clave</div>';
+            }
+        }
+
+        // Display keywords
+        function displayKeywords(keywords) {
+            if (keywords.length === 0) {
+                existingKeywords.innerHTML = '<div class="empty-state">No hay palabras clave asociadas</div>';
+            } else {
+                existingKeywords.innerHTML = '<div class="keywords-list">' +
+                    keywords.map(keyword => 
+                        `<div class="keyword-tag">
+                            ${keyword}
+                            <button class="remove-btn" data-keyword="${keyword}">×</button>
+                        </div>`
+                    ).join('') +
+                    '</div>';
+
+                // Add remove listeners
+                document.querySelectorAll('.remove-btn').forEach(btn => {
+                    btn.addEventListener('click', () => removeKeyword(btn.dataset.keyword));
+                });
+            }
+        }
+
+        // Save keywords
+        async function saveKeywords() {
+            if (!selectedArticle) return;
+
+            const keywordsText = keywordsInput.value.trim();
+            if (!keywordsText) {
+                showMessage('Por favor, ingresa al menos una palabra clave', 'error');
+                return;
+            }
+
+            const newKeywords = keywordsText.split(',').map(k => k.trim()).filter(k => k);
+            
+            if (newKeywords.length === 0) {
+                showMessage('Por favor, ingresa palabras clave válidas', 'error');
+                return;
+            }
+
+            try {
+                saveBtn.disabled = true;
+                showMessage('Guardando...', 'loading');
+
+                const keywordsRef = ref(db, 'keywords/' + selectedArticle.code);
+                const snapshot = await get(keywordsRef);
+
+                let existingKeywords = [];
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    existingKeywords = data.keywords || [];
+                }
+
+                // Merge new keywords with existing ones (avoid duplicates)
+                const mergedKeywords = [...new Set([...existingKeywords, ...newKeywords])];
+
+                // Save to Firebase
+                await set(keywordsRef, {
+                    code: selectedArticle.code,
+                    articleName: selectedArticle.name,
+                    keywords: mergedKeywords
+                });
+
+                keywordsInput.value = '';
+                showMessage('Palabras clave guardadas exitosamente', 'success');
+                await loadExistingKeywords(selectedArticle.code);
+            } catch (error) {
+                console.error('Error saving keywords:', error);
+                showMessage('Error al guardar las palabras clave: ' + error.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+            }
+        }
+
+        // Remove keyword
+        async function removeKeyword(keyword) {
+            if (!selectedArticle) return;
+            
+            if (!confirm(`¿Eliminar la palabra clave "${keyword}"?`)) return;
+
+            try {
+                const keywordsRef = ref(db, 'keywords/' + selectedArticle.code);
+                const snapshot = await get(keywordsRef);
+
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const updatedKeywords = (data.keywords || []).filter(k => k !== keyword);
+
+                    if (updatedKeywords.length === 0) {
+                        // If no keywords left, remove the entire entry
+                        await remove(keywordsRef);
+                    } else {
+                        // Update with remaining keywords
+                        await update(keywordsRef, {
+                            keywords: updatedKeywords
+                        });
+                    }
+
+                    showMessage('Palabra clave eliminada', 'success');
+                    await loadExistingKeywords(selectedArticle.code);
+                }
+            } catch (error) {
+                console.error('Error removing keyword:', error);
+                showMessage('Error al eliminar la palabra clave: ' + error.message, 'error');
+            }
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            messageDiv.className = type;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => hideMessage(), 3000);
+            }
+        }
+
+        // Hide message
+        function hideMessage() {
+            messageDiv.style.display = 'none';
+            messageDiv.textContent = '';
+        }
+
+        // Event listeners
+        articleSearch.addEventListener('focus', () => {
+            if (articles.length > 0) {
+                filterArticles(articleSearch.value);
+            }
+        });
+
+        articleSearch.addEventListener('input', (e) => {
+            filterArticles(e.target.value);
+        });
+
+        dropdownList.addEventListener('click', (e) => {
+            const item = e.target.closest('.dropdown-item');
+            if (item && item.dataset.code) {
+                selectArticle(item.dataset.code, item.dataset.name);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-select')) {
+                dropdownList.classList.remove('active');
+            }
+        });
+
+        saveBtn.addEventListener('click', saveKeywords);
+
+        // Handle Enter key in keywords textarea
+        keywordsInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!saveBtn.disabled) {
+                    saveKeywords();
+                }
+            }
+        });
+
+        // Initialize
+        fetchArticles();
+    </script>
+</body>
+</html>
