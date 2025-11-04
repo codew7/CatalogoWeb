@@ -367,8 +367,8 @@
                 
                 // Sort by most recent first
                 allCatalogs.sort((a, b) => {
-                    const dateA = new Date(a.fechaCreacion || a.timestamp || 0);
-                    const dateB = new Date(b.fechaCreacion || b.timestamp || 0);
+                    const dateA = new Date(a.createdAt || 0);
+                    const dateB = new Date(b.createdAt || 0);
                     return dateB - dateA;
                 });
                 
@@ -394,14 +394,13 @@
 
             filteredCatalogs = allCatalogs.filter(catalog => {
                 const matchesCatalog = !catalogFilter || 
-                    (catalog.nombreCatalogo && catalog.nombreCatalogo.toLowerCase().includes(catalogFilter));
+                    (catalog.catalogName && catalog.catalogName.toLowerCase().includes(catalogFilter));
                 
                 const matchesUser = !userFilter || 
-                    (catalog.nombreUsuario && catalog.nombreUsuario.toLowerCase().includes(userFilter)) ||
-                    (catalog.nombre && catalog.nombre.toLowerCase().includes(userFilter));
+                    (catalog.clientName && catalog.clientName.toLowerCase().includes(userFilter));
                 
                 const matchesPhone = !phoneFilter || 
-                    (catalog.telefono && catalog.telefono.toString().includes(phoneFilter));
+                    (catalog.clientPhone && catalog.clientPhone.toString().includes(phoneFilter));
 
                 return matchesCatalog && matchesUser && matchesPhone;
             });
@@ -418,7 +417,7 @@
             // Count today's catalogs
             const today = new Date().toDateString();
             const todaysCatalogs = allCatalogs.filter(catalog => {
-                const catalogDate = new Date(catalog.fechaCreacion || catalog.timestamp || 0);
+                const catalogDate = new Date(catalog.createdAt || 0);
                 return catalogDate.toDateString() === today;
             });
             todayCount.textContent = todaysCatalogs.length;
@@ -440,30 +439,24 @@
                 <div class="catalog-item">
                     <div class="catalog-header">
                         <div>
-                            <div class="catalog-title">${catalog.nombreCatalogo || 'Sin nombre'}</div>
-                            <div class="catalog-date">${formatDate(catalog.fechaCreacion || catalog.timestamp)}</div>
+                            <div class="catalog-title">${catalog.catalogName || 'Sin nombre'}</div>
+                            <div class="catalog-date">${formatDate(catalog.createdAt)}</div>
                         </div>
                     </div>
                     <div class="catalog-info">
                         <div class="info-item">
-                            <div class="info-label">Usuario</div>
-                            <div class="info-value">${catalog.nombreUsuario || catalog.nombre || 'No especificado'}</div>
+                            <div class="info-label">Cliente</div>
+                            <div class="info-value">${catalog.clientName || 'No especificado'}</div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Teléfono</div>
-                            <div class="info-value">${catalog.telefono || 'No especificado'}</div>
+                            <div class="info-value">${catalog.clientPhone || 'No especificado'}</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">Email</div>
-                            <div class="info-value">${catalog.email || 'No especificado'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Empresa</div>
-                            <div class="info-value">${catalog.empresa || catalog.nombreEmpresa || 'No especificado'}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Descripción</div>
-                            <div class="info-value">${catalog.descripcion || catalog.comentarios || 'No especificado'}</div>
+                            <div class="info-label">URL del Catálogo</div>
+                            <div class="info-value">
+                                ${catalog.url ? `<a href="${catalog.url}" target="_blank" style="color: #4299e1; text-decoration: none;">Ver Catálogo</a>` : 'No disponible'}
+                            </div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">ID</div>
