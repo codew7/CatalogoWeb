@@ -8,6 +8,82 @@
   <link rel="stylesheet" href="styles.css">
   <!-- Agregar Select2 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <style>
+    /* Estilos para el buscador de artículos */
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #e9ecef;
+      transition: background-color 0.2s ease;
+    }
+    
+    .search-result-item:hover,
+    .search-result-item.keyboard-selected {
+      background-color: #e7f1ff;
+      border-left: 3px solid #6c4eb6;
+      padding-left: 9px;
+    }
+    
+    .search-result-item.keyboard-selected {
+      background-color: #c6b1da;
+    }
+    
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+    
+    .search-result-img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    
+    .search-result-img-placeholder {
+      width: 50px;
+      height: 50px;
+      background: #dee2e6;
+      border-radius: 4px;
+      margin-right: 12px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #adb5bd;
+      font-size: 12px;
+    }
+    
+    .search-result-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .search-result-name {
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .search-result-code {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 2px;
+    }
+    
+    .search-no-results {
+      padding: 16px;
+      text-align: center;
+      color: #6c757d;
+      font-size: 14px;
+    }
+  </style>
   <!-- Firebase SDKs (solo una vez, última versión) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -77,37 +153,44 @@
           </div>
         </div>
         
-        <!-- Scanner de Código de Barras -->
-        <div id="barcodeScanner" style="margin-bottom: 1rem; padding: 30px; background: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 8px;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <label for="barcodeQuantity" style="font-weight: 600; color: #495057; min-width: 80px;">
-            Cantidad:
+        <!-- Buscador de Artículos -->
+        <div id="searchArticulosContainer" style="margin-bottom: 1.5rem; padding: 24px; background: #f8f9fa; border: 2px solid #6c4eb6; border-radius: 8px; max-width: 100%;">
+          <div style="display: grid; grid-template-columns: auto 1fr auto auto auto; gap: 12px; align-items: center; width: 100%;">
+            <label for="searchInput" style="font-weight: 600; color: #495057; white-space: nowrap;">
+              Buscar Artículo:
+            </label>
+            <div style="position: relative; min-width: 0;">
+              <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Busque por código, nombre o código de barras..."
+                autocomplete="off"
+                style="width: 100%; padding: 10px 14px; border: 2px solid #6c4eb6; border-radius: 6px; font-size: 0.95rem; background: white; box-sizing: border-box;"
+              />
+              <div id="searchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #6c4eb6; border-top: none; border-radius: 0 0 6px 6px; max-height: 400px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"></div>
+            </div>
+            <label for="searchQuantity" style="font-weight: 600; color: #495057; white-space: nowrap;">
+              Cantidad:
             </label>
             <input 
               type="number" 
-              id="barcodeQuantity" 
+              id="searchQuantity" 
               min="1" 
               max="999"
               value="1"
               placeholder="1"
-              style="width: 80px; padding: 8px 12px; border: 2px solid #28a745; border-radius: 6px; font-size: 1rem; background: white; text-align: center;"
+              style="width: 80px; padding: 10px 12px; border: 2px solid #28a745; border-radius: 6px; font-size: 0.95rem; background: white; text-align: center; box-sizing: border-box;"
             />
-            <label for="barcodeInput" style="font-weight: 600; color: #495057; margin-left: 20px; min-width: 120px;">
-            Código de Barras:
-            </label>
-            <input 
-              type="text" 
-              id="barcodeInput" 
-              placeholder="Escanee o escriba el código de barras aquí..."
-              autocomplete="off"
-              style="flex: 1; padding: 8px 12px; border: 2px solid #6c4eb6; border-radius: 6px; font-size: 1rem; background: white;"
-            />
-            <div id="barcodeStatus" style="min-width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
-              <!-- Status indicator -->
-            </div>
+            <button 
+              type="button" 
+              id="addSearchItemBtn"
+              style="padding: 10px 24px; background: #28a745; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; white-space: nowrap; font-size: 0.95rem;"
+            >
+              Agregar
+            </button>
           </div>
-          <div style="font-size: 0.85rem; color: #6c757d; margin-top: 6px;">
-            💡 Establezca la cantidad y luego escanee el código de barras para agregar artículos automáticamente.
+          <div style="font-size: 0.85rem; color: #6c757d; margin-top: 12px; line-height: 1.4;">
+            💡 Busque el artículo, ajuste la cantidad si lo desea, y presione Enter o clic en Agregar.
           </div>
         </div>
         <table class="items-table" aria-label="Artículos de la Orden">
@@ -126,8 +209,7 @@
             <!-- Filas dinámicas -->
           </tbody>
         </table>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-          <button type="button" id="addItemBtn" class="add-btn">Agregar Artículo</button>
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 1rem;">
           <div id="contadoresArticulos" style="display: none; font-size: 0.9rem; color: #666; font-weight: 500; gap: 20px; align-items: center;">
             <span id="cantidadArticulos">Artículos distintos: 0</span>
             <span id="cantidadUnidades">Unidades totales: 0</span>
