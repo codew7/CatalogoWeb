@@ -1392,22 +1392,52 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
     if (admin && !notaDiv) {
       notaDiv = document.createElement('div');
       notaDiv.id = 'notaDiv';
+      // Campo Nota con select y fecha de actualización
       notaDiv.innerHTML = `
         <div style="display:flex;align-items:center;margin-top:15px;width:100%;max-width:none;">
           <div style="font-weight:bold;min-width:120px;">Nota</div>
-          <div style="flex:1;max-width:none;">
-            <input type="text" id="notaTextarea" list="notaEstadosDatalist" placeholder="Seleccionar o escribir estado..." 
-              style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-family:Arial,sans-serif;font-size:0.95em;box-sizing:border-box;">
-            <datalist id="notaEstadosDatalist">
-              <option value="en preparacion">
-              <option value="esperando pago">
-              <option value="esperando respuesta">
-              <option value="cotizar">
-            </datalist>
+          <div style="flex:1;max-width:none;display:flex;flex-direction:column;gap:0.25rem;">
+            <select id="notaSelect" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-family:Arial,sans-serif;font-size:0.95em;box-sizing:border-box;cursor:pointer;">
+              <option value="">---</option>
+              <option value="esperando respuesta">Esperando respuesta</option>
+              <option value="esperando cierre">Esperando cierre</option>
+              <option value="espera cotización">Espera cotización</option>
+              <option value="esperando pago">Esperando pago</option>
+              <option value="pago">Pago</option>
+              <option value="retira">Retira</option>
+              <option value="no responde">No responde</option>
+            </select>
+            <span id="notaFechaLabel" style="font-size:0.7rem;color:#999;font-style:italic;text-align:left;"></span>
           </div>
         </div>
       `;
       totalPagoWrap.appendChild(notaDiv);
+      // Cargar valor de Nota y fecha si existe y es admin
+      setTimeout(() => {
+        const notaSelect = document.getElementById('notaSelect');
+        const notaFechaLabel = document.getElementById('notaFechaLabel');
+        if (notaSelect && admin) {
+          if (pedidoActual.nota) notaSelect.value = pedidoActual.nota;
+          if (pedidoActual.notaFecha) {
+            const notaFecha = new Date(pedidoActual.notaFecha);
+            notaFechaLabel.textContent = `Actualización: ${notaFecha.toLocaleDateString('es-AR')} ${notaFecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`;
+          } else {
+            notaFechaLabel.textContent = '';
+          }
+          notaSelect.addEventListener('change', function() {
+            const nuevaNota = this.value;
+            const ahora = Date.now();
+            firebase.database().ref('pedidos/' + pedidoActual.id).update({ nota: nuevaNota, notaFecha: ahora })
+              .then(() => {
+                const fechaHora = new Date(ahora);
+                notaFechaLabel.textContent = (nuevaNota && nuevaNota.trim() !== '')
+                  ? `Actualización: ${fechaHora.toLocaleDateString('es-AR')} ${fechaHora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`
+                  : '';
+              })
+              .catch(() => console.error('Error al guardar la nota'));
+          });
+        }
+      }, 0);
     } else if (admin && !totalPagoWrap.contains(notaDiv)) {
       totalPagoWrap.appendChild(notaDiv);
     }
@@ -1562,12 +1592,15 @@ document.getElementById('guardarBtn').onclick = async () => {
       adminViewedValue = true;
     }
 
-    // Obtener nota (solo si es admin)
+
+    // Obtener nota y fecha (solo si es admin)
     let nota = '';
+    let notaFecha = null;
     if (admin) {
-      const notaTextarea = document.getElementById('notaTextarea');
-      if (notaTextarea) {
-        nota = notaTextarea.value.trim();
+      const notaSelect = document.getElementById('notaSelect');
+      if (notaSelect) {
+        nota = notaSelect.value.trim();
+        if (nota) notaFecha = Date.now();
       }
     }
 
@@ -1583,9 +1616,10 @@ document.getElementById('guardarBtn').onclick = async () => {
       lastModifiedEmail: lastModifiedEmail
     };
 
-    // Agregar nota solo si es admin y tiene contenido
+    // Agregar nota y fecha solo si es admin y tiene contenido
     if (admin && nota) {
       updateData.nota = nota;
+      updateData.notaFecha = notaFecha;
     }
 
     // Preparar promesas para actualización

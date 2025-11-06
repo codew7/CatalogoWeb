@@ -1062,21 +1062,25 @@
           notaSelect.appendChild(option);
         });
 
-        // Fecha de última actualización
+
+        // Fecha y hora de última actualización
         const notaFecha = p.notaFecha ? new Date(p.notaFecha) : null;
         const fechaLabel = document.createElement('span');
         fechaLabel.style.fontSize = '0.7rem';
         fechaLabel.style.color = '#999';
         fechaLabel.style.fontStyle = 'italic';
         fechaLabel.style.textAlign = 'left';
-        fechaLabel.textContent = (notaFecha && (p.nota && p.nota.trim() !== '')) ? `Actualización ${notaFecha.toLocaleDateString('es-AR')}` : '';
+        fechaLabel.textContent = (notaFecha && (p.nota && p.nota.trim() !== ''))
+          ? `Actualización: ${notaFecha.toLocaleDateString('es-AR')} ${notaFecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`
+          : '';
 
         function actualizarNota(nuevaNota) {
           const ahora = Date.now();
           db.ref(`pedidos/${p.id}`).update({ nota: nuevaNota, notaFecha: ahora })
             .then(() => {
+              const fechaHora = new Date(ahora);
               fechaLabel.textContent = (nuevaNota && nuevaNota.trim() !== '')
-                ? `Actualización: ${new Date(ahora).toLocaleDateString('es-AR')} ${new Date(ahora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`
+                ? `Actualización: ${fechaHora.toLocaleDateString('es-AR')} ${fechaHora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`
                 : '';
             })
             .catch(() => console.error('Error al guardar la nota'));
