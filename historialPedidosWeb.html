@@ -255,6 +255,18 @@
       color: #2196F3;
     }
 
+    .menu-item.clear-filters {
+      background: linear-gradient(135deg, #d3b76b 0%, #d3b76b 100%);
+      color: white;
+      font-weight: 600;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .menu-item.clear-filters i {
+      color: white;
+    }
+
     .menu-item.checkbox-item {
       cursor: default;
     }
@@ -344,6 +356,42 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
+    /* === BUSCADOR Y FILTRO DE NOTA EN MENÚ === */
+    .menu-search-input,
+    .menu-note-select {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-family: inherit;
+      transition: var(--transition);
+      background: white;
+      color: var(--text-dark);
+    }
+
+    .menu-search-input:focus,
+    .menu-note-select:focus {
+      outline: none;
+      border-color: #2196F3;
+      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    }
+
+    .menu-search-input::placeholder {
+      color: var(--text-light);
+      font-style: italic;
+    }
+
+    .menu-note-select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23757575' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 12px;
+      padding-right: 2.5rem;
+    }
+
     /* === INDICADORES DE USUARIO === */
     .user-indicator {
       position: absolute;
@@ -399,6 +447,73 @@
 
     .logout-btn i {
       font-size: 0.9rem;
+    }
+
+    /* === INDICADORES DE FILTROS ACTIVOS === */
+    .active-filters-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.75rem;
+      padding: 0.5rem 1rem;
+      min-height: 20px;
+    }
+
+    .filter-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-color);
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+      border: 1px solid rgba(79, 70, 229, 0.2);
+    }
+
+    .filter-indicator i {
+      font-size: 0.85rem;
+      color: var(--primary-color);
+    }
+
+    .filter-indicator:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .filter-indicator.status {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05));
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+
+    .filter-indicator.delivery {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05));
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .filter-indicator.recurring {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.05));
+      border-color: rgba(168, 85, 247, 0.3);
+    }
+
+    .filter-indicator.units {
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(249, 115, 22, 0.05));
+      border-color: rgba(249, 115, 22, 0.3);
+    }
+
+    .filter-indicator.search {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(236, 72, 153, 0.05));
+      border-color: rgba(236, 72, 153, 0.3);
+    }
+
+    .filter-indicator.note {
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(234, 179, 8, 0.05));
+      border-color: rgba(234, 179, 8, 0.3);
     }
 
     /* === FILTROS === */
@@ -690,7 +805,7 @@
       padding: 0.25rem 0.6rem;
       font-size: 0.75rem;
       font-weight: 700;
-      margin-left: 0.5rem;
+ 
       box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
       min-width: 28px;
     }
@@ -1047,6 +1162,16 @@
         width: 32px;
         height: 32px;
       }
+
+      .active-filters-container {
+        padding: 0.4rem 0.75rem;
+        gap: 0.4rem;
+      }
+
+      .filter-indicator {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+      }
     }
 
     @media (max-width: 600px) {
@@ -1057,6 +1182,22 @@
       header h1 {
         font-size: 1.25rem;
         margin-bottom: 0.75rem;
+      }
+
+      .active-filters-container {
+        padding: 0.35rem 0.5rem;
+        gap: 0.35rem;
+        margin-top: 0.5rem;
+      }
+
+      .filter-indicator {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        gap: 0.25rem;
+      }
+
+      .filter-indicator i {
+        font-size: 0.75rem;
       }
 
       .main-container {
@@ -1158,6 +1299,10 @@
           <i class="bi bi-download"></i>
           <span>Descargar Todo</span>
         </div>
+        <div class="menu-item clear-filters" onclick="limpiarFiltros(); toggleMenu();">
+          <i class="bi bi-x-circle-fill"></i>
+          <span>Limpiar Filtros</span>
+        </div>
         <div class="menu-item checkbox-item">
           <label class="menu-checkbox-wrapper">
             <input type="checkbox" id="checkClientesRecurrentesMenu" onchange="toggleFiltroClientesRecurrentes()">
@@ -1173,6 +1318,42 @@
           </label>
         </div>
         
+        <!-- Buscador por nombre -->
+        <div class="menu-category-title">
+          <i class="bi bi-search"></i> Búsqueda
+        </div>
+        <div class="menu-filters-container">
+          <div class="menu-filter-group">
+            <input 
+              type="text" 
+              id="searchNombre" 
+              class="menu-search-input" 
+              placeholder="Buscar por nombre..."
+              oninput="aplicarFiltros()"
+            >
+          </div>
+        </div>
+        
+        <!-- Filtro por tipo de nota -->
+        <div class="menu-category-title">
+          <i class="bi bi-card-text"></i> Nota
+        </div>
+        <div class="menu-filters-container">
+          <div class="menu-filter-group">
+            <select id="filtroNota" class="menu-note-select" onchange="aplicarFiltros()">
+              <option value="">Todas las notas</option>
+              <option value="esperando respuesta">Esperando respuesta</option>
+              <option value="esperando cierre">Esperando cierre</option>
+              <option value="espera cotización">Espera cotización</option>
+              <option value="esperando pago">Esperando pago</option>
+              <option value="pago">Pago</option>
+              <option value="retira">Retira</option>
+              <option value="no responde">No responde</option>
+              <option value="sin_nota">Sin nota</option>
+            </select>
+          </div>
+        </div>
+        
         <!-- Categoría de Filtros -->
         <div class="menu-category-title">
           <i class="bi bi-funnel"></i> Filtros
@@ -1184,6 +1365,9 @@
     </div>
 
     <h1>📋 Pedidos Web</h1>
+    
+    <!-- Indicadores de filtros activos -->
+    <div class="active-filters-container" id="activeFiltersContainer"></div>
     
     <!-- Indicador de Administrador -->
     <div id="adminIndicator" class="user-indicator" style="display: none;">
@@ -1306,6 +1490,93 @@
   let entregaSeleccionada = null; // 'Retiro', 'Envio' o null
   let filtroClientesRecurrentes = false; // Filtro de clientes recurrentes
   let filtroMasDeUnaUnidad = false; // Filtro de pedidos con más de 1 unidad
+  let busquedaNombre = ''; // Búsqueda por nombre
+  let filtroNotaSeleccionada = ''; // Filtro por tipo de nota
+
+  // Función para aplicar filtros (búsqueda y nota)
+  function aplicarFiltros() {
+    const searchInput = document.getElementById('searchNombre');
+    const filtroNotaSelect = document.getElementById('filtroNota');
+    
+    busquedaNombre = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    filtroNotaSeleccionada = filtroNotaSelect ? filtroNotaSelect.value : '';
+    
+    actualizarIndicadoresFiltros();
+    renderTabla();
+  }
+
+  // Función para actualizar los indicadores de filtros activos
+  function actualizarIndicadoresFiltros() {
+    const container = document.getElementById('activeFiltersContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    const indicators = [];
+    
+    // Indicador de estado (solo si no están todos seleccionados)
+    if (statusSeleccionados.length > 0 && statusSeleccionados.length < 4) {
+      const statusText = statusSeleccionados.join(', ');
+      indicators.push(`
+        <div class="filter-indicator status">
+          <i class="bi bi-circle-fill"></i>
+          <span>Estado: ${statusText}</span>
+        </div>
+      `);
+    }
+    
+    // Indicador de tipo de entrega
+    if (entregaSeleccionada) {
+      indicators.push(`
+        <div class="filter-indicator delivery">
+          <i class="bi bi-truck"></i>
+          <span>${entregaSeleccionada}</span>
+        </div>
+      `);
+    }
+    
+    // Indicador de clientes recurrentes
+    if (filtroClientesRecurrentes) {
+      indicators.push(`
+        <div class="filter-indicator recurring">
+          <i class="bi bi-arrow-repeat"></i>
+          <span>Clientes recurrentes</span>
+        </div>
+      `);
+    }
+    
+    // Indicador de más de 1 unidad
+    if (filtroMasDeUnaUnidad) {
+      indicators.push(`
+        <div class="filter-indicator units">
+          <i class="bi bi-box-seam"></i>
+          <span>Más de 1 unidad</span>
+        </div>
+      `);
+    }
+    
+    // Indicador de búsqueda por nombre
+    if (busquedaNombre) {
+      indicators.push(`
+        <div class="filter-indicator search">
+          <i class="bi bi-search"></i>
+          <span>Buscar: "${busquedaNombre}"</span>
+        </div>
+      `);
+    }
+    
+    // Indicador de filtro por nota
+    if (filtroNotaSeleccionada) {
+      const notaText = filtroNotaSeleccionada === 'sin_nota' ? 'Sin Nota' : filtroNotaSeleccionada;
+      indicators.push(`
+        <div class="filter-indicator note">
+          <i class="bi bi-sticky"></i>
+          <span>Nota: ${notaText}</span>
+        </div>
+      `);
+    }
+    
+    container.innerHTML = indicators.join('');
+  }
 
   // Función para inicializar el historial de pedidos después de la autenticación
   function inicializarHistorialPedidos() {
@@ -1405,6 +1676,7 @@
   function toggleFiltroClientesRecurrentes() {
     const checkbox = document.getElementById('checkClientesRecurrentesMenu');
     filtroClientesRecurrentes = checkbox ? checkbox.checked : false;
+    actualizarIndicadoresFiltros();
     renderTabla();
   }
 
@@ -1412,6 +1684,41 @@
   function toggleFiltroMasDeUnaUnidad() {
     const checkbox = document.getElementById('checkMasDeUnaUnidad');
     filtroMasDeUnaUnidad = checkbox ? checkbox.checked : false;
+    actualizarIndicadoresFiltros();
+    renderTabla();
+  }
+
+  // Función para limpiar todos los filtros
+  function limpiarFiltros() {
+    // Restablecer estados seleccionados a ABIERTO y CERRADO
+    statusSeleccionados = ['ABIERTO', 'CERRADO'];
+    
+    // Limpiar tipo de entrega
+    entregaSeleccionada = null;
+    
+    // Desactivar filtro de clientes recurrentes
+    filtroClientesRecurrentes = false;
+    const checkRecurrentes = document.getElementById('checkClientesRecurrentesMenu');
+    if (checkRecurrentes) checkRecurrentes.checked = false;
+    
+    // Desactivar filtro de más de una unidad
+    filtroMasDeUnaUnidad = false;
+    const checkUnidades = document.getElementById('checkMasDeUnaUnidad');
+    if (checkUnidades) checkUnidades.checked = false;
+    
+    // Limpiar búsqueda por nombre
+    busquedaNombre = '';
+    const searchInput = document.getElementById('searchNombre');
+    if (searchInput) searchInput.value = '';
+    
+    // Limpiar filtro por nota
+    filtroNotaSeleccionada = '';
+    const filtroNotaSelect = document.getElementById('filtroNota');
+    if (filtroNotaSelect) filtroNotaSelect.value = '';
+    
+    // Actualizar indicadores y tabla
+    actualizarIndicadoresFiltros();
+    renderBotonesFiltro();
     renderTabla();
   }
 
@@ -1527,6 +1834,7 @@
         } else {
           statusSeleccionados = [est.value];
         }
+        actualizarIndicadoresFiltros();
         renderBotonesFiltro();
         renderTabla();
       };
@@ -1555,6 +1863,7 @@
     btnRetiro.style.borderColor = '#FFD600';
     btnRetiro.onclick = () => {
       entregaSeleccionada = entregaSeleccionada === 'Retiro' ? null : 'Retiro';
+      actualizarIndicadoresFiltros();
       renderBotonesFiltro();
       renderTabla();
     };
@@ -1569,6 +1878,7 @@
     btnEnvio.style.borderColor = '#FFD600';
     btnEnvio.onclick = () => {
       entregaSeleccionada = entregaSeleccionada === 'Envio' ? null : 'Envio';
+      actualizarIndicadoresFiltros();
       renderBotonesFiltro();
       renderTabla();
     };
@@ -1583,6 +1893,7 @@
     btnNA.style.borderColor = '#FFD600';
     btnNA.onclick = () => {
       entregaSeleccionada = entregaSeleccionada === 'N/A' ? null : 'N/A';
+      actualizarIndicadoresFiltros();
       renderBotonesFiltro();
       renderTabla();
     };
@@ -1598,6 +1909,7 @@
     btnTodos.onclick = () => {
       statusSeleccionados = [];
       entregaSeleccionada = null;
+      actualizarIndicadoresFiltros();
       renderBotonesFiltro();
       renderTabla();
     };
@@ -1625,6 +1937,7 @@
   }
 
   function renderTabla() {
+    actualizarIndicadoresFiltros();
     const statusSel = getSelectedStatuses();
     tbody.innerHTML = '';
 
@@ -1680,6 +1993,20 @@
         }
         return totalUnidades > 1;
       })
+      .filter(p => {
+        // Filtrar por búsqueda de nombre
+        if (!busquedaNombre) return true;
+        const nombreCliente = (p.cliente?.nombre || '').toLowerCase();
+        return nombreCliente.includes(busquedaNombre);
+      })
+      .filter(p => {
+        // Filtrar por tipo de nota
+        if (!filtroNotaSeleccionada) return true;
+        if (filtroNotaSeleccionada === 'sin_nota') {
+          return !p.nota || p.nota.trim() === '';
+        }
+        return p.nota === filtroNotaSeleccionada;
+      })
       .sort((a, b) => b.timestamp - a.timestamp) // más nuevos arriba
       .forEach(p => {
         const tr = document.createElement('tr');
@@ -1710,20 +2037,12 @@
   const nombreCell = tr.insertCell();
   nombreCell.className = 'col-nombre';
         
-        // Agregar badge con contador de pedidos entregados A LA IZQUIERDA
-        const emailCliente = p.cliente?.email;
-        if (emailCliente) {
-          const cantidadEntregados = contarPedidosEntregados(emailCliente);
-          if (cantidadEntregados > 0) {
-            const badge = document.createElement('span');
-            badge.className = 'order-count-badge';
-            badge.innerHTML = `<i class="bi bi-box-seam-fill"></i>${cantidadEntregados}`;
-            badge.title = `${cantidadEntregados} pedido(s) entregado(s)`;
-            badge.style.marginRight = '0.5rem';
-            badge.style.marginLeft = '0';
-            nombreCell.appendChild(badge);
-          }
-        }
+        // Crear contenedor vertical para nombre y badge
+        const nombreContainer = document.createElement('div');
+        nombreContainer.style.display = 'flex';
+        nombreContainer.style.flexDirection = 'column';
+        nombreContainer.style.alignItems = 'flex-start';
+        nombreContainer.style.gap = '5px';
         
         const nombreSpan = document.createElement('span');
         nombreSpan.textContent = p.cliente?.nombre || '—';
@@ -1735,7 +2054,23 @@
           db.ref(`pedidos/${p.id}`).update({ adminViewed: true })
             .catch(() => console.error('No se pudo marcar adminViewed'));
         };
-        nombreCell.appendChild(nombreSpan);
+        nombreContainer.appendChild(nombreSpan);
+        
+        // Agregar badge con contador de pedidos entregados DEBAJO del nombre
+        const emailCliente = p.cliente?.email;
+        if (emailCliente) {
+          const cantidadEntregados = contarPedidosEntregados(emailCliente);
+          if (cantidadEntregados > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'order-count-badge';
+            badge.innerHTML = `<i class="bi bi-box-seam-fill"></i>${cantidadEntregados}`;
+            badge.title = `${cantidadEntregados} pedido(s) entregado(s)`;
+            badge.style.marginTop = '5px';
+            nombreContainer.appendChild(badge);
+          }
+        }
+        
+        nombreCell.appendChild(nombreContainer);
 
         /* --- 4. Fecha corta --- */
         const fecha = new Date(p.timestamp);
