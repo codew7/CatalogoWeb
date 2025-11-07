@@ -148,6 +148,202 @@
       text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
+    /* === MENÚ HAMBURGUESA === */
+    .hamburger-menu {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      z-index: 1001;
+    }
+
+    .hamburger-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: var(--transition);
+      padding: 8px;
+    }
+
+    .hamburger-icon:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .hamburger-icon span {
+      width: 24px;
+      height: 2.5px;
+      background: white;
+      border-radius: 2px;
+      transition: var(--transition);
+    }
+
+    .hamburger-icon.active span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .hamburger-icon.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger-icon.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+
+    .menu-dropdown {
+      position: absolute;
+      top: 50px;
+      left: 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      min-width: 280px;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: var(--transition);
+    }
+
+    .menu-dropdown.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .menu-item {
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: var(--transition);
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-dark);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .menu-item:last-child {
+      border-bottom: none;
+    }
+
+    .menu-item:hover {
+      background: var(--bg-light);
+    }
+
+    .menu-item i {
+      font-size: 1.2rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .menu-item.dashboard i {
+      color: #9C27B0;
+    }
+
+    .menu-item.download i {
+      color: #2196F3;
+    }
+
+    .menu-item.checkbox-item {
+      cursor: default;
+    }
+
+    .menu-item.checkbox-item:hover {
+      background: white;
+    }
+
+    .menu-checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .menu-checkbox-wrapper:hover {
+      opacity: 0.8;
+    }
+
+    .menu-checkbox-wrapper input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #2196F3;
+    }
+
+    .menu-checkbox-wrapper i {
+      color: #2196F3;
+    }
+
+    /* === CATEGORÍA DE FILTROS EN MENÚ === */
+    .menu-category-title {
+      padding: 0.75rem 1.25rem;
+      background: var(--bg-light);
+      color: var(--text-light);
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .menu-filters-container {
+      padding: 1rem 1.25rem;
+      background: #fafafa;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .menu-filter-group {
+      margin-bottom: 0.75rem;
+    }
+
+    .menu-filter-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .menu-filter-group-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .menu-filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .menu-filter-btn {
+      padding: 0.4rem 0.9rem;
+      border: 1.5px solid;
+      border-radius: 18px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: var(--transition);
+      background: white;
+      flex-shrink: 0;
+    }
+
+    .menu-filter-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
     /* === INDICADORES DE USUARIO === */
     .user-indicator {
       position: absolute;
@@ -314,13 +510,13 @@
 
     /* === COLUMNAS === */
     .col-indicador { width: 3%; min-width: 40px; }
-    .col-nombre { width: 18%; min-width: 150px; }
+    .col-nombre { width: 18%; min-width: 150px; text-align: left; }
     .col-fecha { width: 12%; min-width: 120px; }
     .col-entrega { width: 10%; min-width: 90px; }
     .col-estado { width: 10%; min-width: 90px; }
     .col-unidades { width: 8%; min-width: 60px; }
-    .col-nota { width: 20%; min-width: 180px; }
-    .col-eliminar { width: 12%; min-width: 120px; }
+    .col-nota { width: 22%; min-width: 180px; }
+    .col-eliminar { width: 14%; min-width: 120px; }
 
     /* === ELEMENTOS ESPECIALES === */
     .dot {
@@ -436,11 +632,20 @@
       transition: var(--transition);
       text-transform: uppercase;
       letter-spacing: 1px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1rem auto;
     }
 
     #btnDescargarTodo:hover {
       transform: translateY(-3px);
       box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, #42A5F5 0%, #1E88E5 100%);
+    }
+
+    #btnDescargarTodo i {
+      font-size: 1.2rem;
     }
 
     #pieDescargarTodo {
@@ -474,6 +679,314 @@
       color: #0277bd;
     }
 
+    /* === BADGE CONTADOR PEDIDOS === */
+    .order-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 0.5rem;
+      box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+      min-width: 28px;
+    }
+
+    .order-count-badge i {
+      font-size: 0.7rem;
+      margin-right: 0.25rem;
+    }
+
+    /* === BOTÓN DASHBOARD === */
+    .btn-dashboard {
+      background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 0.75rem 2rem;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      transition: var(--transition);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1rem auto;
+    }
+
+    .btn-dashboard:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, #AB47BC 0%, #8E24AA 100%);
+    }
+
+    .btn-dashboard i {
+      font-size: 1.2rem;
+    }
+
+    /* Estilo hover específico para botón Descargar Todo */
+    #btnDescargarTodoTop:hover {
+      background: linear-gradient(135deg, #42A5F5 0%, #1E88E5 100%) !important;
+    }
+
+    /* === FILTRO CLIENTES RECURRENTES === */
+    .filter-returning-customers {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 25px;
+      box-shadow: var(--shadow-md);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: var(--transition);
+      user-select: none;
+    }
+
+    .filter-returning-customers:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      background: #f5f5f5;
+    }
+
+    .filter-returning-customers input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #2196F3;
+    }
+
+    .filter-returning-customers i {
+      font-size: 1.1rem;
+      color: #2196F3;
+    }
+
+    /* === MODAL DASHBOARD === */
+    .dashboard-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 1rem;
+    }
+
+    .dashboard-content {
+      background: white;
+      border-radius: var(--radius-lg);
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: fadeInUp 0.4s ease-out;
+    }
+
+    .dashboard-header {
+      background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+      color: white;
+      padding: 1.5rem 2rem;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dashboard-header h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .dashboard-close {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .dashboard-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
+    }
+
+    .dashboard-body {
+      padding: 2rem;
+    }
+
+    .dashboard-filters {
+      background: var(--bg-light);
+      padding: 1.5rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 2rem;
+    }
+
+    .dashboard-filters h3 {
+      margin: 0 0 1rem 0;
+      color: var(--text-dark);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .date-filter-row {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .date-filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .date-filter-group label {
+      font-weight: 600;
+      color: var(--text-light);
+      font-size: 0.85rem;
+    }
+
+    .date-filter-group input {
+      padding: 0.75rem;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+
+    .date-filter-group input:focus {
+      outline: none;
+      border-color: #9C27B0;
+      box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.1);
+    }
+
+    .btn-apply-filter {
+      background: #9C27B0;
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      align-self: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    .btn-apply-filter:hover {
+      background: #7B1FA2;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      text-align: center;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-md);
+      border-color: #9C27B0;
+    }
+
+    .stat-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0.5rem 0;
+    }
+
+    .stat-label {
+      font-size: 0.95rem;
+      color: var(--text-light);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-card.abiertos::before {
+      background: linear-gradient(90deg, #4CAF50, #66BB6A);
+    }
+
+    .stat-card.abiertos .stat-icon {
+      color: #4CAF50;
+    }
+
+    .stat-card.cerrados::before {
+      background: linear-gradient(90deg, #757575, #9E9E9E);
+    }
+
+    .stat-card.cerrados .stat-icon {
+      color: #757575;
+    }
+
+    .stat-card.totales::before {
+      background: linear-gradient(90deg, #2196F3, #42A5F5);
+    }
+
+    .stat-card.totales .stat-icon {
+      color: #2196F3;
+    }
+
     /* === RESPONSIVE === */
     @media (max-width: 1200px) {
       .main-container {
@@ -488,7 +1001,7 @@
 
     @media (max-width: 900px) {
       header {
-        padding: 1rem 1rem 1.5rem 1rem;
+        padding: 1rem 1rem 1rem 1rem;
       }
 
       header h1 {
@@ -629,6 +1142,47 @@
 </head>
 <body>
   <header>
+    <!-- Menú Hamburguesa -->
+    <div class="hamburger-menu">
+      <div class="hamburger-icon" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="menu-dropdown" id="menuDropdown">
+        <div class="menu-item dashboard" onclick="abrirDashboard(); toggleMenu();">
+          <i class="bi bi-bar-chart-fill"></i>
+          <span>Dashboard</span>
+        </div>
+        <div class="menu-item download" onclick="if (!descargandoTodo) { cargarPedidosTodos(); toggleMenu(); }">
+          <i class="bi bi-download"></i>
+          <span>Descargar Todo</span>
+        </div>
+        <div class="menu-item checkbox-item">
+          <label class="menu-checkbox-wrapper">
+            <input type="checkbox" id="checkClientesRecurrentesMenu" onchange="toggleFiltroClientesRecurrentes()">
+            <i class="bi bi-arrow-repeat"></i>
+            <span>Clientes recurrentes</span>
+          </label>
+        </div>
+        <div class="menu-item checkbox-item">
+          <label class="menu-checkbox-wrapper">
+            <input type="checkbox" id="checkMasDeUnaUnidad" onchange="toggleFiltroMasDeUnaUnidad()">
+            <i class="bi bi-box-seam"></i>
+            <span>Pedidos con +1 unidad</span>
+          </label>
+        </div>
+        
+        <!-- Categoría de Filtros -->
+        <div class="menu-category-title">
+          <i class="bi bi-funnel"></i> Filtros
+        </div>
+        <div class="menu-filters-container" id="menuFiltrosContainer">
+          <!-- Los botones de filtro se renderizarán aquí dinámicamente -->
+        </div>
+      </div>
+    </div>
+
     <h1>📋 Pedidos Web</h1>
     
     <!-- Indicador de Administrador -->
@@ -646,7 +1200,7 @@
       </button>
     </div>
     
-    <div id="filtroStatusBtns"></div>
+    <div id="filtroStatusBtns" style="display: none;"></div>
   </header>
 
   <div class="main-container">
@@ -682,6 +1236,54 @@
   <option value="no responde">
 </datalist>
 
+<!-- Modal Dashboard -->
+<div id="dashboardModal" class="dashboard-modal">
+  <div class="dashboard-content">
+    <div class="dashboard-header">
+      <h2><i class="bi bi-bar-chart-fill"></i> Dashboard de Pedidos</h2>
+      <button class="dashboard-close" onclick="cerrarDashboard()">×</button>
+    </div>
+    <div class="dashboard-body">
+      <!-- Filtros de Fecha -->
+      <div class="dashboard-filters">
+        <h3><i class="bi bi-calendar-range"></i> Filtro de Fecha</h3>
+        <div class="date-filter-row">
+          <div class="date-filter-group">
+            <label>Desde:</label>
+            <input type="date" id="dashboardFechaDesde">
+          </div>
+          <div class="date-filter-group">
+            <label>Hasta:</label>
+            <input type="date" id="dashboardFechaHasta">
+          </div>
+        </div>
+        <button class="btn-apply-filter" onclick="actualizarDashboard()">
+          <i class="bi bi-arrow-repeat"></i> Actualizar
+        </button>
+      </div>
+      
+      <!-- Estadísticas -->
+      <div class="dashboard-stats">
+        <div class="stat-card abiertos">
+          <div class="stat-icon">📂</div>
+          <div class="stat-value" id="statAbiertos">0</div>
+          <div class="stat-label">Pedidos Abiertos</div>
+        </div>
+        <div class="stat-card cerrados">
+          <div class="stat-icon">📦</div>
+          <div class="stat-value" id="statCerrados">0</div>
+          <div class="stat-label">Pedidos Cerrados</div>
+        </div>
+        <div class="stat-card totales">
+          <div class="stat-icon">📊</div>
+          <div class="stat-value" id="statTotales">0</div>
+          <div class="stat-label">Total de Pedidos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   // Declarar variables globales y db
   const db = firebase.database();
@@ -689,6 +1291,7 @@
   const filtroStatusBtns = document.getElementById('filtroStatusBtns');
 
   let pedidos = {};           // cache local para filtrar
+  let allPedidos = [];        // todos los pedidos para conteo global
 
   // Estados posibles 
   const estados = [
@@ -701,6 +1304,8 @@
   // Por defecto seleccionados
   let statusSeleccionados = ['ABIERTO', 'CERRADO'];
   let entregaSeleccionada = null; // 'Retiro', 'Envio' o null
+  let filtroClientesRecurrentes = false; // Filtro de clientes recurrentes
+  let filtroMasDeUnaUnidad = false; // Filtro de pedidos con más de 1 unidad
 
   // Función para inicializar el historial de pedidos después de la autenticación
   function inicializarHistorialPedidos() {
@@ -719,6 +1324,29 @@
     renderBotonesFiltro();
     agregarBotonDescargarTodo();
     cargarPedidosUltimos30Dias();
+    configurarCierreMenuExterno();
+  }
+
+  // Función para toggle del menú hamburguesa
+  function toggleMenu() {
+    const menuDropdown = document.getElementById('menuDropdown');
+    const hamburgerIcon = document.querySelector('.hamburger-icon');
+    menuDropdown.classList.toggle('active');
+    hamburgerIcon.classList.toggle('active');
+  }
+
+  // Cerrar menú al hacer clic fuera
+  function configurarCierreMenuExterno() {
+    document.addEventListener('click', function(event) {
+      const menu = document.querySelector('.hamburger-menu');
+      const menuDropdown = document.getElementById('menuDropdown');
+      const hamburgerIcon = document.querySelector('.hamburger-icon');
+      
+      if (menu && !menu.contains(event.target) && menuDropdown.classList.contains('active')) {
+        menuDropdown.classList.remove('active');
+        hamburgerIcon.classList.remove('active');
+      }
+    });
   }
 
   function cargarPedidosUltimos30Dias() {
@@ -730,10 +1358,12 @@
     listenerPedidos = db.ref('pedidos').orderByChild('timestamp').startAt(hace30dias);
     listenerPedidos.on('value', snap => {
       pedidos = [];
+      allPedidos = [];
       snap.forEach(child => {
         const p = child.val() || {};
         p.id = child.key;
         pedidos.push(p);
+        allPedidos.push(p);
       });
       renderTabla();
     });
@@ -745,73 +1375,146 @@
     listenerPedidos = db.ref('pedidos');
     listenerPedidos.on('value', snap => {
       pedidos = [];
+      allPedidos = [];
       snap.forEach(child => {
         const p = child.val() || {};
         p.id = child.key;
         pedidos.push(p);
+        allPedidos.push(p);
       });
       renderTabla();
     });
   }
 
-  function agregarBotonDescargarTodo() {
-    let btn = document.getElementById('btnDescargarTodo');
-    if (!btn) {
-      btn = document.createElement('button');
-      btn.id = 'btnDescargarTodo';
-      btn.textContent = 'Descargar todo';
-      btn.style.background = '#2196F3';
-      btn.style.color = '#fff';
-      btn.style.border = '1.5px solid #2196F3';
-      btn.style.borderRadius = '18px';
-  btn.style.padding = '6px 16px';
-  btn.style.fontWeight = 'bold';
-  btn.style.cursor = 'pointer';
-  btn.style.margin = '30px auto 0 auto';
-  btn.style.display = 'block';
-  btn.style.fontSize = '1em';
-      btn.onclick = function() {
-        if (!descargandoTodo) cargarPedidosTodos();
-      };
-      // Insertar el botón fuera del contenedor de la tabla, como pie de página independiente
-      let pie = document.getElementById('pieDescargarTodo');
-      if (!pie) {
-        pie = document.createElement('div');
-        pie.id = 'pieDescargarTodo';
-        pie.style.width = '100vw';
-        pie.style.display = 'flex';
-        pie.style.justifyContent = 'center';
-        pie.style.alignItems = 'center';
-        pie.style.margin = '0 auto 30px auto';
-        // Insertar pie al final del body
-        document.body.appendChild(pie);
-      }
-      pie.appendChild(btn);
+  // Función para contar pedidos entregados por email
+  function contarPedidosEntregados(email) {
+    if (!email) return 0;
+    return allPedidos.filter(p => 
+      p.cliente?.email?.toLowerCase() === email.toLowerCase() && 
+      p.status === 'DESPACHADO/ENTREGADO'
+    ).length;
+  }
+
+  // Función para verificar si un cliente es recurrente (tiene al menos 1 pedido entregado)
+  function esClienteRecurrente(email) {
+    if (!email) return false;
+    return contarPedidosEntregados(email) > 0;
+  }
+
+  // Toggle del filtro de clientes recurrentes
+  function toggleFiltroClientesRecurrentes() {
+    const checkbox = document.getElementById('checkClientesRecurrentesMenu');
+    filtroClientesRecurrentes = checkbox ? checkbox.checked : false;
+    renderTabla();
+  }
+
+  // Toggle del filtro de más de una unidad
+  function toggleFiltroMasDeUnaUnidad() {
+    const checkbox = document.getElementById('checkMasDeUnaUnidad');
+    filtroMasDeUnaUnidad = checkbox ? checkbox.checked : false;
+    renderTabla();
+  }
+
+  // Funciones del Dashboard
+  function abrirDashboard() {
+    const modal = document.getElementById('dashboardModal');
+    modal.style.display = 'flex';
+    
+    // Establecer fechas por defecto (últimos 30 días)
+    const hoy = new Date();
+    const hace30 = new Date();
+    hace30.setDate(hace30.getDate() - 30);
+    
+    document.getElementById('dashboardFechaHasta').valueAsDate = hoy;
+    document.getElementById('dashboardFechaDesde').valueAsDate = hace30;
+    
+    actualizarDashboard();
+  }
+
+  function cerrarDashboard() {
+    document.getElementById('dashboardModal').style.display = 'none';
+  }
+
+  function actualizarDashboard() {
+    const fechaDesde = document.getElementById('dashboardFechaDesde').value;
+    const fechaHasta = document.getElementById('dashboardFechaHasta').value;
+    
+    let pedidosFiltrados = allPedidos;
+    
+    // Filtrar por fecha si están definidas
+    if (fechaDesde || fechaHasta) {
+      const timestampDesde = fechaDesde ? new Date(fechaDesde).setHours(0, 0, 0, 0) : 0;
+      const timestampHasta = fechaHasta ? new Date(fechaHasta).setHours(23, 59, 59, 999) : Date.now();
+      
+      pedidosFiltrados = allPedidos.filter(p => {
+        const ts = p.timestamp || 0;
+        return ts >= timestampDesde && ts <= timestampHasta;
+      });
     }
-    // Mostrar/ocultar según estado
-    btn.style.display = descargandoTodo ? 'none' : 'block';
+    
+    // Filtrar pedidos que NO tengan CREATEDBY: 'admin'
+    pedidosFiltrados = pedidosFiltrados.filter(p => p.createdby !== 'admin');
+    
+    // Calcular estadísticas
+    let abiertos = 0;
+    let cerrados = 0;
+    
+    pedidosFiltrados.forEach(p => {
+      if (p.status === 'ABIERTO' || (!p.status && !p.locked)) {
+        abiertos++;
+      } else if (p.status === 'CERRADO' || p.locked || p.status === 'DESPACHADO/ENTREGADO') {
+        cerrados++;
+      }
+      // No contar CANCELADO como ninguno
+    });
+    
+    const totales = abiertos + cerrados;
+    
+    // Actualizar UI
+    document.getElementById('statAbiertos').textContent = abiertos;
+    document.getElementById('statCerrados').textContent = cerrados;
+    document.getElementById('statTotales').textContent = totales;
+  }
+
+  // Cerrar modal al hacer clic fuera
+  document.getElementById('dashboardModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      cerrarDashboard();
+    }
+  });
+
+  function agregarBotonDescargarTodo() {
+    // Ya no hay botón separado, la funcionalidad está en el menú hamburguesa
+    // Esta función se mantiene vacía para no romper referencias existentes
   }
 
   function renderBotonesFiltro() {
-    filtroStatusBtns.innerHTML = '';
-    // Primera fila: Abierto, Cerrado, Entrega, Cancel
-    const row1 = document.createElement('div');
-    row1.className = 'filtro-row';
+    const menuFiltrosContainer = document.getElementById('menuFiltrosContainer');
+    if (!menuFiltrosContainer) return;
+    
+    menuFiltrosContainer.innerHTML = '';
+    
+    // Grupo 1: Estado
+    const grupo1 = document.createElement('div');
+    grupo1.className = 'menu-filter-group';
+    const titulo1 = document.createElement('div');
+    titulo1.className = 'menu-filter-group-title';
+    titulo1.textContent = 'Estado';
+    grupo1.appendChild(titulo1);
+    
+    const botonesEstado = document.createElement('div');
+    botonesEstado.className = 'menu-filter-buttons';
+    
     ['Abierto', 'Cerrado', 'Entrega', 'Cancel'].forEach(label => {
       const est = estados.find(e => e.label === label);
       const btn = document.createElement('button');
+      btn.className = 'menu-filter-btn';
       btn.textContent = est.label;
       btn.style.background = statusSeleccionados.includes(est.value) ? est.color : '#fff';
       btn.style.color = statusSeleccionados.includes(est.value) ? (est.textColor || '#fff') : '#333';
-      btn.style.border = '1.5px solid ' + est.color;
-      btn.style.borderRadius = '18px';
-      btn.style.padding = '6px 16px';
-      btn.style.fontWeight = 'bold';
-      btn.style.cursor = 'pointer';
-      btn.style.transition = 'all 0.2s';
+      btn.style.borderColor = est.color;
       btn.onclick = () => {
         if (est.value === 'ABIERTO' || est.value === 'CERRADO') {
-          // Toggle solo para ABIERTO y CERRADO
           if (statusSeleccionados.includes(est.value)) {
             statusSeleccionados = statusSeleccionados.filter(s => s !== est.value);
           } else {
@@ -827,63 +1530,81 @@
         renderBotonesFiltro();
         renderTabla();
       };
-      row1.appendChild(btn);
+      botonesEstado.appendChild(btn);
     });
-    filtroStatusBtns.appendChild(row1);
+    grupo1.appendChild(botonesEstado);
+    menuFiltrosContainer.appendChild(grupo1);
 
-    // Segunda fila: Retiro, Envio, Todos
-    const row2 = document.createElement('div');
-    row2.className = 'filtro-row';
+    // Grupo 2: Entrega
+    const grupo2 = document.createElement('div');
+    grupo2.className = 'menu-filter-group';
+    const titulo2 = document.createElement('div');
+    titulo2.className = 'menu-filter-group-title';
+    titulo2.textContent = 'Entrega';
+    grupo2.appendChild(titulo2);
+    
+    const botonesEntrega = document.createElement('div');
+    botonesEntrega.className = 'menu-filter-buttons';
+    
     // Retiro
     const btnRetiro = document.createElement('button');
+    btnRetiro.className = 'menu-filter-btn';
     btnRetiro.textContent = 'Retiro';
     btnRetiro.style.background = entregaSeleccionada === 'Retiro' ? '#FFD600' : '#fff';
-    btnRetiro.style.color = entregaSeleccionada === 'Retiro' ? '#333' : '#333';
-    btnRetiro.style.border = '1.5px solid #FFD600';
-    btnRetiro.style.borderRadius = '18px';
-    btnRetiro.style.padding = '6px 16px';
-    btnRetiro.style.fontWeight = 'bold';
-    btnRetiro.style.cursor = 'pointer';
+    btnRetiro.style.color = '#333';
+    btnRetiro.style.borderColor = '#FFD600';
     btnRetiro.onclick = () => {
       entregaSeleccionada = entregaSeleccionada === 'Retiro' ? null : 'Retiro';
       renderBotonesFiltro();
       renderTabla();
     };
-    row2.appendChild(btnRetiro);
+    botonesEntrega.appendChild(btnRetiro);
+
     // Envio
     const btnEnvio = document.createElement('button');
+    btnEnvio.className = 'menu-filter-btn';
     btnEnvio.textContent = 'Envio';
     btnEnvio.style.background = entregaSeleccionada === 'Envio' ? '#FFD600' : '#fff';
-    btnEnvio.style.color = entregaSeleccionada === 'Envio' ? '#333' : '#333';
-    btnEnvio.style.border = '1.5px solid #FFD600';
-    btnEnvio.style.borderRadius = '18px';
-    btnEnvio.style.padding = '6px 16px';
-    btnEnvio.style.fontWeight = 'bold';
-    btnEnvio.style.cursor = 'pointer';
+    btnEnvio.style.color = '#333';
+    btnEnvio.style.borderColor = '#FFD600';
     btnEnvio.onclick = () => {
       entregaSeleccionada = entregaSeleccionada === 'Envio' ? null : 'Envio';
       renderBotonesFiltro();
       renderTabla();
     };
-    row2.appendChild(btnEnvio);
+    botonesEntrega.appendChild(btnEnvio);
+
+    // N/A
+    const btnNA = document.createElement('button');
+    btnNA.className = 'menu-filter-btn';
+    btnNA.textContent = 'N/A';
+    btnNA.style.background = entregaSeleccionada === 'N/A' ? '#FFD600' : '#fff';
+    btnNA.style.color = '#333';
+    btnNA.style.borderColor = '#FFD600';
+    btnNA.onclick = () => {
+      entregaSeleccionada = entregaSeleccionada === 'N/A' ? null : 'N/A';
+      renderBotonesFiltro();
+      renderTabla();
+    };
+    botonesEntrega.appendChild(btnNA);
+
     // Todos
     const btnTodos = document.createElement('button');
+    btnTodos.className = 'menu-filter-btn';
     btnTodos.textContent = 'Todos';
     btnTodos.style.background = statusSeleccionados.length === 0 && !entregaSeleccionada ? '#4CAF50' : '#fff';
     btnTodos.style.color = statusSeleccionados.length === 0 && !entregaSeleccionada ? '#fff' : '#333';
-    btnTodos.style.border = '1.5px solid #4CAF50';
-    btnTodos.style.borderRadius = '18px';
-    btnTodos.style.padding = '6px 16px';
-    btnTodos.style.fontWeight = 'bold';
-    btnTodos.style.cursor = 'pointer';
+    btnTodos.style.borderColor = '#4CAF50';
     btnTodos.onclick = () => {
       statusSeleccionados = [];
       entregaSeleccionada = null;
       renderBotonesFiltro();
       renderTabla();
     };
-    row2.appendChild(btnTodos);
-    filtroStatusBtns.appendChild(row2);
+    botonesEntrega.appendChild(btnTodos);
+
+    grupo2.appendChild(botonesEntrega);
+    menuFiltrosContainer.appendChild(grupo2);
   }
 
   renderBotonesFiltro();
@@ -893,14 +1614,14 @@
   }
 
   function getEntregaPedido(p) {
-    if (
-      p.cliente &&
-      typeof p.cliente.direccion === 'string' &&
-      p.cliente.direccion.trim() !== ''
-    ) {
-      return 'Envio';
+    // Lógica extendida para N/A
+    if (!p.cliente || !p.cliente.direccion || p.cliente.direccion.trim() === '') {
+      return 'Retiro';
     }
-    return 'Retiro';
+    if (p.cliente.provincia === 'Gran Buenos Aires' || p.cliente.provincia === 'CABA') {
+      return 'N/A';
+    }
+    return 'Envio';
   }
 
   function renderTabla() {
@@ -926,7 +1647,38 @@
       })
       .filter(p => {
         if (!entregaSeleccionada) return true;
-        return getEntregaPedido(p) === entregaSeleccionada;
+        // Usar el mismo valor que se muestra en la columna Entrega
+        let tipoEntrega;
+        const provincia = p.cliente?.provincia || '';
+        if (p.tipoEntrega === 'Showroom' || !provincia) {
+          tipoEntrega = 'Retiro';
+        } else if (p.tipoEntrega !== 'Showroom') {
+          if (provincia !== 'Gran Buenos Aires' && provincia !== 'CABA') {
+            tipoEntrega = 'Envio';
+          } else if (provincia === 'Gran Buenos Aires' || provincia === 'CABA') {
+            tipoEntrega = 'N/A';
+          } else {
+            tipoEntrega = 'Envio';
+          }
+        } else {
+          tipoEntrega = 'Retiro';
+        }
+        return tipoEntrega === entregaSeleccionada;
+      })
+      .filter(p => {
+        // Filtrar por clientes recurrentes si está activado
+        if (!filtroClientesRecurrentes) return true;
+        const emailCliente = p.cliente?.email;
+        return esClienteRecurrente(emailCliente);
+      })
+      .filter(p => {
+        // Filtrar por pedidos con más de 1 unidad si está activado
+        if (!filtroMasDeUnaUnidad) return true;
+        let totalUnidades = 0;
+        if (Array.isArray(p.items)) {
+          totalUnidades = p.items.reduce((sum, item) => sum + (parseInt(item.cantidad) || 0), 0);
+        }
+        return totalUnidades > 1;
       })
       .sort((a, b) => b.timestamp - a.timestamp) // más nuevos arriba
       .forEach(p => {
@@ -957,6 +1709,22 @@
         /* --- 3. Nombre cliente --- */
   const nombreCell = tr.insertCell();
   nombreCell.className = 'col-nombre';
+        
+        // Agregar badge con contador de pedidos entregados A LA IZQUIERDA
+        const emailCliente = p.cliente?.email;
+        if (emailCliente) {
+          const cantidadEntregados = contarPedidosEntregados(emailCliente);
+          if (cantidadEntregados > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'order-count-badge';
+            badge.innerHTML = `<i class="bi bi-box-seam-fill"></i>${cantidadEntregados}`;
+            badge.title = `${cantidadEntregados} pedido(s) entregado(s)`;
+            badge.style.marginRight = '0.5rem';
+            badge.style.marginLeft = '0';
+            nombreCell.appendChild(badge);
+          }
+        }
+        
         const nombreSpan = document.createElement('span');
         nombreSpan.textContent = p.cliente?.nombre || '—';
         nombreSpan.style.cursor = 'pointer';
@@ -988,8 +1756,8 @@
         } else if (p.tipoEntrega !== 'Showroom') {
           if (provincia !== 'Gran Buenos Aires' && provincia !== 'CABA') {
             tipoEntrega = 'Envio';
-          } else if (provincia === ' Gran Buenos Aires' || provincia === 'CABA') {
-            tipoEntrega = 'Envio?';
+          } else if (provincia === 'Gran Buenos Aires' || provincia === 'CABA') {
+            tipoEntrega = 'N/A';
           } else {
             tipoEntrega = 'Envio';
           }
@@ -1048,7 +1816,9 @@
           { value: 'esperando pago', label: 'Esperando pago' },
           { value: 'pago', label: 'Pago' },
           { value: 'retira', label: 'Retira' },
-          { value: 'no responde', label: 'No responde' }
+          { value: 'no responde', label: 'No responde' },
+          { value: 'no cumple minimo', label: 'No cumple minimo' },
+          { value: '???', label: '???' },
         ];
         
         // Agregar opciones al select
