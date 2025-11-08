@@ -1329,7 +1329,7 @@
               id="searchNombre" 
               class="menu-search-input" 
               placeholder="Buscar por nombre..."
-              oninput="aplicarFiltros()"
+              onkeydown="if(event.key==='Enter'){aplicarFiltros();}"
               autocomplete="off" 
               autocorrect="off" 
               autocapitalize="off" 
