@@ -295,13 +295,13 @@
 
   <h1>Detalle del pedido</h1>
   <div id="fechaIngreso" style="text-align:center;color:#666;font-size:0.95em;margin-bottom:10px"></div>
-  <div id="nombreCliente" style="text-align:center;font-weight:bold;font-size:1.1em;margin-bottom:5px"></div>
+  <div id="nombreCliente" style="text-align:center;font-weight:bold;font-size:1.1em;margin-bottom:5px;cursor:pointer;" title="Click para copiar"></div>
   <div id="direccionCliente" style="text-align:center;margin-bottom:5px"></div>
   <div id="localidadCliente" style="text-align:center;margin-bottom:5px"></div>
   <div id="provinciaCliente" style="text-align:center;margin-bottom:5px"></div>
   <div id="dniCliente" style="text-align:center;margin-bottom:5px"></div>
   <div id="telefonoCliente" style="text-align:center;margin-bottom:5px"></div>
-  <div id="emailCliente" style="text-align:center;margin-bottom:5px"></div>
+  <div id="emailCliente" style="text-align:center;margin-bottom:5px;cursor:pointer;" title="Click para copiar"></div>
   <div style="display:flex;justify-content:center;align-items:center;gap:20px;margin-bottom:5px;">
     <button id="editarClienteBtn" style="background:#2196F3;">Editar datos personales</button>
     <div id="estado" style="font-weight:bold;"></div>
@@ -403,7 +403,7 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
     }
   }
 
-  // Función para convertir ALIAS a mayúsculas en tiempo real
+  // Función para convertir ALIAS a mayúsculas en tiempo real y guardar automáticamente
   function configurarCampoAlias() {
     const aliasInput = document.getElementById('alias');
     if (aliasInput) {
@@ -415,7 +415,38 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
         this.value = this.value.toUpperCase();
         // Restaurar la posición del cursor
         this.setSelectionRange(start, end);
+        
+        // Auto-guardar en Firebase
+        const nuevoAlias = this.value.trim();
+        firebase.database().ref('pedidos/' + pedidoActual.id + '/pagos').update({ alias: nuevoAlias })
+          .catch(() => console.error('Error al guardar el alias'));
       });
+    }
+  }
+
+  // Función para guardar automáticamente el tipo de pago
+  function guardarTipoPago() {
+    const tipoPago = document.querySelector('input[name="tipoPago"]:checked');
+    if (tipoPago && pedidoActual && pedidoActual.id) {
+      firebase.database().ref('pedidos/' + pedidoActual.id).update({ tipoPago: tipoPago.value })
+        .catch(() => console.error('Error al guardar el tipo de pago'));
+    }
+  }
+
+  // Función para guardar automáticamente el tipo de entrega
+  function guardarTipoEntrega() {
+    const tipoEntrega = document.querySelector('input[name="tipoEntrega"]:checked');
+    if (tipoEntrega && pedidoActual && pedidoActual.id) {
+      // Calcular campo entrega
+      let entrega = '';
+      if (tipoEntrega.value && tipoEntrega.value !== 'Retiro en local') {
+        entrega = 'Envios';
+      }
+      
+      firebase.database().ref('pedidos/' + pedidoActual.id).update({ 
+        tipoEntrega: tipoEntrega.value,
+        entrega: entrega
+      }).catch(() => console.error('Error al guardar el tipo de entrega'));
     }
   }
 
@@ -462,6 +493,39 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
       document.getElementById('telefonoCliente').textContent = '';
     }
     document.getElementById('emailCliente').textContent = cliente.email ? `${cliente.email}` : 'Email no disponible';
+    
+    // Configurar funcionalidad de copiar al portapapeles para nombre y email
+    const nombreEl = document.getElementById('nombreCliente');
+    const emailEl = document.getElementById('emailCliente');
+    
+    if (nombreEl && cliente.nombre) {
+      nombreEl.onclick = function() {
+        navigator.clipboard.writeText(cliente.nombre).then(() => {
+          const textoOriginal = this.textContent;
+          this.textContent = '✓ Copiado!';
+          this.style.color = '#4CAF50';
+          setTimeout(() => {
+            this.textContent = textoOriginal;
+            this.style.color = '';
+          }, 1500);
+        }).catch(() => console.error('Error al copiar al portapapeles'));
+      };
+    }
+    
+    if (emailEl && cliente.email) {
+      emailEl.onclick = function() {
+        navigator.clipboard.writeText(cliente.email).then(() => {
+          const textoOriginal = this.textContent;
+          this.textContent = '✓ Copiado!';
+          this.style.color = '#4CAF50';
+          setTimeout(() => {
+            this.textContent = textoOriginal;
+            this.style.color = '';
+          }, 1500);
+        }).catch(() => console.error('Error al copiar al portapapeles'));
+      };
+    }
+    
     // Mostrar fecha y hora de ingreso
     let fechaIngreso = '';
     if (pedidoActual.timestamp) {
@@ -902,9 +966,9 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
       const descuento = parseFloat(descuentoInput.value) || 0;
       const envio = parseFloat(envioInput.value) || 0;
 
-      // Actualizar descuento si es necesario basado en el porcentaje
+      // Actualizar descuento basado en el porcentaje (siempre)
       const descuentoCalculado = Math.round(subtotal * porcentaje / 100);
-      if (descuentoInput.value != descuentoCalculado && porcentaje > 0) {
+      if (descuentoInput.value != descuentoCalculado) {
         descuentoInput.value = descuentoCalculado;
       }
 
@@ -1281,9 +1345,80 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
 
       // Configurar event listeners solo para administradores
       if (admin) {
-        porcentajeInput.addEventListener('input', actualizarPorPorcentaje);
-        descuentoInput.addEventListener('input', actualizarPorDescuento);
-        envioInput.addEventListener('input', actualizarTotalFinal);
+        // Remover listeners previos si existen para evitar duplicados
+        const newPorcentajeInput = porcentajeInput.cloneNode(true);
+        porcentajeInput.parentNode.replaceChild(newPorcentajeInput, porcentajeInput);
+        const porcentajeInputFinal = document.getElementById('porcentajeInput');
+        
+        const newDescuentoInput = descuentoInput.cloneNode(true);
+        descuentoInput.parentNode.replaceChild(newDescuentoInput, descuentoInput);
+        const descuentoInputFinal = document.getElementById('descuentoInput');
+        
+        const newEnvioInput = envioInput.cloneNode(true);
+        envioInput.parentNode.replaceChild(newEnvioInput, envioInput);
+        const envioInputFinal = document.getElementById('envioInput');
+        
+        // Timers para debounce
+        let porcentajeTimer = null;
+        let descuentoTimer = null;
+        let envioTimer = null;
+        
+        // Flag para prevenir ciclos entre porcentaje y descuento
+        let actualizandoPorPorcentaje = false;
+        
+        porcentajeInputFinal.addEventListener('input', function() {
+          actualizandoPorPorcentaje = true;
+          actualizarPorPorcentaje();
+          actualizandoPorPorcentaje = false;
+          
+          // Limpiar timer anterior
+          if (porcentajeTimer) clearTimeout(porcentajeTimer);
+          // Auto-guardar en Firebase con delay
+          porcentajeTimer = setTimeout(() => {
+            const porc = parseFloat(this.value) || 0;
+            const desc = parseFloat(descuentoInputFinal.value) || 0;
+            firebase.database().ref('pedidos/' + pedidoActual.id + '/pagos').update({ 
+              porcentajeDescuento: porc,
+              descuento: desc
+            }).catch(() => console.error('Error al guardar el porcentaje'));
+          }, 800);
+        });
+        
+        descuentoInputFinal.addEventListener('input', function() {
+          // Solo actualizar el porcentaje si el usuario editó manualmente el descuento
+          // (no cuando se actualiza automáticamente por el porcentaje)
+          if (!actualizandoPorPorcentaje) {
+            actualizarPorDescuento();
+          } else {
+            // Solo actualizar el total final sin recalcular el porcentaje
+            actualizarTotalFinal();
+          }
+          
+          // Limpiar timer anterior
+          if (descuentoTimer) clearTimeout(descuentoTimer);
+          // Auto-guardar en Firebase con delay
+          descuentoTimer = setTimeout(() => {
+            const desc = parseFloat(this.value) || 0;
+            const porc = parseFloat(porcentajeInputFinal.value) || 0;
+            firebase.database().ref('pedidos/' + pedidoActual.id + '/pagos').update({ 
+              descuento: desc,
+              porcentajeDescuento: porc
+            }).catch(() => console.error('Error al guardar el descuento'));
+          }, 800);
+        });
+        
+        envioInputFinal.addEventListener('input', function() {
+          actualizarTotalFinal();
+          // Limpiar timer anterior
+          if (envioTimer) clearTimeout(envioTimer);
+          // Auto-guardar en Firebase con delay
+          envioTimer = setTimeout(() => {
+            const env = parseFloat(this.value) || 0;
+            firebase.database().ref('pedidos/' + pedidoActual.id + '/pagos').update({ 
+              envio: env
+            }).catch(() => console.error('Error al guardar el envío'));
+          }, 800);
+        });
       }
     }, 0);
 
@@ -1483,6 +1618,9 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
         for (let r of pagoRadiosInline) {
           r.removeEventListener('change', actualizarVisibilidadAlias);
           r.addEventListener('change', actualizarVisibilidadAlias);
+          // Auto-guardar tipo de pago
+          r.removeEventListener('change', guardarTipoPago);
+          r.addEventListener('change', guardarTipoPago);
         }
       }
       
@@ -1491,6 +1629,11 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
       for (let r of entregaRadiosInline) {
         r.removeEventListener('change', actualizarEstadoBotonesPorEntrega);
         r.addEventListener('change', actualizarEstadoBotonesPorEntrega);
+        // Auto-guardar tipo de entrega (solo admin)
+        if (admin) {
+          r.removeEventListener('change', guardarTipoEntrega);
+          r.addEventListener('change', guardarTipoEntrega);
+        }
       }
       
       // Llamar para actualizar el estado de los botones después de renderizar

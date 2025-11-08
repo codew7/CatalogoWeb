@@ -152,7 +152,7 @@
     .hamburger-menu {
       position: absolute;
       top: 1rem;
-      left: 1rem;
+      right: 1rem;
       z-index: 1001;
     }
 
@@ -202,7 +202,7 @@
     .menu-dropdown {
       position: absolute;
       top: 50px;
-      left: 0;
+      right: 0;
       background: white;
       border-radius: 12px;
       box-shadow: var(--shadow-lg);
@@ -396,7 +396,7 @@
     .user-indicator {
       position: absolute;
       top: 1rem;
-      right: 1rem;
+      left: 1rem;
       background: rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1126,7 +1126,7 @@
 
       .user-indicator {
         top: 0.5rem;
-        right: 0.5rem;
+        left: 0.5rem;
         padding: 0.4rem 0.8rem;
         font-size: 0.75rem;
       }
@@ -2298,7 +2298,7 @@ function mostrarModalClave(onSuccess) {
   modal.style.display = 'flex';
   input.focus();
   btnOk.onclick = () => {
-    if (input.value === '212118') {
+    if (input.value === 'Q') {
       modal.style.display = 'none';
       onSuccess();
     } else {
