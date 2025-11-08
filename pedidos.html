@@ -134,6 +134,8 @@
     }
     #imprimirRotuloBtn { background: #222 !important; }
     #imprimirRotuloBtn[disabled] { background: #9e9e9e !important; }
+    #mensajeBtn { background: #25D366 !important; }
+    #mensajeBtn[disabled] { background: #9e9e9e !important; }
     #despachadoEntregadoBtn { background: #222 !important; }
     #despachadoEntregadoBtn[disabled] { background: #9e9e9e !important; }
     #accionesAdmin {
@@ -319,6 +321,7 @@
 
   </div>
   <div id="accionesAdmin" style="text-align:center;margin-top:10px;">
+    <button id="mensajeBtn" class="accion-btn" style="display:none;background:#25D366;">Mensaje Rápido</button>
     <button id="despachadoEntregadoBtn" class="accion-btn" style="display:none;background:#666;">Entregado</button>
   </div>
 
@@ -542,14 +545,61 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
       // === Botón Imprimir y Despachado/Entregado ===
       const ImprimirBtn = document.getElementById('ImprimirBtn');
       const despachadoEntregadoBtn = document.getElementById('despachadoEntregadoBtn');
+      const mensajeBtn = document.getElementById('mensajeBtn');
       ImprimirBtn.style.display = 'inline-block';
       despachadoEntregadoBtn.style.display = 'inline-block';
+      mensajeBtn.style.display = 'inline-block';
       // Mover el botón ImprimirBtn al bloque de acciones admin
       const accionesAdmin = document.getElementById('accionesAdmin');
       if (accionesAdmin && ImprimirBtn) {
         accionesAdmin.insertBefore(ImprimirBtn, accionesAdmin.firstChild);
       }
       // El botón Despachado/Entregado queda a la derecha (ya está en el HTML)
+
+      // === Botón Mensaje WhatsApp ===
+      mensajeBtn.onclick = () => {
+        if (!pedidoActual || !pedidoActual.cliente) {
+          alert('No se encontró información del cliente');
+          return;
+        }
+        
+        const cliente = pedidoActual.cliente;
+        const nombreCliente = cliente.nombre || 'Cliente';
+        const telefono = cliente.telefono;
+        
+        if (!telefono) {
+          alert('El cliente no tiene un teléfono registrado');
+          return;
+        }
+        
+        // Formatear el teléfono para WhatsApp (eliminar espacios, guiones, paréntesis)
+        let telClean = telefono.replace(/[^\d]/g, '');
+        // Si empieza con 0, quitarlo
+        if (telClean.startsWith('0')) telClean = telClean.substring(1);
+        // Si no empieza con 54, agregarlo
+        if (!telClean.startsWith('54')) telClean = '54' + telClean;
+        
+        // Construir el enlace del pedido
+        const pedidoLink = `https://www.home-point.com.ar/pedidos.html?id=${id}`;
+        
+        // Construir el mensaje
+        const mensaje = `Hola, ${nombreCliente}:
+El artículo solicitado en tu pedido se encuentra disponible.
+Podés retirarlo en nuestro showroom, ubicado en Sargento Cabral 1945, Florida Oeste (Vicente López).
+Nuestro horario de atención es de lunes a viernes de 9 a 18 hs y sábados de 10 a 17 hs.
+
+Adjuntamos el enlace que te llevará a tu pedido. Esperamos tu confirmación.
+
+Distribuidora Home Point.-
+
+${pedidoLink}`;
+        
+        // Codificar el mensaje para URL
+        const mensajeEncoded = encodeURIComponent(mensaje);
+        
+        // Abrir WhatsApp con el mensaje
+        window.open(`https://api.whatsapp.com/send/?phone=${telClean}&text=${mensajeEncoded}`, '_blank');
+      };
 
       // Estado visual del botón
       function actualizarBotonDespachado() {
