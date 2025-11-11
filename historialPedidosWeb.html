@@ -1358,6 +1358,43 @@
           </div>
         </div>
         
+        <!-- Filtro por provincia -->
+        <div class="menu-category-title">
+          <i class="bi bi-geo-alt"></i> Provincia
+        </div>
+        <div class="menu-filters-container">
+          <div class="menu-filter-group">
+            <select id="filtroProvincia" class="menu-note-select" onchange="aplicarFiltros()">
+              <option value="">Todas las provincias</option>
+              <option value="CABA">CABA</option>
+              <option value="Gran Buenos Aires">Gran Buenos Aires</option>
+              <option value="Buenos Aires">Buenos Aires</option>
+              <option value="Catamarca">Catamarca</option>
+              <option value="Chaco">Chaco</option>
+              <option value="Chubut">Chubut</option>
+              <option value="Córdoba">Córdoba</option>
+              <option value="Corrientes">Corrientes</option>
+              <option value="Entre Ríos">Entre Ríos</option>
+              <option value="Formosa">Formosa</option>
+              <option value="Jujuy">Jujuy</option>
+              <option value="La Pampa">La Pampa</option>
+              <option value="La Rioja">La Rioja</option>
+              <option value="Mendoza">Mendoza</option>
+              <option value="Misiones">Misiones</option>
+              <option value="Neuquén">Neuquén</option>
+              <option value="Río Negro">Río Negro</option>
+              <option value="Salta">Salta</option>
+              <option value="San Juan">San Juan</option>
+              <option value="San Luis">San Luis</option>
+              <option value="Santa Cruz">Santa Cruz</option>
+              <option value="Santa Fe">Santa Fe</option>
+              <option value="Santiago del Estero">Santiago del Estero</option>
+              <option value="Tierra del Fuego">Tierra del Fuego</option>
+              <option value="Tucumán">Tucumán</option>
+            </select>
+          </div>
+        </div>
+        
         <!-- Categoría de Filtros -->
         <div class="menu-category-title">
           <i class="bi bi-funnel"></i> Filtros
@@ -1496,14 +1533,17 @@
   let filtroMasDeUnaUnidad = false; // Filtro de pedidos con más de 1 unidad
   let busquedaNombre = ''; // Búsqueda por nombre
   let filtroNotaSeleccionada = ''; // Filtro por tipo de nota
+  let filtroProvinciaSeleccionada = ''; // Filtro por provincia
 
   // Función para aplicar filtros (búsqueda y nota)
   function aplicarFiltros() {
     const searchInput = document.getElementById('searchNombre');
     const filtroNotaSelect = document.getElementById('filtroNota');
+    const filtroProvinciaSelect = document.getElementById('filtroProvincia');
     
     busquedaNombre = searchInput ? searchInput.value.toLowerCase().trim() : '';
     filtroNotaSeleccionada = filtroNotaSelect ? filtroNotaSelect.value : '';
+    filtroProvinciaSeleccionada = filtroProvinciaSelect ? filtroProvinciaSelect.value : '';
     
     actualizarIndicadoresFiltros();
     renderTabla();
@@ -1575,6 +1615,16 @@
         <div class="filter-indicator note">
           <i class="bi bi-sticky"></i>
           <span>Nota: ${notaText}</span>
+        </div>
+      `);
+    }
+    
+    // Indicador de filtro por provincia
+    if (filtroProvinciaSeleccionada) {
+      indicators.push(`
+        <div class="filter-indicator province">
+          <i class="bi bi-geo-alt"></i>
+          <span>Provincia: ${filtroProvinciaSeleccionada}</span>
         </div>
       `);
     }
@@ -1719,6 +1769,11 @@
     filtroNotaSeleccionada = '';
     const filtroNotaSelect = document.getElementById('filtroNota');
     if (filtroNotaSelect) filtroNotaSelect.value = '';
+    
+    // Limpiar filtro por provincia
+    filtroProvinciaSeleccionada = '';
+    const filtroProvinciaSelect = document.getElementById('filtroProvincia');
+    if (filtroProvinciaSelect) filtroProvinciaSelect.value = '';
     
     // Actualizar indicadores y tabla
     actualizarIndicadoresFiltros();
@@ -2010,6 +2065,12 @@
           return !p.nota || p.nota.trim() === '';
         }
         return p.nota === filtroNotaSeleccionada;
+      })
+      .filter(p => {
+        // Filtrar por provincia
+        if (!filtroProvinciaSeleccionada) return true;
+        const provinciaCliente = p.cliente?.provincia || '';
+        return provinciaCliente === filtroProvinciaSeleccionada;
       })
       .sort((a, b) => b.timestamp - a.timestamp) // más nuevos arriba
       .forEach(p => {
