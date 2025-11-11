@@ -285,6 +285,11 @@
       line-height: 1.4;
     }
 
+    /* Estilos para el dropdown de mensajes */
+    #mensajeDropdown a:hover {
+      background-color: #f1f1f1;
+    }
+
   </style>
 </head>
 <body>
@@ -321,7 +326,14 @@
 
   </div>
   <div id="accionesAdmin" style="text-align:center;margin-top:10px;">
-    <button id="mensajeBtn" class="accion-btn" style="display:none;background:#25D366;">Mensaje Rápido</button>
+    <div id="mensajeBtnContainer" style="display:none;position:relative;display:inline-block;">
+      <button id="mensajeBtn" class="accion-btn" style="background:#25D366;">Mensaje Rápido ▼</button>
+      <div id="mensajeDropdown" style="display:none;position:absolute;background-color:#fff;min-width:200px;box-shadow:0px 8px 16px 0px rgba(0,0,0,0.2);z-index:1;border-radius:4px;overflow:hidden;left:50%;transform:translateX(-50%);margin-top:2px;">
+        <a href="#" data-mensaje="1" style="color:#333;padding:12px 16px;text-decoration:none;display:block;border-bottom:1px solid #eee;">📦 Artículo disponible</a>
+        <a href="#" data-mensaje="2" style="color:#333;padding:12px 16px;text-decoration:none;display:block;border-bottom:1px solid #eee;">💬 Mensaje personalizado 1</a>
+        <a href="#" data-mensaje="3" style="color:#333;padding:12px 16px;text-decoration:none;display:block;">💬 Mensaje personalizado 2</a>
+      </div>
+    </div>
     <button id="despachadoEntregadoBtn" class="accion-btn" style="display:none;background:#666;">Entregado</button>
   </div>
 
@@ -407,6 +419,7 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
   }
 
   // Función para convertir ALIAS a mayúsculas en tiempo real y guardar automáticamente
+  let aliasTimeout = null; // Variable para almacenar el timeout
   function configurarCampoAlias() {
     const aliasInput = document.getElementById('alias');
     if (aliasInput) {
@@ -419,10 +432,17 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
         // Restaurar la posición del cursor
         this.setSelectionRange(start, end);
         
-        // Auto-guardar en Firebase
+        // Cancelar el timeout anterior si existe
+        if (aliasTimeout) {
+          clearTimeout(aliasTimeout);
+        }
+        
+        // Auto-guardar en Firebase después de 800ms
         const nuevoAlias = this.value.trim();
-        firebase.database().ref('pedidos/' + pedidoActual.id + '/pagos').update({ alias: nuevoAlias })
-          .catch(() => console.error('Error al guardar el alias'));
+        aliasTimeout = setTimeout(() => {
+          firebase.database().ref('pedidos/' + pedidoActual.id + '/pagos').update({ alias: nuevoAlias })
+            .catch(() => console.error('Error al guardar el alias'));
+        }, 800);
       });
     }
   }
@@ -546,9 +566,11 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
       const ImprimirBtn = document.getElementById('ImprimirBtn');
       const despachadoEntregadoBtn = document.getElementById('despachadoEntregadoBtn');
       const mensajeBtn = document.getElementById('mensajeBtn');
+      const mensajeBtnContainer = document.getElementById('mensajeBtnContainer');
+      const mensajeDropdown = document.getElementById('mensajeDropdown');
       ImprimirBtn.style.display = 'inline-block';
       despachadoEntregadoBtn.style.display = 'inline-block';
-      mensajeBtn.style.display = 'inline-block';
+      mensajeBtnContainer.style.display = 'inline-block';
       // Mover el botón ImprimirBtn al bloque de acciones admin
       const accionesAdmin = document.getElementById('accionesAdmin');
       if (accionesAdmin && ImprimirBtn) {
@@ -556,8 +578,31 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
       }
       // El botón Despachado/Entregado queda a la derecha (ya está en el HTML)
 
-      // === Botón Mensaje WhatsApp ===
-      mensajeBtn.onclick = () => {
+      // === Botón Mensaje WhatsApp con Dropdown ===
+      // Toggle dropdown al hacer click en el botón
+      mensajeBtn.onclick = (e) => {
+        e.stopPropagation();
+        mensajeDropdown.style.display = mensajeDropdown.style.display === 'block' ? 'none' : 'block';
+      };
+
+      // Cerrar dropdown al hacer click fuera
+      window.addEventListener('click', () => {
+        mensajeDropdown.style.display = 'none';
+      });
+
+      // Manejar clicks en las opciones del dropdown
+      document.querySelectorAll('#mensajeDropdown a').forEach(link => {
+        link.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const tipoMensaje = e.target.getAttribute('data-mensaje');
+          enviarMensajeWhatsApp(tipoMensaje);
+          mensajeDropdown.style.display = 'none';
+        };
+      });
+
+      // Función para enviar mensaje de WhatsApp según el tipo
+      function enviarMensajeWhatsApp(tipo) {
         if (!pedidoActual || !pedidoActual.cliente) {
           alert('No se encontró información del cliente');
           return;
@@ -582,8 +627,12 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
         // Construir el enlace del pedido
         const pedidoLink = `https://www.home-point.com.ar/pedidos.html?id=${id}`;
         
-        // Construir el mensaje
-        const mensaje = `Hola, ${nombreCliente}:
+        // Construir el mensaje según el tipo seleccionado
+        let mensaje = '';
+        
+        if (tipo === '1') {
+          // Mensaje original: Artículo disponible
+          mensaje = `Hola, ${nombreCliente}:
 El artículo solicitado en tu pedido se encuentra disponible.
 Podés retirarlo en nuestro showroom, ubicado en Sargento Cabral 1945, Florida Oeste (Vicente López).
 Nuestro horario de atención es de lunes a viernes de 9 a 18 hs y sábados de 10 a 17 hs.
@@ -593,13 +642,42 @@ Adjuntamos el enlace que te llevará a tu pedido. Esperamos tu confirmación.
 Distribuidora Home Point.-
 
 ${pedidoLink}`;
+        } else if (tipo === '2') {
+          // Mensaje personalizado 1
+          mensaje = `Hola, ${nombreCliente}:
+
+Nos comunicamos desde Distribuidora Home Point en relación a tu pedido.
+
+[Escribe aquí tu mensaje personalizado]
+
+Adjuntamos el enlace a tu pedido:
+${pedidoLink}
+
+Quedamos a tu disposición.
+
+Distribuidora Home Point.-`;
+        } else if (tipo === '3') {
+          // Mensaje personalizado 2
+          mensaje = `Hola, ${nombreCliente}:
+
+Te contactamos de Distribuidora Home Point.
+
+[Escribe aquí tu segundo mensaje personalizado]
+
+Link a tu pedido:
+${pedidoLink}
+
+Saludos cordiales.
+
+Distribuidora Home Point.-`;
+        }
         
         // Codificar el mensaje para URL
         const mensajeEncoded = encodeURIComponent(mensaje);
         
         // Abrir WhatsApp con el mensaje
         window.open(`https://api.whatsapp.com/send/?phone=${telClean}&text=${mensajeEncoded}`, '_blank');
-      };
+      }
 
       // Estado visual del botón
       function actualizarBotonDespachado() {
@@ -1591,6 +1669,7 @@ ${pedidoLink}`;
               <option value="pago">Pago</option>
               <option value="retira">Retira</option>
               <option value="no responde">No responde</option>
+              <option value="sin_nota">Sin nota</option>
             </select>
             <span id="notaFechaLabel" style="font-size:0.7rem;color:#999;font-style:italic;text-align:left;"></span>
           </div>
