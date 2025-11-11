@@ -207,7 +207,10 @@
       border-radius: 12px;
       box-shadow: var(--shadow-lg);
       min-width: 280px;
-      overflow: hidden;
+      /* Permitir scroll vertical si el contenido es largo */
+      max-height: calc(100vh - 80px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       opacity: 0;
       visibility: hidden;
       transform: translateY(-10px);
@@ -1346,14 +1349,7 @@
           <div class="menu-filter-group">
             <select id="filtroNota" class="menu-note-select" onchange="aplicarFiltros()">
               <option value="">Todas las notas</option>
-              <option value="esperando respuesta">Esperando respuesta</option>
-              <option value="esperando cierre">Esperando cierre</option>
-              <option value="espera cotización">Espera cotización</option>
-              <option value="esperando pago">Esperando pago</option>
-              <option value="pago">Pago</option>
-              <option value="retira">Retira</option>
-              <option value="no responde">No responde</option>
-              <option value="sin_nota">Sin nota</option>
+              <!-- Las opciones se poblarán dinámicamente según los valores reales de 'nota' en los pedidos -->
             </select>
           </div>
         </div>
@@ -1610,7 +1606,10 @@
     
     // Indicador de filtro por nota
     if (filtroNotaSeleccionada) {
-      const notaText = filtroNotaSeleccionada === 'sin_nota' ? 'Sin Nota' : filtroNotaSeleccionada;
+      const filtroNotaSelectEl = document.getElementById('filtroNota');
+      const notaText = filtroNotaSeleccionada === 'sin_nota'
+        ? 'Sin Nota'
+        : (filtroNotaSelectEl?.selectedOptions[0]?.text || filtroNotaSeleccionada);
       indicators.push(`
         <div class="filter-indicator note">
           <i class="bi bi-sticky"></i>
@@ -1690,6 +1689,8 @@
         pedidos.push(p);
         allPedidos.push(p);
       });
+      // Poblar filtros dinámicos basados en los valores reales de los pedidos
+      try { poblarFiltroNotas(); } catch(e) { console.warn('poblarFiltroNotas error', e); }
       renderTabla();
     });
   }
@@ -1707,8 +1708,60 @@
         pedidos.push(p);
         allPedidos.push(p);
       });
+      // Poblar filtros dinámicos basados en los valores reales de los pedidos
+      try { poblarFiltroNotas(); } catch(e) { console.warn('poblarFiltroNotas error', e); }
       renderTabla();
     });
+  }
+
+  // Obtener notas únicas normalizadas (value) -> texto original
+  function obtenerNotasUnicasMap() {
+    const map = new Map();
+    if (!Array.isArray(allPedidos)) return map;
+    allPedidos.forEach(p => {
+      // Considerar únicamente pedidos creados desde la web
+      const createdBy = (p.createdby || p.createdBt || '').toString().toLowerCase();
+      if (createdBy !== 'web') return;
+      const raw = (p.nota || '').toString().trim();
+      if (!raw) return;
+      const key = raw.toLowerCase();
+      if (!map.has(key)) map.set(key, raw);
+    });
+    return map;
+  }
+
+  // Pobla el select #filtroNota con las notas encontradas + opción 'Sin nota' y 'Todas las notas'
+  function poblarFiltroNotas() {
+    const select = document.getElementById('filtroNota');
+    if (!select) return;
+    const current = select.value;
+    // Limpiar
+    select.innerHTML = '';
+    // Opción Todas
+    const optAll = document.createElement('option');
+    optAll.value = '';
+    optAll.textContent = 'Todas las notas';
+    select.appendChild(optAll);
+    // Opción Sin nota
+    const optSin = document.createElement('option');
+    optSin.value = 'sin_nota';
+    optSin.textContent = 'Sin nota';
+    select.appendChild(optSin);
+
+    const map = obtenerNotasUnicasMap();
+    const entries = Array.from(map.entries()).sort((a,b) => a[1].localeCompare(b[1], 'es'));
+    entries.forEach(([key, display]) => {
+      const opt = document.createElement('option');
+      opt.value = key; // normalizado en minúsculas
+      opt.textContent = display;
+      select.appendChild(opt);
+    });
+
+    // Restaurar selección si sigue disponible
+    if (current) {
+      const exists = Array.from(select.options).some(o => o.value === current);
+      if (exists) select.value = current;
+    }
   }
 
   // Función para contar pedidos entregados por email
@@ -2059,12 +2112,13 @@
         return nombreCliente.includes(busquedaNombre);
       })
       .filter(p => {
-        // Filtrar por tipo de nota
+        // Filtrar por tipo de nota (comparación normalizada, opción dinámica)
         if (!filtroNotaSeleccionada) return true;
         if (filtroNotaSeleccionada === 'sin_nota') {
           return !p.nota || p.nota.trim() === '';
         }
-        return p.nota === filtroNotaSeleccionada;
+        const notaNormalized = (p.nota || '').trim().toLowerCase();
+        return notaNormalized === filtroNotaSeleccionada;
       })
       .filter(p => {
         // Filtrar por provincia
@@ -2216,6 +2270,7 @@
           { value: 'esperando pago', label: 'Esperando pago' },
           { value: 'pago', label: 'Pago' },
           { value: 'retira', label: 'Retira' },
+          { value: 'respuesta pendiente', label: 'Respuesta Pendiente' },
           { value: 'no responde', label: 'No responde' },
           { value: 'no cumple minimo', label: 'No cumple minimo' },
           { value: '???', label: '???' },
