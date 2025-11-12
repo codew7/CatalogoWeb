@@ -325,13 +325,13 @@
   <button id="ImprimirBtn" class="accion-btn" style="display:none;background:#888;">Imprimir</button>
 
   </div>
-  <div id="accionesAdmin" style="text-align:center;margin-top:10px;">
+  <div id="accionesAdmin" style="text-align:left;margin-top:10px;">
     <div id="mensajeBtnContainer" style="display:none;position:relative;">
       <button id="mensajeBtn" class="accion-btn" style="background:#25D366;">Mensaje Rápido ▼</button>
       <div id="mensajeDropdown" style="display:none;position:absolute;background-color:#fff;min-width:200px;box-shadow:0px 8px 16px 0px rgba(0,0,0,0.2);z-index:1;border-radius:4px;overflow:hidden;left:50%;transform:translateX(-50%);margin-top:2px;">
-        <a href="#" data-mensaje="1" style="color:#333;padding:12px 16px;text-decoration:none;display:block;border-bottom:1px solid #eee;">📦 Artículo disponible</a>
-        <a href="#" data-mensaje="2" style="color:#333;padding:12px 16px;text-decoration:none;display:block;border-bottom:1px solid #eee;">💬 Mensaje personalizado 1</a>
-        <a href="#" data-mensaje="3" style="color:#333;padding:12px 16px;text-decoration:none;display:block;">💬 Mensaje personalizado 2</a>
+        <a href="#" data-mensaje="1" style="color:#333;padding:12px 16px;text-decoration:none;display:block;border-bottom:1px solid #eee;">💬 Retirar Pedido</a>
+        <a href="#" data-mensaje="2" style="color:#333;padding:12px 16px;text-decoration:none;display:block;border-bottom:1px solid #eee;">💬 Saludo Inicial</a>
+        <a href="#" data-mensaje="3" style="color:#333;padding:12px 16px;text-decoration:none;display:block;">💬 Mensaje 3</a>
       </div>
     </div>
     <button id="despachadoEntregadoBtn" class="accion-btn" style="display:none;background:#666;">Entregado</button>
@@ -548,6 +548,39 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
         }).catch(() => console.error('Error al copiar al portapapeles'));
       };
     }
+
+    // Configurar copiar al portapapeles para direccion y localidad (copiar ambos como "direccion, localidad")
+    const direccionEl = document.getElementById('direccionCliente');
+    const localidadEl = document.getElementById('localidadCliente');
+
+    function copyDireccionLocalidadHandler() {
+      const parts = [];
+      if (cliente.direccion) parts.push(cliente.direccion);
+      if (cliente.localidad) parts.push(cliente.localidad);
+      const textToCopy = parts.join(', ');
+      if (!textToCopy) return;
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const textoOriginal = this.textContent;
+        this.textContent = '✓ Copiado!';
+        this.style.color = '#4CAF50';
+        setTimeout(() => {
+          this.textContent = textoOriginal;
+          this.style.color = '';
+        }, 1500);
+      }).catch(() => console.error('Error al copiar al portapapeles'));
+    }
+
+    if (direccionEl) {
+      direccionEl.style.cursor = 'pointer';
+      direccionEl.title = 'Click para copiar dirección y localidad';
+      direccionEl.onclick = copyDireccionLocalidadHandler;
+    }
+
+    if (localidadEl) {
+      localidadEl.style.cursor = 'pointer';
+      localidadEl.title = 'Click para copiar dirección y localidad';
+      localidadEl.onclick = copyDireccionLocalidadHandler;
+    }
     
     // Mostrar fecha y hora de ingreso
     let fechaIngreso = '';
@@ -631,7 +664,7 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
         let mensaje = '';
         
         if (tipo === '1') {
-          // Mensaje original: Artículo disponible
+          // Mensaje Rapido 1
           mensaje = `Hola, ${nombreCliente}:
 El artículo solicitado en tu pedido se encuentra disponible.
 Podés retirarlo en nuestro showroom, ubicado en Sargento Cabral 1945, Florida Oeste (Vicente López).
@@ -643,21 +676,16 @@ Distribuidora Home Point.-
 
 ${pedidoLink}`;
         } else if (tipo === '2') {
-          // Mensaje personalizado 1
+          // Mensaje Rapido 2
           mensaje = `Hola, ${nombreCliente}:
 
-Nos comunicamos desde Distribuidora Home Point en relación a tu pedido.
-
-[Escribe aquí tu mensaje personalizado]
+Nos comunicamos desde Distribuidora HomePoint en relación a tu pedido.
 
 Adjuntamos el enlace a tu pedido:
-${pedidoLink}
+${pedidoLink}`;
 
-Quedamos a tu disposición.
-
-Distribuidora Home Point.-`;
         } else if (tipo === '3') {
-          // Mensaje personalizado 2
+          // Mensaje Rapido 3
           mensaje = `Hola, ${nombreCliente}:
 
 Te contactamos de Distribuidora Home Point.
