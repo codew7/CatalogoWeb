@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Detalle de pedido.">
   <title>Pedido | HomePoint</title>
   <link rel="icon" href="faviconnegro.png" type="image/png">
 
@@ -19,6 +20,7 @@
   <script>
     let pedidoActual = null;
     let sheetValorMap = {}; // Mapa para valorC y valorU por código
+    let sheetCategoryMap = {}; // Mapa para categoría por código
 
     // Lista de emails de administradores
     const adminEmails = ["distribuidorahomepoint@gmail.com"];
@@ -978,9 +980,9 @@ Distribuidora Home Point.-`;
 
     // visibilidad y texto del botón toggle según rol/estado
     const toggleBtn = document.getElementById('toggleEstadoBtn');
-    if (admin && pedidoActual.status !== 'CANCELADO') {
+    if (admin) {
       toggleBtn.style.display = 'inline-block';
-      if (pedidoActual.locked || pedidoActual.status === 'DESPACHADO/ENTREGADO') {
+      if (pedidoActual.locked || pedidoActual.status === 'DESPACHADO/ENTREGADO' || pedidoActual.status === 'CANCELADO') {
         toggleBtn.textContent = 'Reabrir Pedido';
         toggleBtn.onclick = reabrirPedido;
       } else {
@@ -1013,6 +1015,7 @@ Distribuidora Home Point.-`;
         const values = data.values || [];
         sheetValorMap = {};
         values.forEach(row => {
+          const categoria = row[0]; // Columna A (categoría)
           const codigo = row[2]; // Columna C (código)
           const valorU = row[6]; // Columna G (valorU)
           const valorC = row[7]; // Columna H (valorC)
@@ -1034,6 +1037,11 @@ Distribuidora Home Point.-`;
               valorU: valorULimpio,
               valorC: valorCLimpio
             };
+            
+            // Guardar categoría
+            if (categoria) {
+              sheetCategoryMap[codigo] = categoria;
+            }
           }
         });
         
@@ -2101,7 +2109,8 @@ const cerrarPedido = () => {
 };
 
 const reabrirPedido = async () => {
-  if (!admin || !pedidoActual.locked) return;            // solo admin y pedido cerrado
+  if (!admin) return;            // solo admin puede reabrir
+  if (!pedidoActual.locked && pedidoActual.status !== 'CANCELADO' && pedidoActual.status !== 'DESPACHADO/ENTREGADO') return;
   if (!confirm("¿Querés reabrir este pedido?")) return;
   // Determinar quién modifica
   let lastModifiedBy = 'usuario';
@@ -2355,11 +2364,39 @@ modalEditCliente.addEventListener('mousedown', function(e) {
 document.getElementById('ImprimirBtn').onclick = () => {
   if (!pedidoActual) return;
   const cliente = pedidoActual.cliente || {};
+  
+  // Ordenar items por categoría
+  const itemsOrdenados = [...pedidoActual.items].sort((a, b) => {
+    const catA = (a.codigo && sheetCategoryMap[a.codigo]) || 'ZZZ'; // Items sin categoría al final
+    const catB = (b.codigo && sheetCategoryMap[b.codigo]) || 'ZZZ';
+    return catA.localeCompare(catB);
+  });
+  
+  // Calcular total de unidades
+  const totalUnidades = itemsOrdenados.reduce((sum, it) => sum + (it.cantidad || 0), 0);
+  
+  // Generar URL de WhatsApp para el cliente
+  let whatsappURL = '';
+  if (cliente.telefono) {
+    let telClean = cliente.telefono.replace(/[^\d]/g, '');
+    if (telClean.startsWith('0')) telClean = telClean.substring(1);
+    if (!telClean.startsWith('54')) telClean = '54' + telClean;
+    whatsappURL = `https://api.whatsapp.com/send/?phone=${telClean}`;
+  }
+  
+  // Generar QR usando API de QR Server
+  const qrURL = whatsappURL ? `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(whatsappURL)}` : '';
+  
   let html = `
     <html><head><title>Impresion de Pedido</title>
     <style>
       body { font-family: Arial, Helvetica, sans-serif; background: #fff; margin: 0; padding: 30px; }
-      .info { font-size: 1.25em; }
+      .header-container { position: relative; margin-bottom: 20px; }
+      .info { font-size: 1.25em; display: inline-block; width: calc(100% - 120px); vertical-align: top; }
+      .qr-container { position: absolute; top: 0; right: 0; width: 100px; height: 100px; }
+      .qr-container img { width: 100px; height: 100px; }
+      .table-container { position: relative; }
+      .total-unidades { position: absolute; top: 0; right: 0; font-size: 1.1em; font-weight: bold; color: #4CAF50; }
       table { border-collapse: collapse; margin-bottom: 20px; table-layout: auto; }
   th, td { border: 1px solid #bbb; padding: 4px 15px; font-size: 0.9em; text-align: left; white-space: nowrap; }
   th { background: #4CAF50; color: #fff; }
@@ -2367,33 +2404,39 @@ document.getElementById('ImprimirBtn').onclick = () => {
       @media print { button { display: none !important; } }
     </style>
     </head><body>
-    <div class="info"><b>Nombre:</b> ${cliente.nombre || ''} <br>
-      <b>Dirección:</b> ${cliente.direccion || ''} - ${cliente.localidad || ''} <br>
-      <b>Provincia:</b> ${cliente.provincia || ''} <br>
-      <b>Teléfono:</b> ${cliente.telefono || ''} <br>
-      <b>DNI:</b> ${cliente.dni || ''} <br>
-      <b>Envío:</b> ${pedidoActual.tipoEntrega || ''} <br>
-      <br>
-      <b>REMITENTE:</b><br>
-      Javier Romero Perez / Tel. 011 2189-1006<br>
-      Sargento Cabral 1945, Florida Oeste, Buenos Aires<br>
-      <br>
+    <div class="header-container">
+      <div class="info"><b>Nombre:</b> ${cliente.nombre || ''} <br>
+        <b>Dirección:</b> ${cliente.direccion || ''} - ${cliente.localidad || ''} <br>
+        <b>Provincia:</b> ${cliente.provincia || ''} <br>
+        <b>Teléfono:</b> ${cliente.telefono || ''} <br>
+        <b>DNI:</b> ${cliente.dni || ''} <br>
+        <b>Envío:</b> ${pedidoActual.tipoEntrega || ''} <br>
+        <br>
+        <b>REMITENTE:</b><br>
+        Javier Romero Perez / Tel. 011 2189-1006<br>
+        Sargento Cabral 1945, Florida Oeste, Buenos Aires<br>
+        <br>
+      </div>
+      ${qrURL ? `<div class="qr-container"><img src="${qrURL}" alt="WhatsApp QR"></div>` : ''}
     </div>
-    <table>
-      <tr>
-        <th>Artículo</th>
-        <th class="cant">Cant.</th>
-        <th class="check"></th>
-      </tr>
+    <div class="table-container">
+      <div class="total-unidades">Total Unidades: ${totalUnidades}</div>
+      <table>
+        <tr>
+          <th>Artículo</th>
+          <th class="cant">Cant.</th>
+          <th class="check"></th>
+        </tr>
   `;
-  pedidoActual.items.forEach(it => {
+  itemsOrdenados.forEach(it => {
     html += `<tr>
       <td style="text-align:left;">${it.nombre}</td>
       <td class="cant">${it.cantidad}</td>
       <td><input type='checkbox' style='width:22px;height:22px;'></td>
     </tr>`;
   });
-  html += `</table>`;
+  html += `</table>
+    </div>`;
   // Llama a imprimir automáticamente al abrir la ventana
   html += `<script>window.onload = function(){ window.print(); }<\/script>`;
   html += `</body></html>`;
