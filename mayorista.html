@@ -1835,6 +1835,154 @@
 
         
     </style>
+
+    <!-- === CONFIGURACIÓN POPUP DE MANTENIMIENTO === -->
+    <!-- Cambia MOSTRAR_POPUP_MANTENIMIENTO a false para desactivar el popup -->
+    <script>
+        const MOSTRAR_POPUP_MANTENIMIENTO = true; // Cambiar a false para desactivar
+    </script>
+
+    <!-- === ESTILOS POPUP DE MANTENIMIENTO === -->
+    <style>
+        .maintenance-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .maintenance-popup {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .maintenance-icon {
+            font-size: 64px;
+            color: #ff9800;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .maintenance-popup h2 {
+            color: #333;
+            font-size: 24px;
+            margin: 0 0 20px 0;
+            font-weight: 600;
+        }
+
+        .maintenance-popup p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 0 0 30px 0;
+        }
+
+        .maintenance-close-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .maintenance-close-btn:hover {
+            background: #45a049;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @media (max-width: 600px) {
+            .maintenance-popup {
+                padding: 30px 20px;
+            }
+            
+            .maintenance-icon {
+                font-size: 48px;
+            }
+            
+            .maintenance-popup h2 {
+                font-size: 20px;
+            }
+            
+            .maintenance-popup p {
+                font-size: 14px;
+            }
+        }
+    </style>
+
+    <!-- === POPUP DE MANTENIMIENTO HTML === -->
+    <div id="maintenanceOverlay" class="maintenance-overlay" style="display: none;">
+        <div class="maintenance-popup">
+            <div class="maintenance-icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            <h2>Aviso de Mantenimiento</h2>
+            <p>
+                Estimado cliente, le informamos que nuestro catálogo está experimentando inconvenientes temporales con la visualización de algunas imágenes. 
+                Nuestro equipo técnico se encuentra trabajando activamente para resolver esta situación a la brevedad posible.
+                <br><br>
+                Pedimos disculpas por las molestias que esto pueda ocasionar y agradecemos su comprensión.
+            </p>
+            <button class="maintenance-close-btn" onclick="cerrarPopupMantenimiento()">Entendido</button>
+        </div>
+    </div>
+
+    <!-- === SCRIPT POPUP DE MANTENIMIENTO === -->
+    <script>
+        function cerrarPopupMantenimiento() {
+            const overlay = document.getElementById('maintenanceOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+
+        // Mostrar popup al cargar la página si está activado
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof MOSTRAR_POPUP_MANTENIMIENTO !== 'undefined' && MOSTRAR_POPUP_MANTENIMIENTO === true) {
+                const overlay = document.getElementById('maintenanceOverlay');
+                if (overlay) {
+                    overlay.style.display = 'flex';
+                }
+            }
+        });
+    </script>
 </head>
 
 <body>
