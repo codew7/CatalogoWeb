@@ -2504,8 +2504,12 @@ document.getElementById('ImprimirBtn').onclick = () => {
     whatsappURL = `https://api.whatsapp.com/send/?phone=${telClean}`;
   }
   
+  // Generar URL del pedido
+  const pedidoURL = `https://www.home-point.com.ar/pedidos.html?id=${pedidoActual.id}`;
+  
   // Generar QR usando API de QR Server
-  const qrURL = whatsappURL ? `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(whatsappURL)}` : '';
+  const qrWhatsAppURL = whatsappURL ? `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(whatsappURL)}` : '';
+  const qrPedidoURL = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(pedidoURL)}`;
   
   let html = `
     <html><head><title>Impresion de Pedido</title>
@@ -2517,6 +2521,8 @@ document.getElementById('ImprimirBtn').onclick = () => {
       .qr-container img { width: 100px; height: 100px; }
       .table-container { position: relative; }
       .total-unidades { position: absolute; top: 0; right: 0; font-size: 1.1em; font-weight: bold; color: #4CAF50; }
+      .qr-container-table { position: absolute; top: 50px; right: 0; width: 100px; height: 100px; }
+      .qr-container-table img { width: 100px; height: 100px; }
       table { border-collapse: collapse; margin-bottom: 20px; table-layout: auto; }
   th, td { border: 1px solid #bbb; padding: 4px 15px; font-size: 0.9em; text-align: left; white-space: nowrap; }
   th { background: #4CAF50; color: #fff; }
@@ -2537,10 +2543,11 @@ document.getElementById('ImprimirBtn').onclick = () => {
         Sargento Cabral 1945, Florida Oeste, Buenos Aires<br>
         <br>
       </div>
-      ${qrURL ? `<div class="qr-container"><img src="${qrURL}" alt="WhatsApp QR"></div>` : ''}
+      ${qrWhatsAppURL ? `<div class="qr-container"><img src="${qrWhatsAppURL}" alt="WhatsApp QR"></div>` : ''}
     </div>
     <div class="table-container">
       <div class="total-unidades">Total Unidades: ${totalUnidades}</div>
+      <div class="qr-container-table"><img src="${qrPedidoURL}" alt="Pedido QR"></div>
       <table>
         <tr>
           <th>Artículo</th>
