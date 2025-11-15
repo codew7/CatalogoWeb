@@ -361,46 +361,50 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
   // === ALIAS: Variables y funciones ===
   let aliasHistorial = [];
 
-  // Cargar historial de alias desde Firebase
+  // Cargar historial de alias desde Firebase (optimizado: 50 en lugar de 200)
   function cargarHistorialAlias() {
-    db.ref('pedidos').orderByChild('timestamp').limitToLast(200).once('value').then(snap => {
+    db.ref('pedidos').orderByChild('timestamp').limitToLast(50).once('value').then(snap => {
       const aliasSet = new Set(); // Para evitar duplicados
-      const pedidos = [];
+      const aliasTemp = [];
       
-      // Convertir snapshot a array y ordenar por timestamp descendente
+      // Extraer solo los alias (sin cargar todos los datos del pedido)
       snap.forEach(child => {
-        const pedido = child.val();
-        if (pedido && pedido.pagos && pedido.pagos.alias && pedido.pagos.alias.trim() !== '') {
-          pedidos.push({
-            alias: pedido.pagos.alias.trim().toUpperCase(),
-            timestamp: pedido.timestamp || 0
-          });
+        const pagos = child.val()?.pagos;
+        if (pagos?.alias && pagos.alias.trim() !== '') {
+          const alias = pagos.alias.trim().toUpperCase();
+          if (!aliasSet.has(alias) && aliasSet.size < 10) {
+            aliasSet.add(alias);
+            aliasTemp.push({
+              alias: alias,
+              timestamp: child.val().timestamp || 0
+            });
+          }
         }
       });
       
-      // Ordenar por timestamp descendente y tomar solo los 10 más recientes únicos
-      pedidos.sort((a, b) => b.timestamp - a.timestamp);
-      
-      aliasHistorial = [];
-      pedidos.forEach(pedido => {
-        if (aliasSet.size < 10 && !aliasSet.has(pedido.alias)) {
-          aliasSet.add(pedido.alias);
-          aliasHistorial.push(pedido.alias);
-        }
-      });
+      // Ordenar por timestamp descendente
+      aliasHistorial = aliasTemp
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .map(item => item.alias)
+        .slice(0, 10);
       
       // Actualizar datalist
-      const datalistAlias = document.getElementById('aliasDatalist');
-      if (datalistAlias) {
-        datalistAlias.innerHTML = '';
-        aliasHistorial.forEach(alias => {
-          const option = document.createElement('option');
-          option.value = alias;
-          datalistAlias.appendChild(option);
-        });
-      }
+      actualizarDatalistAlias();
     }).catch(err => {
       console.error('Error cargando historial de alias:', err);
+    });
+  }
+
+  // Función para actualizar el datalist de alias
+  function actualizarDatalistAlias() {
+    const datalistAlias = document.getElementById('aliasDatalist');
+    if (!datalistAlias) return;
+    
+    datalistAlias.innerHTML = '';
+    aliasHistorial.forEach(alias => {
+      const option = document.createElement('option');
+      option.value = alias;
+      datalistAlias.appendChild(option);
     });
   }
 
@@ -420,8 +424,34 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
     }
   }
 
+  // Sistema de batch updates para reducir escrituras a Firebase
+  let updateQueue = {};
+  let updateTimer = null;
+
+  function programarActualizacion(path, data) {
+    // Acumular cambios
+    if (!updateQueue[path]) updateQueue[path] = {};
+    updateQueue[path] = { ...updateQueue[path], ...data };
+    
+    // Cancelar timer anterior
+    if (updateTimer) clearTimeout(updateTimer);
+    
+    // Guardar después de 2 segundos sin cambios (optimizado de 800ms)
+    updateTimer = setTimeout(() => {
+      const promises = Object.entries(updateQueue).map(([path, data]) => 
+        firebase.database().ref(path).update(data)
+      );
+      
+      Promise.all(promises)
+        .then(() => {
+          updateQueue = {};
+          console.log('Cambios guardados automáticamente');
+        })
+        .catch(err => console.error('Error guardando cambios:', err));
+    }, 2000);
+  }
+
   // Función para convertir ALIAS a mayúsculas en tiempo real y guardar automáticamente
-  let aliasTimeout = null; // Variable para almacenar el timeout
   function configurarCampoAlias() {
     const aliasInput = document.getElementById('alias');
     if (aliasInput) {
@@ -434,31 +464,27 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
         // Restaurar la posición del cursor
         this.setSelectionRange(start, end);
         
-        // Cancelar el timeout anterior si existe
-        if (aliasTimeout) {
-          clearTimeout(aliasTimeout);
-        }
-        
-        // Auto-guardar en Firebase después de 800ms
-        const nuevoAlias = this.value.trim();
-        aliasTimeout = setTimeout(() => {
-          firebase.database().ref('pedidos/' + pedidoActual.id + '/pagos').update({ alias: nuevoAlias })
-            .catch(() => console.error('Error al guardar el alias'));
-        }, 800);
+        // Programar actualización en lote
+        programarActualizacion(
+          `pedidos/${pedidoActual.id}/pagos`,
+          { alias: this.value.trim() }
+        );
       });
     }
   }
 
-  // Función para guardar automáticamente el tipo de pago
+  // Función para guardar automáticamente el tipo de pago (usando batch updates)
   function guardarTipoPago() {
     const tipoPago = document.querySelector('input[name="tipoPago"]:checked');
     if (tipoPago && pedidoActual && pedidoActual.id) {
-      firebase.database().ref('pedidos/' + pedidoActual.id).update({ tipoPago: tipoPago.value })
-        .catch(() => console.error('Error al guardar el tipo de pago'));
+      programarActualizacion(
+        `pedidos/${pedidoActual.id}`,
+        { tipoPago: tipoPago.value }
+      );
     }
   }
 
-  // Función para guardar automáticamente el tipo de entrega
+  // Función para guardar automáticamente el tipo de entrega (usando batch updates)
   function guardarTipoEntrega() {
     const tipoEntrega = document.querySelector('input[name="tipoEntrega"]:checked');
     if (tipoEntrega && pedidoActual && pedidoActual.id) {
@@ -468,19 +494,24 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
         entrega = 'Envios';
       }
       
-      firebase.database().ref('pedidos/' + pedidoActual.id).update({ 
-        tipoEntrega: tipoEntrega.value,
-        entrega: entrega
-      }).catch(() => console.error('Error al guardar el tipo de entrega'));
+      programarActualizacion(
+        `pedidos/${pedidoActual.id}`,
+        { tipoEntrega: tipoEntrega.value, entrega: entrega }
+      );
     }
   }
 
   // Cargar historial de alias al inicializar
   cargarHistorialAlias();
 
-  // Al recibir el pedido, decido la cotización a usar
-  pedidoRef.on('value', snap => {
+  // Variable para almacenar la función del listener
+  let listenerActivo = null;
+
+  // Función para cargar el pedido inicialmente
+  async function cargarPedidoInicial() {
+    const snap = await pedidoRef.once('value');
     pedidoActual = snap.val();
+    
     if (!pedidoActual){
       // Ocultar mensaje de carga antes de mostrar error
       const loadingOverlay = document.getElementById('loadingOverlay');
@@ -492,9 +523,64 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
     
     // === NUEVO: status por defecto ===
     if (!pedidoActual.status) {
-      pedidoRef.update({ status: 'ABIERTO' });
+      await pedidoRef.update({ status: 'ABIERTO' });
       pedidoActual.status = 'ABIERTO';
     }
+
+    // Procesar el pedido
+    procesarPedidoCargado();
+    
+    // Solo activar listener en tiempo real si el pedido está abierto y no despachado/cancelado
+    if (!pedidoActual.locked && 
+        pedidoActual.status !== 'DESPACHADO/ENTREGADO' && 
+        pedidoActual.status !== 'CANCELADO') {
+      activarListenerTiempoReal();
+    }
+  }
+
+  // Función para activar listener en tiempo real (solo para pedidos abiertos)
+  function activarListenerTiempoReal() {
+    if (listenerActivo) return; // Ya está activo
+    
+    listenerActivo = (snap) => {
+      const pedidoNuevo = snap.val();
+      if (!pedidoNuevo) return;
+      
+      // Solo actualizar si hay cambios relevantes
+      const cambiosRelevantes = 
+        JSON.stringify(pedidoNuevo.items) !== JSON.stringify(pedidoActual.items) ||
+        pedidoNuevo.status !== pedidoActual.status ||
+        pedidoNuevo.locked !== pedidoActual.locked;
+      
+      if (cambiosRelevantes) {
+        pedidoActual = pedidoNuevo;
+        procesarPedidoCargado();
+      }
+      
+      // Desactivar listener si el pedido se cierra o despacha
+      if (pedidoNuevo.locked || 
+          pedidoNuevo.status === 'DESPACHADO/ENTREGADO' || 
+          pedidoNuevo.status === 'CANCELADO') {
+        desactivarListenerTiempoReal();
+      }
+    };
+    
+    pedidoRef.on('value', listenerActivo);
+    console.log('Listener en tiempo real activado');
+  }
+
+  // Función para desactivar listener en tiempo real
+  function desactivarListenerTiempoReal() {
+    if (listenerActivo) {
+      pedidoRef.off('value', listenerActivo);
+      listenerActivo = null;
+      console.log('Listener en tiempo real desactivado');
+    }
+  }
+
+  // Función que procesa el pedido cargado (código original del .on('value'))
+  function procesarPedidoCargado() {
+    if (!pedidoActual) return;
 
     // Actualizar valorC y valorU de los items desde Google Sheets
     actualizarValoresItems();
@@ -1005,18 +1091,42 @@ Distribuidora Home Point.-`;
     } else {
       document.getElementById('estado').innerText = '📝 PEDIDO ABIERTO';
     }
+  }
+
+  // Iniciar carga del pedido
+  cargarPedidoInicial();
+
+  // Cleanup: Desactivar listener al cerrar la página
+  window.addEventListener('beforeunload', () => {
+    desactivarListenerTiempoReal();
   });
 
-  // Función para cargar datos desde Google Sheets
+  // Función para cargar datos desde Google Sheets (optimizada)
   function cargarDatosSheets() {
     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/values/${GOOGLE_SHEETS_CONFIG.RANGO}?key=${GOOGLE_SHEETS_CONFIG.API_KEY}`)
       .then(r => r.json())
       .then(data => {
         const values = data.values || [];
         sheetValorMap = {};
+        sheetCategoryMap = {};
+        
+        // Obtener códigos necesarios del pedido actual
+        const codigosNecesarios = new Set(
+          pedidoActual?.items?.map(item => item.codigo).filter(Boolean) || []
+        );
+        
+        // Si no hay pedido cargado aún, procesar todo (primera carga)
+        const procesarTodo = !pedidoActual || codigosNecesarios.size === 0;
+        
         values.forEach(row => {
           const categoria = row[0]; // Columna A (categoría)
           const codigo = row[2]; // Columna C (código)
+          
+          // Optimización: solo procesar códigos relevantes si el pedido ya está cargado
+          if (!procesarTodo && codigo && !codigosNecesarios.has(codigo)) {
+            return; // Saltar este registro
+          }
+          
           const valorU = row[6]; // Columna G (valorU)
           const valorC = row[7]; // Columna H (valorC)
           
@@ -1157,7 +1267,32 @@ Distribuidora Home Point.-`;
     }
   }
 
+  // Variable para memoización de renderItems
+  let lastRenderHash = '';
+
   function renderItems() {
+    // Crear hash del estado actual para memoización
+    const currentHash = JSON.stringify({
+      items: pedidoActual?.items?.map(i => ({ 
+        codigo: i.codigo, 
+        cantidad: i.cantidad,
+        valorU: i.valorU,
+        nombre: i.nombre
+      })),
+      locked: pedidoActual?.locked,
+      status: pedidoActual?.status,
+      tipoPago: pedidoActual?.tipoPago,
+      tipoEntrega: pedidoActual?.tipoEntrega
+    });
+    
+    // Solo re-renderizar si cambió algo relevante
+    if (currentHash === lastRenderHash) {
+      console.log('Render omitido - sin cambios relevantes');
+      return;
+    }
+    
+    lastRenderHash = currentHash;
+    
     const cont = document.getElementById('items');
     cont.innerHTML = '';
 
@@ -1522,11 +1657,6 @@ Distribuidora Home Point.-`;
         envioInput.parentNode.replaceChild(newEnvioInput, envioInput);
         const envioInputFinal = document.getElementById('envioInput');
         
-        // Timers para debounce
-        let porcentajeTimer = null;
-        let descuentoTimer = null;
-        let envioTimer = null;
-        
         // Flag para prevenir ciclos entre porcentaje y descuento
         let actualizandoPorPorcentaje = false;
         
@@ -1535,53 +1665,41 @@ Distribuidora Home Point.-`;
           actualizarPorPorcentaje();
           actualizandoPorPorcentaje = false;
           
-          // Limpiar timer anterior
-          if (porcentajeTimer) clearTimeout(porcentajeTimer);
-          // Auto-guardar en Firebase con delay
-          porcentajeTimer = setTimeout(() => {
-            const porc = parseFloat(this.value) || 0;
-            const desc = parseFloat(descuentoInputFinal.value) || 0;
-            firebase.database().ref('pedidos/' + pedidoActual.id + '/pagos').update({ 
-              porcentajeDescuento: porc,
-              descuento: desc
-            }).catch(() => console.error('Error al guardar el porcentaje'));
-          }, 800);
+          // Auto-guardar usando batch updates (2 segundos de debounce)
+          const porc = parseFloat(this.value) || 0;
+          const desc = parseFloat(descuentoInputFinal.value) || 0;
+          programarActualizacion(
+            `pedidos/${pedidoActual.id}/pagos`,
+            { porcentajeDescuento: porc, descuento: desc }
+          );
         });
         
         descuentoInputFinal.addEventListener('input', function() {
           // Solo actualizar el porcentaje si el usuario editó manualmente el descuento
-          // (no cuando se actualiza automáticamente por el porcentaje)
           if (!actualizandoPorPorcentaje) {
             actualizarPorDescuento();
           } else {
-            // Solo actualizar el total final sin recalcular el porcentaje
             actualizarTotalFinal();
           }
           
-          // Limpiar timer anterior
-          if (descuentoTimer) clearTimeout(descuentoTimer);
-          // Auto-guardar en Firebase con delay
-          descuentoTimer = setTimeout(() => {
-            const desc = parseFloat(this.value) || 0;
-            const porc = parseFloat(porcentajeInputFinal.value) || 0;
-            firebase.database().ref('pedidos/' + pedidoActual.id + '/pagos').update({ 
-              descuento: desc,
-              porcentajeDescuento: porc
-            }).catch(() => console.error('Error al guardar el descuento'));
-          }, 800);
+          // Auto-guardar usando batch updates (2 segundos de debounce)
+          const desc = parseFloat(this.value) || 0;
+          const porc = parseFloat(porcentajeInputFinal.value) || 0;
+          programarActualizacion(
+            `pedidos/${pedidoActual.id}/pagos`,
+            { descuento: desc, porcentajeDescuento: porc }
+          );
         });
         
         envioInputFinal.addEventListener('input', function() {
           actualizarTotalFinal();
-          // Limpiar timer anterior
-          if (envioTimer) clearTimeout(envioTimer);
-          // Auto-guardar en Firebase con delay
-          envioTimer = setTimeout(() => {
-            const env = parseFloat(this.value) || 0;
-            firebase.database().ref('pedidos/' + pedidoActual.id + '/pagos').update({ 
-              envio: env
-            }).catch(() => console.error('Error al guardar el envío'));
-          }, 800);
+          
+          // Auto-guardar usando batch updates (2 segundos de debounce)
+          const env = parseFloat(this.value) || 0;
+          programarActualizacion(
+            `pedidos/${pedidoActual.id}/pagos`,
+            { envio: env }
+          );
         });
       }
     }, 0);
@@ -1729,6 +1847,8 @@ Distribuidora Home Point.-`;
           notaSelect.addEventListener('change', function() {
             const nuevaNota = this.value;
             const ahora = Date.now();
+            
+            // Guardar inmediatamente (sin batch) para que se vea el cambio
             firebase.database().ref('pedidos/' + pedidoActual.id).update({ nota: nuevaNota, notaFecha: ahora })
               .then(() => {
                 const fechaHora = new Date(ahora);
