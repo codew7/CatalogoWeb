@@ -1593,13 +1593,45 @@ Distribuidora Home Point.-`;
     if (!totalFinalDiv) {
       totalFinalDiv = document.createElement('div');
       totalFinalDiv.id = 'totalFinalDiv';
-      totalFinalDiv.style = 'font-weight:bold;font-size:1.2em;text-align:right;margin-top:10px;color:#222;';
+      totalFinalDiv.style = 'font-weight:bold;font-size:1.2em;text-align:right;margin-top:10px;color:#222;cursor:pointer;';
+      totalFinalDiv.title = 'Click para copiar resumen de pago';
       totalPagoWrap.appendChild(totalFinalDiv);
     }
     // Calcular total final
     let totalFinal = total - descuento + envio;
     if (totalFinal < 0) totalFinal = 0;
     totalFinalDiv.textContent = `TOTAL FINAL $ ${totalFinal.toLocaleString('es-AR')}`;
+
+    // Agregar funcionalidad de copiado al hacer click en Total Final
+    totalFinalDiv.onclick = function() {
+      const subtotalActual = total;
+      const descuentoActual = descuento;
+      const envioActual = envio;
+      const totalFinalActual = totalFinal;
+      const aliasInput = document.getElementById('alias');
+      const aliasValue = aliasInput ? aliasInput.value.trim() : '';
+      
+      // Formatear el texto para copiar
+      const textoCopiar = `- Subtotal $ ${subtotalActual.toLocaleString('es-AR')}
+- Envio $ ${envioActual.toLocaleString('es-AR')}
+- Total $ ${totalFinalActual.toLocaleString('es-AR')}
+- Pago: Transferencia
+- ALIAS: ${aliasValue}`;
+      
+      // Copiar al portapapeles
+      navigator.clipboard.writeText(textoCopiar).then(() => {
+        // Feedback visual
+        const textoOriginal = totalFinalDiv.textContent;
+        totalFinalDiv.textContent = '✓ Copiado!';
+        totalFinalDiv.style.color = '#4CAF50';
+        setTimeout(() => {
+          totalFinalDiv.textContent = textoOriginal;
+          totalFinalDiv.style.color = '#222';
+        }, 1500);
+      }).catch(err => {
+        alert('Error al copiar: ' + err);
+      });
+    };
 
     // Actualizar descuento, envio y total final al cambiar porcentaje, descuento o envio
     setTimeout(() => {
@@ -2691,9 +2723,10 @@ observer.observe(document.body, { childList: true, subtree: true });
 
 <div style="max-width:600px;margin:30px auto 0 auto;font-size:0.90em;color:#444;text-align:left;opacity:0.85;">
   <hr style="margin:18px 0;">
-  <div style="margin-bottom:10px;">* Los precios se congelan únicamente al momento de CERRAR el pedido.</div>
+  <div style="margin-bottom:10px;">* Los precios se congelan únicamente al momento de confirmar al vendedor el CIERRE el pedido.</div>
   <div style="margin-bottom:10px;">** La cotización final se mantendrá vigente únicamente durante el día en curso, en caso de demorarse el pago se recotizará el total.</div>
-  <div style="margin-bottom:10px;">*** En caso de requerirlo, los envíos se despachan a sucursales para reducir costos de envío. La cotización se encuentra sujeta a la distancia, el tamaño y el peso final del pedido.</div>
+  <div style="margin-bottom:10px;">*** La mercadería se separará únicamente al momento de abonar el pedido.</div>
+  <div style="margin-bottom:10px;">**** Los envíos se despachan unicamente a sucursal para reducir tiempos, costos de envío y simplificar el proceso de despacho. La cotización se encuentra sujeta a la distancia, el tamaño y el peso final del pedido.</div>
 </div>
 </body>
 </html>
