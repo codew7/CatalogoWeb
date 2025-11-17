@@ -301,6 +301,11 @@
       color: #2196F3;
     }
 
+    /* Estilo especial para vista prioritaria */
+    .menu-checkbox-wrapper.priority i {
+      color: #FFD700;
+    }
+
     /* === CATEGORÍA DE FILTROS EN MENÚ === */
     .menu-category-title {
       padding: 0.75rem 1.25rem;
@@ -517,6 +522,16 @@
     .filter-indicator.note {
       background: linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(234, 179, 8, 0.05));
       border-color: rgba(234, 179, 8, 0.3);
+    }
+
+    .filter-indicator.priority {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 215, 0, 0.1));
+      border-color: rgba(255, 215, 0, 0.5);
+      font-weight: 600;
+    }
+
+    .filter-indicator.priority i {
+      color: #FFD700;
     }
 
     /* === FILTROS === */
@@ -1307,6 +1322,13 @@
           <span>Limpiar Filtros</span>
         </div>
         <div class="menu-item checkbox-item">
+          <label class="menu-checkbox-wrapper priority">
+            <input type="checkbox" id="checkVistaPrioritaria" onchange="toggleVistaPrioritaria()">
+            <i class="bi bi-star-fill"></i>
+            <span>Vista Prioritaria</span>
+          </label>
+        </div>
+        <div class="menu-item checkbox-item">
           <label class="menu-checkbox-wrapper">
             <input type="checkbox" id="checkClientesRecurrentesMenu" onchange="toggleFiltroClientesRecurrentes()">
             <i class="bi bi-arrow-repeat"></i>
@@ -1511,8 +1533,28 @@
   const tbody = document.querySelector('#tabla tbody');
   const filtroStatusBtns = document.getElementById('filtroStatusBtns');
 
-  let pedidos = {};           // cache local para filtrar
-  let allPedidos = [];        // todos los pedidos para conteo global
+  // Arrays (compatibles con el resto del código) + mapas para actualizaciones incrementales
+  let pedidos = [];           // array usado por renderTabla
+  let allPedidos = [];        // array para conteos/global
+  const pedidosMap = new Map();   // id -> pedido (para la consulta activa)
+  const allPedidosMap = new Map();// id -> pedido (para todo lo descargado)
+
+  // Listeners y handlers incrementales
+  let descargandoTodo = false;
+  let listenerPedidos = null;
+  let childAddedHandler = null;
+  let childChangedHandler = null;
+  let childRemovedHandler = null;
+
+  // Debounce helpers para evitar renderizados/operaciones muy frecuentes
+  const debounce = (fn, ms = 150) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+  const debouncedRenderTabla = debounce(() => { if (typeof renderTabla === 'function') renderTabla(); }, 150);
+  const debouncedPoblarNotas = debounce(() => { try { poblarFiltroNotas(); } catch(e){ console.warn('poblarFiltroNotas error', e); } }, 300);
+
+  function updateArraysFromMaps() {
+    pedidos = Array.from(pedidosMap.values());
+    allPedidos = Array.from(allPedidosMap.values());
+  }
 
   // Estados posibles 
   const estados = [
@@ -1530,6 +1572,7 @@
   let busquedaNombre = ''; // Búsqueda por nombre
   let filtroNotaSeleccionada = ''; // Filtro por tipo de nota
   let filtroProvinciaSeleccionada = ''; // Filtro por provincia
+  let vistaPrioritaria = false; // Vista prioritaria activada
 
   // Función para aplicar filtros (búsqueda y nota)
   function aplicarFiltros() {
@@ -1594,6 +1637,16 @@
       `);
     }
     
+    // Indicador de vista prioritaria
+    if (vistaPrioritaria) {
+      indicators.push(`
+        <div class="filter-indicator priority">
+          <i class="bi bi-star-fill"></i>
+          <span>Vista Prioritaria</span>
+        </div>
+      `);
+    }
+    
     // Indicador de búsqueda por nombre
     if (busquedaNombre) {
       indicators.push(`
@@ -1641,8 +1694,7 @@
     }
   }
 
-  let descargandoTodo = false;
-  let listenerPedidos = null;
+  // (variables arriba)
 
   function configurarEventListeners() {
     renderBotonesFiltro();
@@ -1674,45 +1726,108 @@
   }
 
   function cargarPedidosUltimos30Dias() {
-    if (listenerPedidos) listenerPedidos.off();
+    // Remover listeners anteriores
+    if (listenerPedidos) {
+      if (childAddedHandler) listenerPedidos.off('child_added', childAddedHandler);
+      if (childChangedHandler) listenerPedidos.off('child_changed', childChangedHandler);
+      if (childRemovedHandler) listenerPedidos.off('child_removed', childRemovedHandler);
+      listenerPedidos = null;
+    }
     descargandoTodo = false;
+    pedidosMap.clear();
+    allPedidosMap.clear();
+
     const ahora = Date.now();
     const hace30dias = ahora - 30 * 24 * 60 * 60 * 1000;
-    // Consulta por timestamp >= hace 30 días
-    listenerPedidos = db.ref('pedidos').orderByChild('timestamp').startAt(hace30dias);
-    listenerPedidos.on('value', snap => {
-      pedidos = [];
-      allPedidos = [];
-      snap.forEach(child => {
-        const p = child.val() || {};
-        p.id = child.key;
-        pedidos.push(p);
-        allPedidos.push(p);
-      });
-      // Poblar filtros dinámicos basados en los valores reales de los pedidos
-      try { poblarFiltroNotas(); } catch(e) { console.warn('poblarFiltroNotas error', e); }
-      renderTabla();
-    });
+    // LimitToLast para evitar descargas masivas si hay muchos registros
+    listenerPedidos = db.ref('pedidos').orderByChild('timestamp').startAt(hace30dias).limitToLast(500);
+
+    childAddedHandler = (snap) => {
+      const p = snap.val() || {};
+      p.id = snap.key;
+      if (p.status !== 'CANCELADO') pedidosMap.set(p.id, p);
+      else pedidosMap.delete(p.id);
+      allPedidosMap.set(p.id, p);
+      updateArraysFromMaps();
+      debouncedPoblarNotas();
+      debouncedRenderTabla();
+    };
+    childChangedHandler = (snap) => {
+      const p = snap.val() || {};
+      p.id = snap.key;
+      if (p.status === 'CANCELADO') pedidosMap.delete(p.id);
+      else pedidosMap.set(p.id, p);
+      allPedidosMap.set(p.id, p);
+      updateArraysFromMaps();
+      debouncedPoblarNotas();
+      debouncedRenderTabla();
+    };
+    childRemovedHandler = (snap) => {
+      const id = snap.key;
+      pedidosMap.delete(id);
+      allPedidosMap.delete(id);
+      updateArraysFromMaps();
+      debouncedRenderTabla();
+    };
+
+    listenerPedidos.on('child_added', childAddedHandler);
+    listenerPedidos.on('child_changed', childChangedHandler);
+    listenerPedidos.on('child_removed', childRemovedHandler);
   }
 
   function cargarPedidosTodos() {
-    if (listenerPedidos) listenerPedidos.off();
+    // Para "Descargar Todo" hacer una descarga única (once) en vez de mantener un listener activo
+    if (listenerPedidos) {
+      if (childAddedHandler) listenerPedidos.off('child_added', childAddedHandler);
+      if (childChangedHandler) listenerPedidos.off('child_changed', childChangedHandler);
+      if (childRemovedHandler) listenerPedidos.off('child_removed', childRemovedHandler);
+      listenerPedidos = null;
+    }
     descargandoTodo = true;
-    listenerPedidos = db.ref('pedidos');
-    listenerPedidos.on('value', snap => {
-      pedidos = [];
-      allPedidos = [];
+    pedidosMap.clear();
+    allPedidosMap.clear();
+
+    db.ref('pedidos').once('value').then(snap => {
       snap.forEach(child => {
         const p = child.val() || {};
         p.id = child.key;
-        pedidos.push(p);
-        allPedidos.push(p);
+        allPedidosMap.set(p.id, p);
+        if (p.status !== 'CANCELADO') pedidosMap.set(p.id, p);
       });
-      // Poblar filtros dinámicos basados en los valores reales de los pedidos
-      try { poblarFiltroNotas(); } catch(e) { console.warn('poblarFiltroNotas error', e); }
-      renderTabla();
+      updateArraysFromMaps();
+      debouncedPoblarNotas();
+      if (typeof renderTabla === 'function') renderTabla();
+    }).catch(err => {
+      console.error('Error al descargar todos los pedidos', err);
     });
   }
+
+  // Pausar y reanudar listeners cuando la pestaña cambia de visibilidad
+  function pauseListeners() {
+    if (!listenerPedidos) return;
+    if (childAddedHandler) listenerPedidos.off('child_added', childAddedHandler);
+    if (childChangedHandler) listenerPedidos.off('child_changed', childChangedHandler);
+    if (childRemovedHandler) listenerPedidos.off('child_removed', childRemovedHandler);
+  }
+
+  function resumeListeners() {
+    if (!listenerPedidos) return;
+    if (childAddedHandler) listenerPedidos.on('child_added', childAddedHandler);
+    if (childChangedHandler) listenerPedidos.on('child_changed', childChangedHandler);
+    if (childRemovedHandler) listenerPedidos.on('child_removed', childRemovedHandler);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      pauseListeners();
+    } else {
+      // Re-subscribe a la consulta actual: si estamos en modo "descargandoTodo" no reactivar listener permanente
+      if (!descargandoTodo) resumeListeners();
+      else {
+        // Si la última acción fue descargar todo con once, mantener el estado actual
+      }
+    }
+  });
 
   // Obtener notas únicas normalizadas (value) -> texto original
   function obtenerNotasUnicasMap() {
@@ -1795,6 +1910,14 @@
     renderTabla();
   }
 
+  // Toggle de vista prioritaria
+  function toggleVistaPrioritaria() {
+    const checkbox = document.getElementById('checkVistaPrioritaria');
+    vistaPrioritaria = checkbox ? checkbox.checked : false;
+    actualizarIndicadoresFiltros();
+    renderTabla();
+  }
+
   // Función para limpiar todos los filtros
   function limpiarFiltros() {
     // Restablecer estados seleccionados a ABIERTO y CERRADO
@@ -1812,6 +1935,11 @@
     filtroMasDeUnaUnidad = false;
     const checkUnidades = document.getElementById('checkMasDeUnaUnidad');
     if (checkUnidades) checkUnidades.checked = false;
+    
+    // Desactivar vista prioritaria
+    vistaPrioritaria = false;
+    const checkVistaPrioritaria = document.getElementById('checkVistaPrioritaria');
+    if (checkVistaPrioritaria) checkVistaPrioritaria.checked = false;
     
     // Limpiar búsqueda por nombre
     busquedaNombre = '';
@@ -2050,7 +2178,13 @@
 
   function renderTabla() {
     actualizarIndicadoresFiltros();
-    const statusSel = getSelectedStatuses();
+    let statusSel = getSelectedStatuses();
+    
+    // Si vista prioritaria está activada, forzar mostrar solo ABIERTO
+    if (vistaPrioritaria) {
+      statusSel = ['ABIERTO'];
+    }
+    
     tbody.innerHTML = '';
 
     pedidos
@@ -2126,7 +2260,39 @@
         const provinciaCliente = p.cliente?.provincia || '';
         return provinciaCliente === filtroProvinciaSeleccionada;
       })
-      .sort((a, b) => b.timestamp - a.timestamp) // más nuevos arriba
+      .sort((a, b) => {
+        // Si vista prioritaria está activada, ordenar con lógica especial
+        if (vistaPrioritaria) {
+          const emailA = a.cliente?.email;
+          const emailB = b.cliente?.email;
+          
+          const esRecurrenteA = esClienteRecurrente(emailA);
+          const esRecurrenteB = esClienteRecurrente(emailB);
+          
+          // Calcular unidades totales
+          const unidadesA = Array.isArray(a.items) ? a.items.reduce((sum, item) => sum + (parseInt(item.cantidad) || 0), 0) : 0;
+          const unidadesB = Array.isArray(b.items) ? b.items.reduce((sum, item) => sum + (parseInt(item.cantidad) || 0), 0) : 0;
+          
+          // Prioridad 1: Clientes recurrentes primero
+          if (esRecurrenteA && !esRecurrenteB) return -1;
+          if (!esRecurrenteA && esRecurrenteB) return 1;
+          
+          // Prioridad 2: Si ambos son recurrentes o ambos no lo son, verificar unidades > 20
+          const mas20UnidadesA = unidadesA > 20;
+          const mas20UnidadesB = unidadesB > 20;
+          
+          if (!esRecurrenteA && !esRecurrenteB) {
+            // Ninguno es recurrente: ordenar por más de 20 unidades
+            if (mas20UnidadesA && !mas20UnidadesB) return -1;
+            if (!mas20UnidadesA && mas20UnidadesB) return 1;
+          }
+          
+          // Dentro del mismo grupo, ordenar por fecha (más nuevos arriba)
+          return b.timestamp - a.timestamp;
+        }
+        // Ordenamiento normal por fecha
+        return b.timestamp - a.timestamp;
+      })
       .forEach(p => {
         const tr = document.createElement('tr');
         if (p.status === 'CANCELADO') tr.classList.add('cancelado-row');
