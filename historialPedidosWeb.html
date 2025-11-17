@@ -1739,8 +1739,8 @@
 
     const ahora = Date.now();
     const hace30dias = ahora - 30 * 24 * 60 * 60 * 1000;
-    // LimitToLast para evitar descargas masivas si hay muchos registros
-    listenerPedidos = db.ref('pedidos').orderByChild('timestamp').startAt(hace30dias).limitToLast(500);
+    // Cargar todos los pedidos de los últimos 30 días
+    listenerPedidos = db.ref('pedidos').orderByChild('timestamp').startAt(hace30dias);
 
     childAddedHandler = (snap) => {
       const p = snap.val() || {};
@@ -2273,21 +2273,31 @@
           const unidadesA = Array.isArray(a.items) ? a.items.reduce((sum, item) => sum + (parseInt(item.cantidad) || 0), 0) : 0;
           const unidadesB = Array.isArray(b.items) ? b.items.reduce((sum, item) => sum + (parseInt(item.cantidad) || 0), 0) : 0;
           
-          // Prioridad 1: Clientes recurrentes primero
-          if (esRecurrenteA && !esRecurrenteB) return -1;
-          if (!esRecurrenteA && esRecurrenteB) return 1;
-          
-          // Prioridad 2: Si ambos son recurrentes o ambos no lo son, verificar unidades > 20
           const mas20UnidadesA = unidadesA > 20;
           const mas20UnidadesB = unidadesB > 20;
           
-          if (!esRecurrenteA && !esRecurrenteB) {
-            // Ninguno es recurrente: ordenar por más de 20 unidades
-            if (mas20UnidadesA && !mas20UnidadesB) return -1;
-            if (!mas20UnidadesA && mas20UnidadesB) return 1;
+          // Determinar grupo de prioridad para A
+          let prioridadA = 3; // Resto (por defecto)
+          if (esRecurrenteA) {
+            prioridadA = 1; // Clientes recurrentes
+          } else if (mas20UnidadesA) {
+            prioridadA = 2; // No recurrentes con +20 unidades
           }
           
-          // Dentro del mismo grupo, ordenar por fecha (más nuevos arriba)
+          // Determinar grupo de prioridad para B
+          let prioridadB = 3; // Resto (por defecto)
+          if (esRecurrenteB) {
+            prioridadB = 1; // Clientes recurrentes
+          } else if (mas20UnidadesB) {
+            prioridadB = 2; // No recurrentes con +20 unidades
+          }
+          
+          // Si están en diferentes grupos de prioridad, ordenar por prioridad
+          if (prioridadA !== prioridadB) {
+            return prioridadA - prioridadB; // Menor prioridad primero (1 antes que 2, 2 antes que 3)
+          }
+          
+          // Si están en el mismo grupo, ordenar por fecha (más recientes primero)
           return b.timestamp - a.timestamp;
         }
         // Ordenamiento normal por fecha

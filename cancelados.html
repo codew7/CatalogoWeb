@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedidos Cancelados</title>
+  <link rel="icon" href="faviconnegro.png" type="image/png">
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="config.js"></script>
+  
+  <script>
+    firebase.initializeApp(firebaseConfig);
+    
+    // Sistema de autenticación
+    let authResolved = false;
+    const adminEmails = ["distribuidorahomepoint@gmail.com"];
+
+    function redirigirALogin() {
+        const currentUrl = encodeURIComponent(window.location.href);
+        window.location.href = `login.html?redirect=${currentUrl}`;
+    }
+
+    setTimeout(() => {
+        if (!authResolved) {
+            console.log('Timeout de autenticación alcanzado, redirigiendo a login');
+            redirigirALogin();
+        }
+    }, 5000);
+
+    firebase.auth().onAuthStateChanged(user => {
+        console.log('Firebase Auth State Changed:', user ? 'Usuario autenticado' : 'No hay usuario');
+        authResolved = true;
+        
+        if (user) {
+            const esAdmin = adminEmails.includes(user.email);
+            if (!esAdmin) {
+                alert('Acceso denegado. Solo administradores pueden acceder a esta página.');
+                redirigirALogin();
+                return;
+            }
+            // Inicializar la página
+            cargarPedidosCancelados();
+        } else {
+            redirigirALogin();
+        }
+    });
+
+    function cerrarSesion() {
+        firebase.auth().signOut().then(() => {
+            redirigirALogin();
+        }).catch((error) => {
+            console.error('Error al cerrar sesión:', error);
+            alert('Error al cerrar sesión. Inténtalo de nuevo.');
+        });
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f8f9fa;
+      color: #212529;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #dc3545;
+      margin-bottom: 10px;
+    }
+
+    .header-info {
+      font-size: 14px;
+      color: #6c757d;
+      margin-bottom: 15px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-select-all {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-select-all:hover {
+      background: #5a6268;
+    }
+
+    .btn-delete {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background: #c82333;
+    }
+
+    .btn-delete:disabled {
+      background: #e9ecef;
+      color: #6c757d;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-logout {
+      background: #343a40;
+      color: white;
+      margin-left: auto;
+    }
+
+    .btn-logout:hover {
+      background: #23272b;
+    }
+
+    .stats {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      font-size: 14px;
+      color: #6c757d;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stat-number {
+      font-weight: 600;
+      color: #212529;
+    }
+
+    .table-container {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #f8f9fa;
+      border-bottom: 2px solid #dee2e6;
+    }
+
+    th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      color: #495057;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    th.col-check {
+      width: 50px;
+      text-align: center;
+    }
+
+    th.col-fecha {
+      width: 180px;
+    }
+
+    th.col-nombre {
+      width: auto;
+    }
+
+    th.col-status {
+      width: 120px;
+    }
+
+    th.col-nota {
+      width: 250px;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #dee2e6;
+      transition: background 0.15s ease;
+    }
+
+    tbody tr:hover {
+      background: #f8f9fa;
+    }
+
+    tbody tr.selected {
+      background: #fff3cd;
+    }
+
+    td {
+      padding: 15px;
+      font-size: 14px;
+    }
+
+    td.col-check {
+      text-align: center;
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #dc3545;
+    }
+
+    .nombre-link {
+      color: #0d6efd;
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .nombre-link:hover {
+      text-decoration: underline;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #dc3545;
+      color: white;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .nota-text {
+      color: #6c757d;
+      font-size: 13px;
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .nota-text.empty {
+      font-style: italic;
+      color: #adb5bd;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6c757d;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #6c757d;
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-logout {
+        margin-left: 0;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 10px;
+      }
+
+      .col-nota {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🗑️ Pedidos Cancelados</h1>
+      <div class="header-info">
+        Gestión y limpieza de pedidos cancelados
+      </div>
+      
+      <div class="controls">
+        <button class="btn-select-all" onclick="toggleSelectAll()">
+          <span id="selectAllText">Seleccionar Todos</span>
+        </button>
+        <button class="btn-delete" id="btnDelete" onclick="eliminarSeleccionados()" disabled>
+          Eliminar Seleccionados (<span id="selectedCount">0</span>)
+        </button>
+        <div class="stats">
+          <div class="stat-item">
+            <span>Total:</span>
+            <span class="stat-number" id="totalCount">0</span>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="cerrarSesion()">
+          Cerrar Sesión
+        </button>
+      </div>
+    </header>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-check">
+              <input type="checkbox" id="checkAll" onchange="toggleSelectAll()">
+            </th>
+            <th class="col-fecha">Fecha</th>
+            <th class="col-nombre">Nombre</th>
+            <th class="col-status">Estado</th>
+            <th class="col-nota">Nota</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="5" class="loading">Cargando pedidos cancelados...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const db = firebase.database();
+    let pedidosCancelados = [];
+    let seleccionados = new Set();
+
+    function cargarPedidosCancelados() {
+      const tableBody = document.getElementById('tableBody');
+      
+      // Cargar solo pedidos con status CANCELADO
+      db.ref('pedidos').orderByChild('status').equalTo('CANCELADO').once('value')
+        .then(snapshot => {
+          pedidosCancelados = [];
+          
+          snapshot.forEach(child => {
+            const pedido = child.val() || {};
+            pedido.id = child.key;
+            pedidosCancelados.push(pedido);
+          });
+
+          // Ordenar por fecha (más recientes primero)
+          pedidosCancelados.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+          renderTabla();
+          actualizarContadores();
+        })
+        .catch(error => {
+          console.error('Error al cargar pedidos:', error);
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="5" class="empty-state">
+                <div class="empty-state-icon">⚠️</div>
+                <div class="empty-state-text">Error al cargar los pedidos</div>
+              </td>
+            </tr>
+          `;
+        });
+    }
+
+    function renderTabla() {
+      const tableBody = document.getElementById('tableBody');
+      
+      if (pedidosCancelados.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty-state">
+              <div class="empty-state-icon">✅</div>
+              <div class="empty-state-text">No hay pedidos cancelados</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tableBody.innerHTML = '';
+      
+      pedidosCancelados.forEach(pedido => {
+        const tr = document.createElement('tr');
+        if (seleccionados.has(pedido.id)) {
+          tr.classList.add('selected');
+        }
+
+        // Checkbox
+        const tdCheck = document.createElement('td');
+        tdCheck.className = 'col-check';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = seleccionados.has(pedido.id);
+        checkbox.onchange = (e) => toggleSeleccion(pedido.id, e.target.checked);
+        tdCheck.appendChild(checkbox);
+        tr.appendChild(tdCheck);
+
+        // Fecha
+        const tdFecha = document.createElement('td');
+        tdFecha.className = 'col-fecha';
+        if (pedido.timestamp) {
+          const fecha = new Date(pedido.timestamp);
+          tdFecha.textContent = fecha.toLocaleDateString('es-AR') + ' ' + 
+                                fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        } else {
+          tdFecha.textContent = '—';
+        }
+        tr.appendChild(tdFecha);
+
+        // Nombre (clickeable)
+        const tdNombre = document.createElement('td');
+        tdNombre.className = 'col-nombre';
+        const nombreLink = document.createElement('a');
+        nombreLink.className = 'nombre-link';
+        nombreLink.textContent = pedido.cliente?.nombre || 'Sin nombre';
+        nombreLink.href = '#';
+        nombreLink.onclick = (e) => {
+          e.preventDefault();
+          window.open(`pedidos.html?id=${pedido.id}&admin=true`, '_blank');
+        };
+        tdNombre.appendChild(nombreLink);
+        tr.appendChild(tdNombre);
+
+        // Status
+        const tdStatus = document.createElement('td');
+        tdStatus.className = 'col-status';
+        const badge = document.createElement('span');
+        badge.className = 'status-badge';
+        badge.textContent = 'CANCELADO';
+        tdStatus.appendChild(badge);
+        tr.appendChild(tdStatus);
+
+        // Nota
+        const tdNota = document.createElement('td');
+        tdNota.className = 'col-nota';
+        const notaSpan = document.createElement('span');
+        notaSpan.className = 'nota-text';
+        if (pedido.nota && pedido.nota.trim() !== '') {
+          notaSpan.textContent = pedido.nota;
+          notaSpan.title = pedido.nota; // Tooltip para ver nota completa
+        } else {
+          notaSpan.textContent = 'Sin nota';
+          notaSpan.classList.add('empty');
+        }
+        tdNota.appendChild(notaSpan);
+        tr.appendChild(tdNota);
+
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function toggleSeleccion(id, checked) {
+      if (checked) {
+        seleccionados.add(id);
+      } else {
+        seleccionados.delete(id);
+      }
+      actualizarContadores();
+      renderTabla();
+    }
+
+    function toggleSelectAll() {
+      const checkAll = document.getElementById('checkAll');
+      const selectAllText = document.getElementById('selectAllText');
+      
+      if (seleccionados.size === pedidosCancelados.length && pedidosCancelados.length > 0) {
+        // Deseleccionar todos
+        seleccionados.clear();
+        checkAll.checked = false;
+        selectAllText.textContent = 'Seleccionar Todos';
+      } else {
+        // Seleccionar todos
+        seleccionados.clear();
+        pedidosCancelados.forEach(p => seleccionados.add(p.id));
+        checkAll.checked = true;
+        selectAllText.textContent = 'Deseleccionar Todos';
+      }
+      
+      actualizarContadores();
+      renderTabla();
+    }
+
+    function actualizarContadores() {
+      const totalCount = document.getElementById('totalCount');
+      const selectedCount = document.getElementById('selectedCount');
+      const btnDelete = document.getElementById('btnDelete');
+      const checkAll = document.getElementById('checkAll');
+      const selectAllText = document.getElementById('selectAllText');
+      
+      totalCount.textContent = pedidosCancelados.length;
+      selectedCount.textContent = seleccionados.size;
+      
+      // Habilitar/deshabilitar botón de eliminar
+      btnDelete.disabled = seleccionados.size === 0;
+      
+      // Actualizar estado del checkbox "Seleccionar todos"
+      checkAll.checked = seleccionados.size === pedidosCancelados.length && pedidosCancelados.length > 0;
+      
+      // Actualizar texto del botón
+      if (seleccionados.size === pedidosCancelados.length && pedidosCancelados.length > 0) {
+        selectAllText.textContent = 'Deseleccionar Todos';
+      } else {
+        selectAllText.textContent = 'Seleccionar Todos';
+      }
+    }
+
+    function eliminarSeleccionados() {
+      if (seleccionados.size === 0) {
+        return;
+      }
+
+      const confirmacion = confirm(
+        `¿Estás seguro de que deseas eliminar ${seleccionados.size} pedido(s) cancelado(s)?\n\n` +
+        `Esta acción no se puede deshacer.`
+      );
+
+      if (!confirmacion) {
+        return;
+      }
+
+      const btnDelete = document.getElementById('btnDelete');
+      btnDelete.disabled = true;
+      btnDelete.textContent = 'Eliminando...';
+
+      const idsAEliminar = Array.from(seleccionados);
+      const promesas = [];
+
+      // Eliminar cada pedido seleccionado
+      idsAEliminar.forEach(id => {
+        promesas.push(
+          db.ref(`pedidos/${id}`).remove()
+        );
+      });
+
+      Promise.all(promesas)
+        .then(() => {
+          alert(`Se eliminaron ${idsAEliminar.length} pedido(s) correctamente.`);
+          
+          // Limpiar selección
+          seleccionados.clear();
+          
+          // Recargar datos
+          cargarPedidosCancelados();
+        })
+        .catch(error => {
+          console.error('Error al eliminar pedidos:', error);
+          alert('Ocurrió un error al eliminar algunos pedidos. Por favor, intenta nuevamente.');
+          btnDelete.disabled = false;
+          btnDelete.innerHTML = 'Eliminar Seleccionados (<span id="selectedCount">' + seleccionados.size + '</span>)';
+        });
+    }
+  </script>
+</body>
+</html>
