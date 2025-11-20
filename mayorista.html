@@ -115,6 +115,111 @@
         font-family: Arial, sans-serif;
     }
 }
+
+/* Estilos del menú hamburguesa */
+.hamburger-menu {
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.hamburger-button {
+    background: #fff;
+    color: #626462;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    padding: 7px;
+    width: 38px;
+    height: 38px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.hamburger-button:hover {
+    background: #f5f5f5;
+    transform: scale(1.05);
+}
+
+.hamburger-text {
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+}
+
+@media (min-width: 601px) {
+    .hamburger-text {
+        font-size: 14px;
+    }
+}
+
+/* Menú desplegable */
+.hamburger-dropdown {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.hamburger-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.hamburger-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 20px;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.hamburger-dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.hamburger-dropdown-item:hover {
+    background: #f5f5f5;
+    color: #4CAF50;
+}
+
+.hamburger-dropdown-item i {
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+    color: #4CAF50;
+}
+
+.hamburger-dropdown-item span {
+    font-size: 14px;
+    font-weight: 500;
+}
         
         body {
             font-family: 'Arial', sans-serif;
@@ -263,6 +368,130 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            position: relative;
+        }
+
+        .info-icon {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 26px;
+            height: 26px;
+            background: #66cf69;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+
+        .info-icon:active {
+            transform: scale(1.10);
+        }
+
+        .info-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .info-modal.show {
+            display: flex;
+        }
+
+        .info-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .info-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .info-modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.3em;
+        }
+
+        .info-modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .info-modal-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .info-modal-body {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .info-modal-section {
+            margin-bottom: 15px;
+        }
+
+        .info-modal-section h4 {
+            color: #4CAF50;
+            margin: 0 0 8px 0;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .info-modal-section p {
+            margin: 0;
+            color: #333;
+            white-space: pre-line;
         }
 
         .card img {
@@ -2120,11 +2349,21 @@
 <header style="display: flex; flex-direction: column; align-items: center; padding: 10px; background-color: #a9e062; width: 90%; margin: 0 auto; border-radius: 10px;">
     <div style="position: relative; width: 100%; min-height: 70px;">
 
-        <div class="login-container">
-            <span class="login-text">Ultimo Pedido</span>
-            <button id="ultimoPedidoBtn" class="login-button" style="background: #fff; color: #626462; border: 2px solid #fff; border-radius: 50%; padding: 7px; width: 38px; height: 38px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px #0001;">
-                <i class="fas fa-user"></i>
+        <div class="hamburger-menu">
+            <span class="hamburger-text"></span>
+            <button id="hamburgerBtn" class="hamburger-button">
+                <i class="fas fa-bars"></i>
             </button>
+            <div id="hamburgerDropdown" class="hamburger-dropdown">
+                <div class="hamburger-dropdown-item" id="ultimoPedidoBtn">
+                    <i class="fas fa-user"></i>
+                    <span>Último Pedido</span>
+                </div>
+                <div class="hamburger-dropdown-item" onclick="openWelcomePopup()">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Preguntas Frecuentes</span>
+                </div>
+            </div>
         </div>
         <!-- Logo y texto para mobile -->
         <div class="header-content-mobile">
@@ -2422,6 +2661,19 @@
         <img id="lightbox-img" src="" alt="Imagen ampliada">
         <div id="lightbox-value" style="color: white; font-size: 1.5em; text-align: center; margin-top: 10px;"></div>
         <button id="next-btn" style="position: absolute; right: 15px; top: 50%; transform:translateY(-70%); font-size:3em; background:none; border:none; color:#777777; display:none;">&#10095;</button>
+    </div>
+
+    <!-- Modal de información del producto -->
+    <div id="infoModal" class="info-modal" onclick="closeInfoModal(event)">
+        <div class="info-modal-content" onclick="event.stopPropagation()">
+            <div class="info-modal-header">
+                <h3 id="infoModalTitle">Información del Producto</h3>
+                <button class="info-modal-close" onclick="closeInfoModal()">&times;</button>
+            </div>
+            <div class="info-modal-body" id="infoModalBody">
+                <!-- El contenido se cargará dinámicamente -->
+            </div>
+        </div>
     </div>
 
     <!-- Botón flotante del carrito (minimizado) -->
