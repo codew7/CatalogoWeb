@@ -534,13 +534,7 @@
             return Object.values(pedidos).filter(pedido => {
                 // Verificar método de pago
                 const medioPago = pedido.pagos?.medioPago?.toLowerCase();
-                const esTransferencia = medioPago === 'transferencia';
-                
-                // Verificar status
-                const status = pedido.status?.toUpperCase();
-                const esDespachado = status === 'DESPACHADO/ENTREGADO';
-                
-                return esTransferencia && esDespachado;
+                return medioPago === 'transferencia'; // Mostrar todos los registros de transferencia
             });
         }
 
