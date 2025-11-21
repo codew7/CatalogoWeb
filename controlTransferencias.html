@@ -300,6 +300,7 @@
                         <th>Subtotal</th>
                         <th>Total Final</th>
                         <th>Alias</th>
+                        <th>Pago</th>
                         <th>Verificado</th>
                     </tr>
                 </thead>
@@ -404,45 +405,28 @@
             const fechaHasta = document.getElementById('fechaHasta').value;
             const filtroAlias = document.getElementById('filtroAlias').value;
             const filtroTotalFinal = document.getElementById('filtroTotalFinal').value.trim();
-
             filteredData = transferenciasData.filter(pedido => {
                 // Ocultar alias HOME.POINT y HOME.POINT.ENVIOS por defecto
                 if (!mostrarTodos) {
                     const alias = (pedido.pagos?.alias || '').toUpperCase();
                     if (alias === 'HOME.POINT' || alias === 'HOME.POINT.ENVIOS') return false;
                 }
-
-                // Filtro de fecha desde
-                if (fechaDesde) {
-                    const fechaPedido = new Date(pedido.fecha);
-                    const fechaDesdeObj = new Date(fechaDesde);
-                    if (fechaPedido < fechaDesdeObj) return false;
-                }
-
-                // Filtro de fecha hasta
-                if (fechaHasta) {
-                    const fechaPedido = new Date(pedido.fecha);
-                    const fechaHastaObj = new Date(fechaHasta);
-                    fechaHastaObj.setHours(23, 59, 59, 999); // Incluir todo el día
-                    if (fechaPedido > fechaHastaObj) return false;
-                }
-
-                // Filtro de alias
-                if (filtroAlias) {
-                    const alias = pedido.pagos?.alias || '';
-                    if (alias !== filtroAlias) return false;
-                }
-
-                // Filtro de totalFinal (busca por coincidencia parcial en el string formateado y en el valor numérico)
+                // Verificar método de pago
+                const medioPago = pedido.pagos?.medioPago?.toLowerCase();
+                if (medioPago !== 'transferencia') return false;
+                // Filtrar por fecha
+                if (fechaDesde && new Date(pedido.fecha) < new Date(fechaDesde)) return false;
+                if (fechaHasta && new Date(pedido.fecha) > new Date(fechaHasta)) return false;
+                // Filtrar por alias
+                if (filtroAlias && (pedido.pagos?.alias || '').toUpperCase() !== filtroAlias.toUpperCase()) return false;
+                // Filtrar por total final
                 if (filtroTotalFinal) {
                     const totalFinal = pedido.pagos?.totalFinal?.toString() || '';
                     const totalFinalFormateado = formatearMoneda(pedido.pagos?.totalFinal || 0);
                     if (!totalFinal.includes(filtroTotalFinal) && !totalFinalFormateado.includes(filtroTotalFinal)) return false;
                 }
-
-                return true;
+                return true; // Mostrar todos los registros sin importar status
             });
-
             renderizarTabla();
         }
 
@@ -490,7 +474,8 @@
         function crearFilaTabla(pedido) {
             const checkedItems = getCheckedItems();
             const isChecked = checkedItems[pedido.id] || false;
-
+            // Determinar si el pedido está pago
+            const pagoCol = (pedido.status && pedido.status.toUpperCase() === 'DESPACHADO/ENTREGADO') ? 'PAGO' : '';
             return `
                 <tr>
                     <td class="id-column">${pedido.id}</td>
@@ -500,6 +485,7 @@
                     <td class="amount-column">${formatearMoneda(pedido.pagos?.subtotal || 0)}</td>
                     <td class="amount-column">${formatearMoneda(pedido.pagos?.totalFinal || 0)}</td>
                     <td class="alias-column">${pedido.pagos?.alias || 'Sin alias'}</td>
+                    <td>${pagoCol}</td>
                     <td class="checkbox-column">
                         <input type="checkbox" 
                                class="custom-checkbox" 
