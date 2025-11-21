@@ -2362,6 +2362,47 @@ function mostrarModalRegistroCliente(nombrePrellenado = '', telefonoPrellenado, 
     };
   }
 
+  // --- ACTUALIZACIÓN DE STOCK EN TIEMPO REAL ---
+  /**
+   * Actualiza el stock de un artículo usando transacciones de Firebase para garantizar atomicidad.
+   * @param {string} codigo - Código del artículo
+   * @param {string} nombre - Nombre del artículo
+   * @param {number} cantidad - Cantidad a modificar
+   * @param {string} tipo - Tipo de movimiento: 'ENTRADA', 'SALIDA', 'RETIRO'
+   */
+  async function actualizarStock(codigo, nombre, cantidad, tipo) {
+    if (!codigo || !nombre || !cantidad) return;
+    
+    const stockRef = db.ref('stock/' + codigo);
+    
+    try {
+      await stockRef.transaction(function(currentData) {
+        let stockActual = 0;
+        
+        if (currentData !== null && currentData.stockActual !== undefined) {
+          stockActual = currentData.stockActual;
+        }
+        
+        // Calcular nuevo stock según tipo de movimiento
+        if (tipo === 'ENTRADA') {
+          stockActual += cantidad;
+        } else if (tipo === 'SALIDA' || tipo === 'RETIRO') {
+          stockActual -= cantidad;
+        }
+        
+        // Stock mínimo es 0
+        stockActual = Math.max(0, stockActual);
+        
+        return {
+          nombre: nombre,
+          stockActual: stockActual
+        };
+      });
+    } catch (error) {
+      console.error('Error actualizando stock:', error, { codigo, nombre, cantidad, tipo });
+    }
+  }
+
   // --- REGISTRO DE MOVIMIENTOS DE INVENTARIO ---
   function registrarMovimientosInventario(items, cotizacionCierre, pedidoId) {
     if (!Array.isArray(items) || !cotizacionCierre || !pedidoId) return;
@@ -2393,6 +2434,10 @@ function mostrarModalRegistroCliente(nombrePrellenado = '', telefonoPrellenado, 
             pedidoId: pedidoId
           };
           db.ref('movimientos/' + id).set(movimiento)
+            .then(() => {
+              // Actualizar stock después de registrar el movimiento
+              actualizarStock(item.codigo, item.nombre, parseInt(item.cantidad, 10) || 0, 'SALIDA');
+            })
             .catch(err => {
               console.error('Error registrando movimiento de inventario:', err, movimiento);
             });

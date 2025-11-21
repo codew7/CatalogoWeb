@@ -549,10 +549,13 @@
   <header>
     <h1>📋 Gestión de Inventario 📊</h1>
     
-    <!-- Botón Capitalización -->
-    <div style="position: absolute; top: 15px; left: 20px;">
+    <!-- Botones de navegación -->
+    <div style="position: absolute; top: 15px; left: 20px; display: flex; gap: 10px;">
       <button onclick="window.open('capitalInventario.html', '_blank')" style="background: linear-gradient(135deg, var(--success), #4ade80); color: white; border: none; padding: 10px 15px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(56, 176, 0, 0.2);" title="Ver capitalización de inventario">
         <i class="bi bi-cash-stack"></i> Capitalización
+      </button>
+      <button onclick="window.location.href='stock.html'" style="background: linear-gradient(135deg, #6c4eb6, #8b5cf6); color: white; border: none; padding: 10px 15px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(108, 78, 182, 0.2);" title="Consultar stock en tiempo real">
+        <i class="bi bi-box-seam"></i> Ver Stock
       </button>
     </div>
     
@@ -870,10 +873,53 @@
       }
     }
 
+    // === ACTUALIZACIÓN DE STOCK EN TIEMPO REAL ===
+    /**
+     * Actualiza el stock de un artículo usando transacciones de Firebase para garantizar atomicidad.
+     * @param {string} codigo - Código del artículo
+     * @param {string} nombre - Nombre del artículo
+     * @param {number} cantidad - Cantidad a modificar
+     * @param {string} tipo - Tipo de movimiento: 'ENTRADA', 'SALIDA', 'RETIRO'
+     */
+    async function actualizarStock(codigo, nombre, cantidad, tipo) {
+      if (!codigo || !nombre || !cantidad) return;
+      
+      const stockRef = db.ref('stock/' + codigo);
+      
+      try {
+        await stockRef.transaction(function(currentData) {
+          let stockActual = 0;
+          
+          if (currentData !== null && currentData.stockActual !== undefined) {
+            stockActual = currentData.stockActual;
+          }
+          
+          // Calcular nuevo stock según tipo de movimiento
+          if (tipo === 'ENTRADA') {
+            stockActual += cantidad;
+          } else if (tipo === 'SALIDA' || tipo === 'RETIRO') {
+            stockActual -= cantidad;
+          }
+          
+          // Stock mínimo es 0
+          stockActual = Math.max(0, stockActual);
+          
+          return {
+            nombre: nombre,
+            stockActual: stockActual
+          };
+        });
+      } catch (error) {
+        console.error('Error actualizando stock:', error, { codigo, nombre, cantidad, tipo });
+      }
+    }
+
     // Registrar movimiento en Firebase
     async function registrarMovimiento(mov) {
       const ref = db.ref('movimientos').push();
       await ref.set(mov);
+      // Actualizar stock después de registrar el movimiento
+      await actualizarStock(mov.codigo, mov.nombre, mov.cantidad, mov.tipo);
     }
 
     // Cargar movimientos desde Firebase (solo del día o todos)

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migración de Stock - Una vez</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="config.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #b68900;
+      text-align: center;
+    }
+    .warning {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .info {
+      background: #d1ecf1;
+      border: 2px solid #17a2b8;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .success {
+      background: #d4edda;
+      border: 2px solid #28a745;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+      display: none;
+    }
+    button {
+      background: #b68900;
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #9a7500;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    #log {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 12px;
+      margin-top: 20px;
+      display: none;
+    }
+    .log-entry {
+      padding: 5px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔄 Migración Inicial de Stock</h1>
+    
+    <div class="warning">
+      <strong>⚠️ ADVERTENCIA:</strong> Esta herramienta debe ejecutarse SOLO UNA VEZ para inicializar el stock basándose en los movimientos existentes en Firebase.
+    </div>
+    
+    <div class="info">
+      <strong>ℹ️ ¿Qué hace este script?</strong>
+      <ul>
+        <li>Lee todos los movimientos existentes en Firebase</li>
+        <li>Calcula el stock de cada artículo: ENTRADAS - SALIDAS - RETIROS</li>
+        <li>Crea/actualiza el nodo <code>stock/</code> en Firebase</li>
+        <li>Garantiza que el stock mínimo sea 0</li>
+      </ul>
+    </div>
+    
+    <div class="info">
+      <strong>📋 Instrucciones:</strong>
+      <ol>
+        <li>Asegúrate de estar autenticado como administrador</li>
+        <li>Haz clic en el botón "Iniciar Migración"</li>
+        <li>Espera a que termine el proceso</li>
+        <li><strong>NO ejecutes este script más de una vez</strong> (el sistema ya actualizará automáticamente)</li>
+      </ol>
+    </div>
+    
+    <div id="authStatus" style="text-align: center; padding: 10px; margin: 20px 0;">
+      Verificando autenticación...
+    </div>
+    
+    <button id="migrateBtn" disabled onclick="iniciarMigracion()">
+      Iniciar Migración de Stock
+    </button>
+    
+    <div class="success" id="successMsg">
+      <strong>✅ Migración completada exitosamente!</strong>
+      <p>El stock ha sido inicializado correctamente. Puedes cerrar esta página y verificar los resultados en <a href="stock.html">stock.html</a></p>
+    </div>
+    
+    <div id="log"></div>
+  </div>
+  
+  <script>
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Lista de emails de administradores
+    const adminEmails = ["distribuidorahomepoint@gmail.com"];
+    let isAdmin = false;
+    
+    // Verificar autenticación
+    firebase.auth().onAuthStateChanged(user => {
+      const authStatus = document.getElementById('authStatus');
+      const migrateBtn = document.getElementById('migrateBtn');
+      
+      if (user) {
+        isAdmin = adminEmails.includes(user.email);
+        
+        if (isAdmin) {
+          authStatus.innerHTML = `✅ Autenticado como administrador: <strong>${user.email}</strong>`;
+          authStatus.style.background = '#d4edda';
+          authStatus.style.color = '#155724';
+          migrateBtn.disabled = false;
+        } else {
+          authStatus.innerHTML = `❌ Error: No tienes permisos de administrador`;
+          authStatus.style.background = '#f8d7da';
+          authStatus.style.color = '#721c24';
+        }
+      } else {
+        authStatus.innerHTML = `❌ No autenticado. <a href="login.html">Ir a login</a>`;
+        authStatus.style.background = '#f8d7da';
+        authStatus.style.color = '#721c24';
+      }
+    });
+    
+    function log(mensaje, tipo = 'info') {
+      const logDiv = document.getElementById('log');
+      logDiv.style.display = 'block';
+      
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      
+      const timestamp = new Date().toLocaleTimeString();
+      const emoji = tipo === 'error' ? '❌' : tipo === 'success' ? '✅' : 'ℹ️';
+      
+      entry.innerHTML = `[${timestamp}] ${emoji} ${mensaje}`;
+      entry.style.color = tipo === 'error' ? '#dc3545' : tipo === 'success' ? '#28a745' : '#333';
+      
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+    
+    async function iniciarMigracion() {
+      if (!confirm('¿Estás seguro de que deseas iniciar la migración? Este proceso puede tardar varios minutos.')) {
+        return;
+      }
+      
+      const migrateBtn = document.getElementById('migrateBtn');
+      migrateBtn.disabled = true;
+      migrateBtn.textContent = 'Migrando... Por favor espera';
+      
+      log('Iniciando proceso de migración...', 'info');
+      
+      try {
+        // 1. Leer todos los movimientos
+        log('Cargando movimientos desde Firebase...', 'info');
+        const movimientosSnap = await db.ref('movimientos').once('value');
+        
+        if (!movimientosSnap.exists()) {
+          log('No se encontraron movimientos. No hay nada que migrar.', 'info');
+          migrateBtn.textContent = 'Migración completada';
+          return;
+        }
+        
+        const movimientos = movimientosSnap.val();
+        const movimientosArray = Object.values(movimientos);
+        
+        log(`Se encontraron ${movimientosArray.length} movimientos`, 'success');
+        
+        // 2. Calcular stock por artículo
+        log('Calculando stock por artículo...', 'info');
+        const stockPorCodigo = {};
+        
+        movimientosArray.forEach(mov => {
+          if (!mov.codigo || !mov.nombre || !mov.cantidad) return;
+          
+          if (!stockPorCodigo[mov.codigo]) {
+            stockPorCodigo[mov.codigo] = {
+              nombre: mov.nombre,
+              stockActual: 0
+            };
+          }
+          
+          const cantidad = parseInt(mov.cantidad, 10) || 0;
+          
+          if (mov.tipo === 'ENTRADA') {
+            stockPorCodigo[mov.codigo].stockActual += cantidad;
+          } else if (mov.tipo === 'SALIDA' || mov.tipo === 'RETIRO') {
+            stockPorCodigo[mov.codigo].stockActual -= cantidad;
+          }
+          
+          // Asegurar stock mínimo de 0
+          stockPorCodigo[mov.codigo].stockActual = Math.max(0, stockPorCodigo[mov.codigo].stockActual);
+        });
+        
+        const totalArticulos = Object.keys(stockPorCodigo).length;
+        log(`Stock calculado para ${totalArticulos} artículos`, 'success');
+        
+        // 3. Escribir stock a Firebase
+        log('Escribiendo stock a Firebase...', 'info');
+        const stockRef = db.ref('stock');
+        
+        let contador = 0;
+        for (const [codigo, data] of Object.entries(stockPorCodigo)) {
+          await stockRef.child(codigo).set({
+            nombre: data.nombre,
+            stockActual: data.stockActual
+          });
+          
+          contador++;
+          if (contador % 10 === 0) {
+            log(`Progreso: ${contador}/${totalArticulos} artículos procesados`, 'info');
+          }
+        }
+        
+        log(`✅ Migración completada! ${totalArticulos} artículos procesados`, 'success');
+        
+        // Mostrar mensaje de éxito
+        document.getElementById('successMsg').style.display = 'block';
+        migrateBtn.textContent = 'Migración Completada ✅';
+        
+      } catch (error) {
+        log(`Error durante la migración: ${error.message}`, 'error');
+        console.error('Error completo:', error);
+        migrateBtn.disabled = false;
+        migrateBtn.textContent = 'Reintentar Migración';
+        alert('Error durante la migración. Revisa el log para más detalles.');
+      }
+    }
+  </script>
+</body>
+</html>
