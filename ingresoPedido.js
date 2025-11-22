@@ -1351,7 +1351,7 @@ function getTipoCliente() {
         };
         // Guardar en Firebase
         if (pedidoId) {
-          db.ref('pedidos/' + pedidoId).once('value').then(snap => {
+          db.ref('pedidos/' + pedidoId).once('value').then(async snap => {
             const pedidoAnterior = snap.val();
             // CONSERVAR lastOrderUpdate si existe
             if (pedidoAnterior && pedidoAnterior.lastOrderUpdate) {
@@ -1361,25 +1361,29 @@ function getTipoCliente() {
             if (pedidoAnterior && pedidoAnterior.fecha) {
               pedidoObj.fecha = pedidoAnterior.fecha;
             }
-            db.ref('pedidos/' + pedidoId).set(pedidoObj)
-              .then(() => {
-                // Registrar movimientos de inventario también en edición
-                registrarMovimientosInventario(items, pedidoObj.cotizacionCierre, pedidoId);
-                messageDiv.textContent = 'Pedido actualizado correctamente.';
-                messageDiv.style.color = 'green';
-                setTimeout(() => {
-                  if (window.opener && !window.opener.closed) {
-                    window.opener.location.reload();
-                    window.close();
-                  } else {
-                    window.location.href = 'ingresoPedido.html';
-                  }
-                }, 1200);
-              })
-              .catch(err => {
-                messageDiv.textContent = 'Error al actualizar el pedido.';
-                messageDiv.style.color = 'red';
-              });
+            
+            try {
+              // Primero, esperar a que se completen los movimientos de inventario
+              await registrarMovimientosInventario(items, pedidoObj.cotizacionCierre, pedidoId);
+              
+              // Luego, actualizar el pedido
+              await db.ref('pedidos/' + pedidoId).set(pedidoObj);
+              
+              messageDiv.textContent = 'Pedido actualizado correctamente.';
+              messageDiv.style.color = 'green';
+              setTimeout(() => {
+                if (window.opener && !window.opener.closed) {
+                  window.opener.location.reload();
+                  window.close();
+                } else {
+                  window.location.href = 'ingresoPedido.html';
+                }
+              }, 1200);
+            } catch (err) {
+              console.error('Error al actualizar pedido:', err);
+              messageDiv.textContent = 'Error al actualizar el pedido.';
+              messageDiv.style.color = 'red';
+            }
           });
         } else {
 
@@ -2419,10 +2423,18 @@ function mostrarModalRegistroCliente(nombrePrellenado = '', telefonoPrellenado, 
 
   // --- REGISTRO DE MOVIMIENTOS DE INVENTARIO ---
   async function registrarMovimientosInventario(items, cotizacionCierre, pedidoId) {
-    if (!Array.isArray(items) || !cotizacionCierre || !pedidoId) return;
+    console.log('===== INICIO registrarMovimientosInventario =====');
+    console.log('PedidoId:', pedidoId);
+    console.log('Items a procesar:', items.length);
+    
+    if (!Array.isArray(items) || !cotizacionCierre || !pedidoId) {
+      console.error('Parámetros inválidos:', { items: Array.isArray(items), cotizacionCierre, pedidoId });
+      return;
+    }
     
     try {
       // 1. Obtener movimientos previos de este pedido
+      console.log('Buscando movimientos previos para pedidoId:', pedidoId);
       const snapshot = await db.ref('movimientos').orderByChild('pedidoId').equalTo(pedidoId).once('value');
       const movimientosPrevios = [];
       
@@ -2433,21 +2445,28 @@ function mostrarModalRegistroCliente(nombrePrellenado = '', telefonoPrellenado, 
         });
       });
       
+      console.log(`Encontrados ${movimientosPrevios.length} movimientos previos`);
+      
       // 2. Restaurar el stock de los movimientos previos de tipo SALIDA
       if (movimientosPrevios.length > 0) {
         console.log(`Restaurando stock de ${movimientosPrevios.length} movimientos previos del pedido ${pedidoId}`);
         
         for (const mov of movimientosPrevios) {
+          console.log(`Movimiento previo: ${mov.codigo} - ${mov.tipo} - Cantidad: ${mov.cantidad}`);
+          
           if (mov.tipo === 'SALIDA') {
             const codigo = mov.codigo;
             const nombre = mov.nombre || 'Sin nombre';
             const cantidad = mov.cantidad || 0;
             
             // Restaurar stock sumando la cantidad (inversión de SALIDA)
+            console.log(`Restaurando stock: ${codigo} +${cantidad}`);
             await actualizarStock(codigo, nombre, cantidad, 'ENTRADA');
-            console.log(`Stock restaurado: ${codigo} +${cantidad}`);
+            console.log(`✓ Stock restaurado: ${codigo} +${cantidad}`);
           }
         }
+      } else {
+        console.log('No hay movimientos previos para restaurar (pedido nuevo)');
       }
       
       // 3. Eliminar movimientos previos
@@ -2456,14 +2475,19 @@ function mostrarModalRegistroCliente(nombrePrellenado = '', telefonoPrellenado, 
         movimientosPrevios.forEach(mov => {
           updates[mov.key] = null;
         });
+        console.log('Eliminando movimientos previos...');
         await db.ref('movimientos').update(updates);
-        console.log(`Eliminados ${movimientosPrevios.length} movimientos previos del pedido ${pedidoId}`);
+        console.log(`✓ Eliminados ${movimientosPrevios.length} movimientos previos del pedido ${pedidoId}`);
       }
       
       // 4. Registrar los nuevos movimientos
+      console.log(`Registrando ${items.length} nuevos movimientos...`);
       for (const item of items) {
         try {
-          if (!item || !item.codigo || !item.nombre || !item.cantidad || !item.valorU) continue;
+          if (!item || !item.codigo || !item.nombre || !item.cantidad || !item.valorU) {
+            console.warn('Item inválido, saltando:', item);
+            continue;
+          }
           
           const timestamp = Date.now();
           const now = new Date();
@@ -2480,21 +2504,23 @@ function mostrarModalRegistroCliente(nombrePrellenado = '', telefonoPrellenado, 
           };
           
           // Registrar movimiento
+          console.log(`Registrando movimiento: ${item.codigo} -${item.cantidad}`);
           await db.ref('movimientos/' + id).set(movimiento);
           
           // Actualizar stock después de registrar el movimiento
           await actualizarStock(item.codigo, item.nombre, parseInt(item.cantidad, 10) || 0, 'SALIDA');
-          console.log(`Movimiento registrado y stock actualizado: ${item.codigo} -${item.cantidad}`);
+          console.log(`✓ Movimiento registrado y stock actualizado: ${item.codigo} -${item.cantidad}`);
           
         } catch (err) {
           console.error('Error registrando movimiento de inventario:', err, item);
         }
       }
       
-      console.log(`Proceso completado: ${items.length} nuevos movimientos registrados para el pedido ${pedidoId}`);
+      console.log(`✓ Proceso completado: ${items.length} nuevos movimientos registrados para el pedido ${pedidoId}`);
+      console.log('===== FIN registrarMovimientosInventario =====');
       
     } catch (error) {
-      console.error('Error en registrarMovimientosInventario:', error);
+      console.error('❌ Error en registrarMovimientosInventario:', error);
     }
   }
 });

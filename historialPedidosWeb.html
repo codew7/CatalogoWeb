@@ -751,6 +751,11 @@
       color: white;
     }
 
+    .btn-cancel {
+      background: #FF9800;
+      color: white;
+    }
+
     /* === BOTÓN DESCARGAR TODO === */
     #btnDescargarTodo {
       background: linear-gradient(135deg, var(--secondary-color) 0%, #1976D2 100%);
@@ -1532,6 +1537,54 @@
   const db = firebase.database();
   const tbody = document.querySelector('#tabla tbody');
   const filtroStatusBtns = document.getElementById('filtroStatusBtns');
+
+  // Función para actualizar el stock en Firebase
+  async function actualizarStock(codigo, nombre, cantidad, tipo) {
+    if (!codigo || !nombre || cantidad === undefined || cantidad === null || !tipo) {
+      console.error('actualizarStock: parámetros inválidos', { codigo, nombre, cantidad, tipo });
+      return;
+    }
+
+    const stockRef = db.ref(`stock/${codigo}`);
+    
+    try {
+      await stockRef.transaction((stockActual) => {
+        if (stockActual === null) {
+          // Si no existe el nodo, inicializarlo
+          let nuevoStock = 0;
+          if (tipo === 'ENTRADA') {
+            nuevoStock = cantidad;
+          } else if (tipo === 'SALIDA' || tipo === 'RETIRO') {
+            nuevoStock = 0; // No puede ser negativo
+          }
+          
+          return {
+            nombre: nombre,
+            stockActual: Math.max(0, nuevoStock)
+          };
+        } else {
+          // Si ya existe, actualizar según el tipo
+          let nuevoStock = stockActual.stockActual || 0;
+          
+          if (tipo === 'ENTRADA') {
+            nuevoStock += cantidad;
+          } else if (tipo === 'SALIDA' || tipo === 'RETIRO') {
+            nuevoStock -= cantidad;
+          }
+          
+          return {
+            nombre: nombre,
+            stockActual: Math.max(0, nuevoStock)
+          };
+        }
+      });
+      
+      console.log(`Stock actualizado para ${codigo}: ${tipo} de ${cantidad} unidades`);
+    } catch (error) {
+      console.error('Error al actualizar stock:', error);
+      throw error;
+    }
+  }
 
   // Arrays (compatibles con el resto del código) + mapas para actualizaciones incrementales
   let pedidos = [];           // array usado por renderTabla
@@ -2543,6 +2596,54 @@
           });
         };
         botonesContainer.appendChild(btnCopiar);
+        
+        // Botón Cancelar
+        const btnCancelar = document.createElement('button');
+        btnCancelar.innerHTML = '<i class="bi bi-x-circle-fill"></i>';
+        btnCancelar.title = 'Cancelar pedido';
+        btnCancelar.className = 'btn-icon btn-cancel';
+        btnCancelar.onclick = async () => {
+          mostrarModalClave(async () => {
+            if (confirm('¿Está seguro que desea cancelar este pedido? Se restaurará el stock si corresponde.')) {
+              try {
+                // Obtener todos los movimientos del pedido
+                const snapshot = await db.ref(`movimientos/${p.id}`).once('value');
+                const movimientos = snapshot.val();
+                
+                if (movimientos) {
+                  // Filtrar solo los movimientos de tipo SALIDA
+                  const movimientosSalida = Object.entries(movimientos)
+                    .filter(([key, mov]) => mov.tipo === 'SALIDA')
+                    .map(([key, mov]) => mov);
+                  
+                  // Restaurar el stock para cada movimiento de SALIDA
+                  for (const mov of movimientosSalida) {
+                    const codigo = mov.codigo;
+                    const nombre = mov.nombre || 'Sin nombre';
+                    const cantidad = mov.cantidad || 0;
+                    
+                    // Restaurar stock sumando la cantidad (inversión de SALIDA)
+                    await actualizarStock(codigo, nombre, cantidad, 'ENTRADA');
+                  }
+                  
+                  console.log(`Stock restaurado para ${movimientosSalida.length} movimientos de SALIDA del pedido ${p.id}`);
+                }
+                
+                // Eliminar los movimientos
+                await db.ref(`movimientos/${p.id}`).remove();
+                
+                // Actualizar el estado del pedido a CANCELADO
+                await db.ref(`pedidos/${p.id}/status`).set('CANCELADO');
+                
+                alert('Pedido cancelado y stock restaurado correctamente');
+              } catch (error) {
+                console.error('Error al cancelar pedido:', error);
+                alert('Error al cancelar el pedido');
+              }
+            }
+          });
+        };
+        botonesContainer.appendChild(btnCancelar);
         
         // Botón Eliminar
         const btnEliminar = document.createElement('button');

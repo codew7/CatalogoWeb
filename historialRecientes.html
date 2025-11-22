@@ -226,21 +226,72 @@
     function verPedido(id) {
       window.open(`ingresoPedido.html?id=${id}`, '_blank');
     }
+    
+    // === ACTUALIZACIÓN DE STOCK EN TIEMPO REAL ===
+    /**
+     * Actualiza el stock de un artículo usando transacciones de Firebase para garantizar atomicidad.
+     * @param {string} codigo - Código del artículo
+     * @param {string} nombre - Nombre del artículo
+     * @param {number} cantidad - Cantidad a modificar
+     * @param {string} tipo - Tipo de movimiento: 'ENTRADA', 'SALIDA', 'RETIRO'
+     */
+    async function actualizarStock(codigo, nombre, cantidad, tipo) {
+      if (!codigo || !nombre || !cantidad) return;
+      
+      const stockRef = db.ref('stock/' + codigo);
+      
+      try {
+        await stockRef.transaction(function(currentData) {
+          let stockActual = 0;
+          
+          if (currentData !== null && currentData.stockActual !== undefined) {
+            stockActual = currentData.stockActual;
+          }
+          
+          // Calcular nuevo stock según tipo de movimiento
+          if (tipo === 'ENTRADA') {
+            stockActual += cantidad;
+          } else if (tipo === 'SALIDA' || tipo === 'RETIRO') {
+            stockActual -= cantidad;
+          }
+          
+          // Stock mínimo es 0
+          stockActual = Math.max(0, stockActual);
+          
+          return {
+            nombre: nombre,
+            stockActual: stockActual
+          };
+        });
+      } catch (error) {
+        console.error('Error actualizando stock:', error, { codigo, nombre, cantidad, tipo });
+      }
+    }
+    
     async function cancelarPedido(id) {
       if (!confirm('¿Seguro que desea cancelar este pedido? Esta acción es IRREVERSIBLE y el pedido no podrá ser modificado ni reactivado.')) return;
       
       try {
-        // Actualizar el pedido como cancelado y bloqueado
-        await db.ref('pedidos/' + id).update({ 
-          status: 'CANCELADO', 
-          locked: true, 
-          movimientosRegistrados: false 
-        });
-        
-        // Eliminar movimientos relacionados a este pedido
+        // Primero obtener los movimientos antes de eliminarlos
         const movimientosSnap = await db.ref('movimientos').orderByChild('pedidoId').equalTo(id).once('value');
         const movimientos = movimientosSnap.val();
+        
+        // Restaurar stock solo si hay movimientos de SALIDA
         if (movimientos) {
+          const movimientosArray = Object.values(movimientos);
+          const movimientosSalida = movimientosArray.filter(mov => mov.tipo === 'SALIDA');
+          
+          if (movimientosSalida.length > 0) {
+            // Restaurar stock sumando las cantidades que se habían restado
+            for (const mov of movimientosSalida) {
+              if (mov.codigo && mov.nombre && mov.cantidad) {
+                // Restaurar sumando la cantidad (revertir la SALIDA)
+                await actualizarStock(mov.codigo, mov.nombre, mov.cantidad, 'ENTRADA');
+              }
+            }
+          }
+          
+          // Eliminar los movimientos
           const updates = {};
           Object.keys(movimientos).forEach(key => {
             updates[key] = null;
@@ -248,8 +299,16 @@
           await db.ref('movimientos').update(updates);
         }
         
-        alert('Pedido cancelado. Ya no podrá ser modificado. Los movimientos asociados han sido eliminados.');
+        // Actualizar el pedido como cancelado
+        await db.ref('pedidos/' + id).update({ 
+          status: 'CANCELADO', 
+          locked: true, 
+          movimientosRegistrados: false 
+        });
+        
+        alert('Pedido cancelado. Ya no podrá ser modificado. Los movimientos asociados han sido eliminados y el stock ha sido restaurado.');
       } catch (e) {
+        console.error('Error al cancelar pedido:', e);
         alert('Error al cancelar o eliminar movimientos');
       }
     }
