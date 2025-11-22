@@ -215,7 +215,8 @@
           if (!stockPorCodigo[mov.codigo]) {
             stockPorCodigo[mov.codigo] = {
               nombre: mov.nombre,
-              stockActual: 0
+              stockActual: 0,
+              ultimaEntrada: null
             };
           }
           
@@ -223,6 +224,16 @@
           
           if (mov.tipo === 'ENTRADA') {
             stockPorCodigo[mov.codigo].stockActual += cantidad;
+            // Guardar la fecha del último movimiento de ENTRADA
+            if (mov.timestamp) {
+              const fecha = new Date(mov.timestamp);
+              const fechaStr = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+              
+              // Solo actualizar si es más reciente o si no hay fecha guardada
+              if (!stockPorCodigo[mov.codigo].ultimaEntrada || fechaStr > stockPorCodigo[mov.codigo].ultimaEntrada) {
+                stockPorCodigo[mov.codigo].ultimaEntrada = fechaStr;
+              }
+            }
           } else if (mov.tipo === 'SALIDA' || mov.tipo === 'RETIRO') {
             stockPorCodigo[mov.codigo].stockActual -= cantidad;
           }
@@ -240,10 +251,17 @@
         
         let contador = 0;
         for (const [codigo, data] of Object.entries(stockPorCodigo)) {
-          await stockRef.child(codigo).set({
+          const stockData = {
             nombre: data.nombre,
             stockActual: data.stockActual
-          });
+          };
+          
+          // Solo agregar ultimaEntrada si existe
+          if (data.ultimaEntrada) {
+            stockData.ultimaEntrada = data.ultimaEntrada;
+          }
+          
+          await stockRef.child(codigo).set(stockData);
           
           contador++;
           if (contador % 10 === 0) {

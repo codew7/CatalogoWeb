@@ -889,6 +889,7 @@
       try {
         await stockRef.transaction(function(currentData) {
           let stockActual = 0;
+          let ultimaEntrada = currentData?.ultimaEntrada || null;
           
           if (currentData !== null && currentData.stockActual !== undefined) {
             stockActual = currentData.stockActual;
@@ -897,6 +898,9 @@
           // Calcular nuevo stock según tipo de movimiento
           if (tipo === 'ENTRADA') {
             stockActual += cantidad;
+            // Actualizar fecha de última entrada (solo fecha, formato YYYY-MM-DD)
+            const ahora = new Date();
+            ultimaEntrada = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
           } else if (tipo === 'SALIDA' || tipo === 'RETIRO') {
             stockActual -= cantidad;
           }
@@ -904,10 +908,17 @@
           // Stock mínimo es 0
           stockActual = Math.max(0, stockActual);
           
-          return {
+          const nuevosDatos = {
             nombre: nombre,
             stockActual: stockActual
           };
+          
+          // Solo incluir ultimaEntrada si existe (para ENTRADA o si ya estaba guardado)
+          if (ultimaEntrada !== null) {
+            nuevosDatos.ultimaEntrada = ultimaEntrada;
+          }
+          
+          return nuevosDatos;
         });
       } catch (error) {
         console.error('Error actualizando stock:', error, { codigo, nombre, cantidad, tipo });

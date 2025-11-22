@@ -641,7 +641,8 @@
             stockData[codigo] = {
               codigo: codigo,
               nombre: data.nombre || 'Sin nombre',
-              stockActual: data.stockActual || 0
+              stockActual: data.stockActual || 0,
+              ultimaEntrada: data.ultimaEntrada || null
             };
           });
         }
@@ -705,6 +706,10 @@
         } else if (ordenarPor === 'stock') {
           valorA = a.stockActual;
           valorB = b.stockActual;
+        } else if (ordenarPor === 'fecha') {
+          // Ordenar por fecha, poniendo null al final
+          valorA = a.ultimaEntrada || '9999-99-99';
+          valorB = b.ultimaEntrada || '9999-99-99';
         }
         
         if (valorA < valorB) return ordenAscendente ? -1 : 1;
@@ -787,6 +792,10 @@
                 Stock Actual
                 <i class="bi bi-arrow-${ordenarPor === 'stock' ? (ordenAscendente ? 'up' : 'down') : 'down-up'} sort-icon"></i>
               </th>
+              <th onclick="cambiarOrden('fecha')" ${ordenarPor === 'fecha' ? 'class="sorted"' : ''}>
+                Última Entrada
+                <i class="bi bi-arrow-${ordenarPor === 'fecha' ? (ordenAscendente ? 'up' : 'down') : 'down-up'} sort-icon"></i>
+              </th>
               <th>Estado</th>
             </tr>
           </thead>
@@ -807,11 +816,19 @@
           estadoText = 'Stock Alto';
         }
         
+        // Formatear fecha de última entrada
+        let fechaEntrada = '-';
+        if (item.ultimaEntrada) {
+          const [year, month, day] = item.ultimaEntrada.split('-');
+          fechaEntrada = `${day}/${month}/${year}`;
+        }
+        
         html += `
           <tr>
             <td><strong>${item.codigo}</strong></td>
             <td>${item.nombre}</td>
             <td><span class="stock-badge ${badgeClass}">${item.stockActual.toLocaleString('es-AR')}</span></td>
+            <td>${fechaEntrada}</td>
             <td>${estadoText}</td>
           </tr>
         `;
