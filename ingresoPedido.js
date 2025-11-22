@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('https://api.bluelytics.com.ar/v2/latest')
       .then(response => response.json())
       .then(data => {
-        cotizacionActual = data.blue.value_sell || data.blue.sell;
+        cotizacionActual = data.blue.value_avg || data.blue.avg;
         if (cotizacionActual) {
           cotizacionValorElement.textContent = `$${cotizacionActual.toLocaleString('es-AR')}`;
           cotizacionValorElement.style.color = '#28a745';
@@ -381,7 +381,7 @@ function getTipoCliente() {
       <td><input type="text" value="${item.codigo || ''}" class="codigo" maxlength="20" style="width:80px" readonly></td>
       <td><div class="nombre-display" style="padding:8px;min-width:220px;">${item.nombre || ''}</div></td>
       <td><input type="number" value="${item.cantidad}" class="cantidad" min="1" style="width:60px"></td>
-      <td><input type="text" value="${item.valorU}" class="valorU" min="0" step="1" style="width:80px"></td>
+        <td><input type="number" value="${item.valorU}" class="valorU" min="0" step="1" style="width:80px"></td>
       <td class="valorTotal">${(item.cantidad * item.valorU).toLocaleString('es-AR', {maximumFractionDigits:0})}</td>
       <td><button type="button" class="remove-btn" data-idx="${idx}" style="background:#d32f2f;color:#fff;border:none;border-radius:4px;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Eliminar"><span style="font-weight:bold;font-size:20px;line-height:1;">&times;</span></button></td>
     `;
@@ -1028,42 +1028,56 @@ function getTipoCliente() {
   itemsBody.addEventListener('input', function(e) {
     const row = e.target.closest('tr');
     if (!row) return;
-    
+
     const idx = parseInt(row.getAttribute('data-idx'));
     if (idx < 0 || idx >= items.length) return;
-    
+
     const target = e.target;
     let needsRecalculation = false;
-    
+
     // Actualizar solo el campo específico que cambió
     if (target.classList.contains('codigo')) {
       items[idx].codigo = target.value;
     } else if (target.classList.contains('cantidad')) {
-      const newCantidad = parseInt(target.value) || 1;
+      // Sanitizar: permitir sólo dígitos
+      target.value = (target.value + '').replace(/\D/g, '');
+      if (target.value === '') target.value = '1';
+      const newCantidad = Math.max(1, parseInt(target.value, 10) || 1);
+      // Reflejar valor normalizado en el input
+      if (String(newCantidad) !== target.value) target.value = String(newCantidad);
       if (items[idx].cantidad !== newCantidad) {
         items[idx].cantidad = newCantidad;
         needsRecalculation = true;
-        
+
         // Actualizar valorG si hay artículo válido
         if (items[idx].nombre && articulosPorNombre[items[idx].nombre]) {
           items[idx].valorG = (items[idx].valorU - items[idx].valorC) * items[idx].cantidad;
         }
-        
+
         // Actualizar valor total de la fila
         row.querySelector('.valorTotal').textContent = (items[idx].cantidad * items[idx].valorU).toLocaleString('es-AR', {maximumFractionDigits:0});
       }
     } else if (target.classList.contains('valorU')) {
-      const valorUraw = target.value.replace(/,/g, '');
-      const newValorU = parseInt(valorUraw) || 0;
+      // Sanitizar: permitir sólo dígitos (sin separadores ni símbolos)
+      target.value = (target.value + '').replace(/\D/g, '');
+      const newValorU = parseInt(target.value, 10) || 0;
+      // Reflejar valor normalizado en el input (vacío si 0 para mantener UX)
+      if (newValorU === 0) {
+        // mantener '0' visible o vacío según preferencia; dejamos '0' para consistencia
+        target.value = '0';
+      } else if (String(newValorU) !== target.value) {
+        target.value = String(newValorU);
+      }
+
       if (items[idx].valorU !== newValorU) {
         items[idx].valorU = newValorU;
         needsRecalculation = true;
-        
+
         // Actualizar valorG si hay artículo válido
         if (items[idx].nombre && articulosPorNombre[items[idx].nombre]) {
           items[idx].valorG = (items[idx].valorU - items[idx].valorC) * items[idx].cantidad;
         }
-        
+
         // Actualizar valor total de la fila
         row.querySelector('.valorTotal').textContent = (items[idx].cantidad * items[idx].valorU).toLocaleString('es-AR', {maximumFractionDigits:0});
       }
@@ -1651,7 +1665,7 @@ function getTipoCliente() {
       fetch('https://api.bluelytics.com.ar/v2/latest')
         .then(r => r.json())
         .then(d => {
-          let cotizacionCierre = (d.blue.value_sell || d.blue.sell) + 10;
+          let cotizacionCierre = (d.blue.value_sell || d.blue.sell);
           const costos = calcularCostos();
           // Determinar tipo de entrega
           let entrega = 'Local';
@@ -2404,27 +2418,58 @@ function mostrarModalRegistroCliente(nombrePrellenado = '', telefonoPrellenado, 
   }
 
   // --- REGISTRO DE MOVIMIENTOS DE INVENTARIO ---
-  function registrarMovimientosInventario(items, cotizacionCierre, pedidoId) {
+  async function registrarMovimientosInventario(items, cotizacionCierre, pedidoId) {
     if (!Array.isArray(items) || !cotizacionCierre || !pedidoId) return;
-    // 1. Eliminar movimientos previos de este pedido (por pedidoId)
-    db.ref('movimientos').orderByChild('pedidoId').equalTo(pedidoId).once('value', function(snapshot) {
-      const updates = {};
+    
+    try {
+      // 1. Obtener movimientos previos de este pedido
+      const snapshot = await db.ref('movimientos').orderByChild('pedidoId').equalTo(pedidoId).once('value');
+      const movimientosPrevios = [];
+      
       snapshot.forEach(child => {
-        updates[child.key] = null;
-      });
-      if (Object.keys(updates).length > 0) {
-        db.ref('movimientos').update(updates).catch(err => {
-          console.error('Error eliminando movimientos previos:', err, updates);
+        movimientosPrevios.push({
+          key: child.key,
+          ...child.val()
         });
+      });
+      
+      // 2. Restaurar el stock de los movimientos previos de tipo SALIDA
+      if (movimientosPrevios.length > 0) {
+        console.log(`Restaurando stock de ${movimientosPrevios.length} movimientos previos del pedido ${pedidoId}`);
+        
+        for (const mov of movimientosPrevios) {
+          if (mov.tipo === 'SALIDA') {
+            const codigo = mov.codigo;
+            const nombre = mov.nombre || 'Sin nombre';
+            const cantidad = mov.cantidad || 0;
+            
+            // Restaurar stock sumando la cantidad (inversión de SALIDA)
+            await actualizarStock(codigo, nombre, cantidad, 'ENTRADA');
+            console.log(`Stock restaurado: ${codigo} +${cantidad}`);
+          }
+        }
       }
-      // 2. Registrar los nuevos movimientos
-      items.forEach((item) => {
+      
+      // 3. Eliminar movimientos previos
+      if (movimientosPrevios.length > 0) {
+        const updates = {};
+        movimientosPrevios.forEach(mov => {
+          updates[mov.key] = null;
+        });
+        await db.ref('movimientos').update(updates);
+        console.log(`Eliminados ${movimientosPrevios.length} movimientos previos del pedido ${pedidoId}`);
+      }
+      
+      // 4. Registrar los nuevos movimientos
+      for (const item of items) {
         try {
-          if (!item || !item.codigo || !item.nombre || !item.cantidad || !item.valorU) return;
+          if (!item || !item.codigo || !item.nombre || !item.cantidad || !item.valorU) continue;
+          
           const timestamp = Date.now();
           const now = new Date();
           const pad = n => n.toString().padStart(2, '0');
           const id = `mov_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}_${item.codigo}_${pedidoId}`;
+          
           const movimiento = {
             timestamp: timestamp,
             codigo: item.codigo,
@@ -2433,18 +2478,23 @@ function mostrarModalRegistroCliente(nombrePrellenado = '', telefonoPrellenado, 
             tipo: 'SALIDA',
             pedidoId: pedidoId
           };
-          db.ref('movimientos/' + id).set(movimiento)
-            .then(() => {
-              // Actualizar stock después de registrar el movimiento
-              actualizarStock(item.codigo, item.nombre, parseInt(item.cantidad, 10) || 0, 'SALIDA');
-            })
-            .catch(err => {
-              console.error('Error registrando movimiento de inventario:', err, movimiento);
-            });
+          
+          // Registrar movimiento
+          await db.ref('movimientos/' + id).set(movimiento);
+          
+          // Actualizar stock después de registrar el movimiento
+          await actualizarStock(item.codigo, item.nombre, parseInt(item.cantidad, 10) || 0, 'SALIDA');
+          console.log(`Movimiento registrado y stock actualizado: ${item.codigo} -${item.cantidad}`);
+          
         } catch (err) {
-          console.error('Error inesperado al registrar movimiento de inventario:', err, item);
+          console.error('Error registrando movimiento de inventario:', err, item);
         }
-      });
-    });
+      }
+      
+      console.log(`Proceso completado: ${items.length} nuevos movimientos registrados para el pedido ${pedidoId}`);
+      
+    } catch (error) {
+      console.error('Error en registrarMovimientosInventario:', error);
+    }
   }
 });
