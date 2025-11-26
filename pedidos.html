@@ -2163,20 +2163,20 @@ Distribuidora Home Point.-`;
         
       }
       
-      // Listener para tipo de pago - cargar 3.5% al seleccionar Transferencia (para todos los usuarios)
+      // Listener para tipo de pago - cargar 3% al seleccionar Transferencia (para todos los usuarios)
       const pagoRadios = document.getElementsByName('tipoPago');
       pagoRadios.forEach(radio => {
         radio.addEventListener('change', function() {
           if (this.value === 'Transferencia') {
-            // Cargar 3.5% por defecto en recargo
+            // Cargar 3% por defecto en recargo
             if (porcentajeRecargoInput) {
-              porcentajeRecargoInput.value = '3.5';
+              porcentajeRecargoInput.value = '3';
               // Actualizar cálculos
               actualizarCalculosGlobales();
               
               // Guardar en Firebase solo si es admin
               if (admin) {
-                const porc = 3.5;
+                const porc = 3;
                 const rec = parseFloat(recargoInput?.value || 0);
                 programarActualizacion(
                   `pedidos/${pedidoActual.id}/pagos`,
@@ -2229,7 +2229,7 @@ Distribuidora Home Point.-`;
               <input type="radio" name="tipoPago" value="Efectivo"> Efectivo
             </label>
             <label style="display:inline-flex;align-items:center;">
-              <input type="radio" name="tipoPago" value="Transferencia"> Transferencia (+3.5%)
+              <input type="radio" name="tipoPago" value="Transferencia"> Transferencia (+3%)
             </label>
           </div>
         </div>
@@ -2405,10 +2405,10 @@ Distribuidora Home Point.-`;
         if (pedidoActual.pagos && typeof pedidoActual.pagos.recargo === 'number') {
           recargoInput.value = pedidoActual.pagos.recargo;
         }
-        // Si el tipo de pago es Transferencia y no hay recargo guardado, aplicar 3.5% por defecto
+        // Si el tipo de pago es Transferencia y no hay recargo guardado, aplicar 3% por defecto
         if (pagoValue === 'Transferencia' && (!pedidoActual.pagos || typeof pedidoActual.pagos.porcentajeRecargo !== 'number')) {
-          porcentajeRecargoInput.value = '3.5';
-          // Calcular el recargo basado en el 3.5%
+          porcentajeRecargoInput.value = '3';
+          // Calcular el recargo basado en el 3%
           actualizarCalculosGlobales();
         }
       }
