@@ -46,7 +46,7 @@
           hablarBtn.style.display = 'inline-block';
           hablarBtn.onclick = function() {
             const pedidoId = id;
-            const mensaje = encodeURIComponent(`Hola! Me contacto por mi pedido: https://www.home-point.com.ar/pedidos.html?id=${pedidoId}`);
+            const mensaje = encodeURIComponent(`Quiero cerrar mi pedido: https://www.home-point.com.ar/pedidos.html?id=${pedidoId}`);
             window.open(`https://api.whatsapp.com/send/?phone=5491121891006&text=${mensaje}`, '_blank');
           };
         } else {
@@ -294,6 +294,159 @@
       background-color: #f1f1f1;
     }
 
+    /* Estilos para el popup de aviso */
+    #avisoPopup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    #avisoPopup .popup-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    #avisoPopup .popup-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      color: #4CAF50;
+    }
+
+    #avisoPopup .popup-icon {
+      font-size: 2.5em;
+      margin-right: 15px;
+    }
+
+    #avisoPopup .popup-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #333;
+    }
+
+    #avisoPopup .popup-message {
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 25px;
+      text-align: justify;
+    }
+
+    #avisoPopup .popup-checkbox {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #avisoPopup .popup-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    #avisoPopup .popup-checkbox label {
+      color: #666;
+      cursor: pointer;
+      font-size: 0.95em;
+    }
+
+    #avisoPopup .popup-button {
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 4px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.3s;
+    }
+
+    #avisoPopup .popup-button:hover {
+      background: #45a049;
+    }
+
+    /* Estilos para el popup de mínimo */
+    #minimoPopup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    #minimoPopup .popup-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    #minimoPopup .popup-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      color: #ff9800;
+    }
+
+    #minimoPopup .popup-icon {
+      font-size: 2.5em;
+      margin-right: 15px;
+    }
+
+    #minimoPopup .popup-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #333;
+    }
+
+    #minimoPopup .popup-message {
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 25px;
+      text-align: justify;
+    }
+
+    #minimoPopup .popup-button {
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 4px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.3s;
+    }
+
+    #minimoPopup .popup-button:hover {
+      background: #45a049;
+    }
+
   </style>
 </head>
 <body>
@@ -302,6 +455,44 @@
     <div class="loading-spinner"></div>
     <div class="loading-text">Cargando pedido...</div>
     <div class="loading-subtext">Por favor, espere mientras se cargan los datos del pedido</div>
+  </div>
+
+  <!-- Popup de aviso -->
+  <div id="avisoPopup" style="display: none;">
+    <div class="popup-content">
+      <div class="popup-header">
+        <div class="popup-icon">ℹ️</div>
+        <div class="popup-title">Información Importante</div>
+      </div>
+      <div class="popup-message">
+        La solicitud de pedido realizada se toma como una intención de compra y <strong>no asegura la disponibilidad total de la mercadería</strong> hasta concretar la operación.
+        <br><br>
+        La mercadería no queda reservada hasta ese momento.
+        <br><br>
+        La confirmación final de stock se efectúa únicamente al retirar los productos en nuestro showroom o al coordinar el envío correspondiente.
+      </div>
+      <div class="popup-checkbox" onclick="document.getElementById('noVolverMostrar').checked = !document.getElementById('noVolverMostrar').checked;">
+        <input type="checkbox" id="noVolverMostrar">
+        <label for="noVolverMostrar">No volver a mostrar este mensaje</label>
+      </div>
+      <button class="popup-button" onclick="cerrarAvisoPopup()">Entendido</button>
+    </div>
+  </div>
+
+  <!-- Popup de mínimo -->
+  <div id="minimoPopup" style="display: none;">
+    <div class="popup-content">
+      <div class="popup-header">
+        <div class="popup-icon">⚠️</div>
+        <div class="popup-title">Mínimo para Envíos</div>
+      </div>
+      <div class="popup-message">
+        Tu pedido actualmente no alcanza el mínimo de <strong>$70.000</strong> requerido para realizar envíos.
+        <br><br>
+        <strong>Podés retirarlo sin un mínimo de compra en nuestro showroom</strong>, o agregar más artículos hasta llegar al monto necesario para acceder al envío.
+      </div>
+      <button class="popup-button" onclick="cerrarMinimoPopup()">Entendido</button>
+    </div>
   </div>
 
   <h1>Detalle del pedido</h1>
@@ -325,7 +516,7 @@
   <button id="guardarBtn" class="accion-btn">Guardar Cambios</button>
   <button id="toggleEstadoBtn" class="accion-btn">Cerrar Pedido</button>
   <button id="cancelarBtn" class="accion-btn">Cancelar Pedido</button>
-  <button id="hablarBtn" class="accion-btn" style="background:#2196F3;display:none;">Chat</button>
+  <button id="hablarBtn" class="accion-btn" style="background:#2196F3;display:none;">Solicitar Cierre</button>
   <button id="ImprimirBtn" class="accion-btn" style="display:none;background:#888;">Imprimir</button>
 
   </div>
@@ -506,6 +697,78 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
   // Cargar historial de alias al inicializar
   cargarHistorialAlias();
 
+  // Función para cerrar el popup de aviso
+  function cerrarAvisoPopup() {
+    const checkbox = document.getElementById('noVolverMostrar');
+    if (checkbox && checkbox.checked) {
+      // Guardar en localStorage para no volver a mostrar
+      localStorage.setItem('avisoStockVisto', 'true');
+    }
+    const popup = document.getElementById('avisoPopup');
+    if (popup) {
+      popup.style.display = 'none';
+    }
+    
+    // Después de cerrar el primer popup, verificar si mostrar el segundo
+    setTimeout(() => {
+      mostrarMinimoPopup();
+    }, 300);
+  }
+
+  // Función para cerrar el popup de mínimo
+  function cerrarMinimoPopup() {
+    const popup = document.getElementById('minimoPopup');
+    if (popup) {
+      popup.style.display = 'none';
+    }
+  }
+
+  // Función para mostrar el popup de aviso al cargar el pedido
+  function mostrarAvisoPopup() {
+    // No mostrar popups a administradores
+    if (admin) {
+      return;
+    }
+    
+    // Verificar si el usuario ya vio el mensaje
+    const yaVisto = localStorage.getItem('avisoStockVisto');
+    if (yaVisto === 'true') {
+      // Si ya vio el primer popup, mostrar directamente el segundo si aplica
+      mostrarMinimoPopup();
+      return;
+    }
+    
+    const popup = document.getElementById('avisoPopup');
+    if (popup) {
+      popup.style.display = 'flex';
+    }
+  }
+
+  // Función para mostrar el popup de mínimo si el subtotal es inferior a 70000
+  function mostrarMinimoPopup() {
+    // No mostrar popups a administradores
+    if (admin) {
+      return;
+    }
+    
+    if (!pedidoActual || !pedidoActual.items) return;
+    
+    // Calcular subtotal
+    let subtotal = 0;
+    pedidoActual.items.forEach(item => {
+      const unitPesos = Math.round(item.valorU || 0);
+      subtotal += Math.round(item.cantidad * unitPesos);
+    });
+    
+    // Mostrar popup solo si el subtotal es menor a 70000
+    if (subtotal < 70000) {
+      const popup = document.getElementById('minimoPopup');
+      if (popup) {
+        popup.style.display = 'flex';
+      }
+    }
+  }
+
   // Variable para almacenar la función del listener
   let listenerActivo = null;
 
@@ -531,6 +794,11 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
 
     // Procesar el pedido
     procesarPedidoCargado();
+    
+    // Mostrar popup de aviso después de cargar el pedido
+    setTimeout(() => {
+      mostrarAvisoPopup();
+    }, 500);
     
     // Solo activar listener en tiempo real si el pedido está abierto y no despachado/cancelado
     if (!pedidoActual.locked && 
@@ -857,13 +1125,17 @@ Distribuidora Home Point.-`;
             });
           }
 
-          // Capturar valores de porcentaje, descuento y envío desde los inputs
+          // Capturar valores de porcentaje, descuento, recargo y envío desde los inputs
           const descuentoInput = document.getElementById('descuentoInput');
           const porcentajeInput = document.getElementById('porcentajeInput');
+          const recargoInput = document.getElementById('recargoInput');
+          const porcentajeRecargoInput = document.getElementById('porcentajeRecargoInput');
           const envioInput = document.getElementById('envioInput');
           
           let descuento = 0;
           let porcentaje = 0;
+          let recargo = 0;
+          let porcentajeRecargo = 0;
           let envio = 0;
           
           if (descuentoInput) {
@@ -871,6 +1143,12 @@ Distribuidora Home Point.-`;
           }
           if (porcentajeInput) {
             porcentaje = parseFloat(porcentajeInput.value) || 0;
+          }
+          if (recargoInput) {
+            recargo = parseFloat(recargoInput.value) || 0;
+          }
+          if (porcentajeRecargoInput) {
+            porcentajeRecargo = parseFloat(porcentajeRecargoInput.value) || 0;
           }
           if (envioInput) {
             envio = parseFloat(envioInput.value) || 0;
@@ -888,13 +1166,15 @@ Distribuidora Home Point.-`;
             lastModifiedEmail: lastModifiedEmail
           };
 
-          // Preparar datos de pagos con porcentaje, descuento y envío
+          // Preparar datos de pagos con porcentaje, descuento, recargo y envío
           const pagosUpdate = {};
           if (tipoPago === 'Transferencia' && alias && admin) {
             pagosUpdate.alias = alias;
           }
           pagosUpdate.descuento = descuento;
           pagosUpdate.porcentajeDescuento = porcentaje;
+          pagosUpdate.recargo = recargo;
+          pagosUpdate.porcentajeRecargo = porcentajeRecargo;
           pagosUpdate.envio = envio;
 
           // Guardar cambios y datos de pagos
@@ -1234,12 +1514,16 @@ Distribuidora Home Point.-`;
     // Obtener valores actuales de los inputs
     const porcentajeInput = document.getElementById('porcentajeInput');
     const descuentoInput = document.getElementById('descuentoInput');
+    const porcentajeRecargoInput = document.getElementById('porcentajeRecargoInput');
+    const recargoInput = document.getElementById('recargoInput');
     const envioInput = document.getElementById('envioInput');
     const totalFinalDiv = document.getElementById('totalFinalDiv');
 
-    if (porcentajeInput && descuentoInput && envioInput && totalFinalDiv) {
+    if (porcentajeInput && descuentoInput && porcentajeRecargoInput && recargoInput && envioInput && totalFinalDiv) {
       const porcentaje = parseFloat(porcentajeInput.value) || 0;
       const descuento = parseFloat(descuentoInput.value) || 0;
+      const porcentajeRecargo = parseFloat(porcentajeRecargoInput.value) || 0;
+      const recargo = parseFloat(recargoInput.value) || 0;
       const envio = parseFloat(envioInput.value) || 0;
 
       // Actualizar descuento basado en el porcentaje (siempre)
@@ -1248,8 +1532,15 @@ Distribuidora Home Point.-`;
         descuentoInput.value = descuentoCalculado;
       }
 
-      // Calcular y mostrar total final
-      let totalFinal = subtotal - parseFloat(descuentoInput.value || 0) + envio;
+      // Actualizar recargo basado en el porcentaje (siempre) - calculado sobre subtotal + envío
+      const baseRecargo = subtotal + envio;
+      const recargoCalculado = Math.round(baseRecargo * porcentajeRecargo / 100);
+      if (recargoInput.value != recargoCalculado) {
+        recargoInput.value = recargoCalculado;
+      }
+
+      // Calcular y mostrar total final (subtotal - descuento + recargo + envio)
+      let totalFinal = subtotal - parseFloat(descuentoInput.value || 0) + parseFloat(recargoInput.value || 0) + envio;
       if (totalFinal < 0) totalFinal = 0;
       totalFinalDiv.textContent = `TOTAL FINAL $ ${totalFinal.toLocaleString('es-AR')}`;
 
@@ -1258,6 +1549,8 @@ Distribuidora Home Point.-`;
         ...window.cachedValues,
         porcentaje: parseFloat(porcentajeInput.value) || 0,
         descuento: parseFloat(descuentoInput.value) || 0,
+        porcentajeRecargo: parseFloat(porcentajeRecargoInput.value) || 0,
+        recargo: parseFloat(recargoInput.value) || 0,
         envio: envio
       };
 
@@ -1265,6 +1558,8 @@ Distribuidora Home Point.-`;
       if (!pedidoActual.pagos) pedidoActual.pagos = {};
       pedidoActual.pagos.porcentajeDescuento = parseFloat(porcentajeInput.value) || 0;
       pedidoActual.pagos.descuento = parseFloat(descuentoInput.value) || 0;
+      pedidoActual.pagos.porcentajeRecargo = parseFloat(porcentajeRecargoInput.value) || 0;
+      pedidoActual.pagos.recargo = parseFloat(recargoInput.value) || 0;
       pedidoActual.pagos.envio = envio;
     }
   }
@@ -1284,7 +1579,9 @@ Distribuidora Home Point.-`;
       locked: pedidoActual?.locked,
       status: pedidoActual?.status,
       tipoPago: pedidoActual?.tipoPago,
-      tipoEntrega: pedidoActual?.tipoEntrega
+      tipoEntrega: pedidoActual?.tipoEntrega,
+      recargo: pedidoActual?.pagos?.recargo,
+      porcentajeRecargo: pedidoActual?.pagos?.porcentajeRecargo
     });
     
     // Solo re-renderizar si cambió algo relevante
@@ -1301,10 +1598,16 @@ Distribuidora Home Point.-`;
     /* ===== tabla base ===== */
     const tbl = document.createElement('table');
     
-    // Crear header con columna de stock condicional para admin
+    // Crear header con columna de código y stock condicionales para admin
     let headerHTML = `
-      <tr>
-        <th>Código</th>
+      <tr>`;
+    
+    // Solo mostrar columna de código para administradores
+    if (admin) {
+      headerHTML += `<th>Código</th>`;
+    }
+    
+    headerHTML += `
         <th>Artículo</th>
         <th class="cant">Cant</th>`;
     
@@ -1322,10 +1625,11 @@ Distribuidora Home Point.-`;
     tbl.innerHTML = headerHTML;
     
     let total = 0;
-    // Bloquea si está despachado o cancelado, o si está cerrado y no es admin autenticado
+    // Bloquea si está despachado o cancelado. Admin autenticado puede modificar pedidos cerrados
     const user = firebase.auth().currentUser;
-    const bloqueado = pedidoActual.status === 'CANCELADO' || pedidoActual.status === 'DESPACHADO/ENTREGADO' || 
-                      (pedidoActual.locked && !(admin && user));
+    const bloqueado = pedidoActual.status === 'CANCELADO' || pedidoActual.status === 'DESPACHADO/ENTREGADO';
+    // Si no es admin autenticado, también bloquear si está cerrado
+    const bloqueadoCompleto = bloqueado || (pedidoActual.locked && !(admin && user));
     
     pedidoActual.items.forEach((it, idx) => {
       // Usar directamente valorU desde el item (ya viene en pesos)
@@ -1334,30 +1638,34 @@ Distribuidora Home Point.-`;
       total += subtotal;
 
       const row = tbl.insertRow(-1);
+      
+      let cellIndex = 0;
 
-      /* 0) CÓDIGO */
-      const codigoCell = row.insertCell(0);
-      codigoCell.textContent = it.codigo || '';
+      /* CÓDIGO (solo para admin) */
+      if (admin) {
+        const codigoCell = row.insertCell(cellIndex++);
+        codigoCell.textContent = it.codigo || '';
+      }
 
-      /* 1) NOMBRE clickeable → abre lightbox */
-      const nameCell = row.insertCell(1);
+      /* NOMBRE clickeable → abre lightbox */
+      const nameCell = row.insertCell(cellIndex++);
       const nameSpan = document.createElement('span');
       nameSpan.textContent  = it.nombre;
       nameSpan.style.cursor = 'pointer';
       nameSpan.onclick      = () => abrirLB(it.nombre);
       nameCell.appendChild(nameSpan);
 
-      /* 2) INPUT cantidad */
-      const qtyCell = row.insertCell(2);
+      /* INPUT cantidad */
+      const qtyCell = row.insertCell(cellIndex++);
       qtyCell.className = 'cant';
       const qty = document.createElement('input');
       qty.type  = 'number';
       qty.min   = 1;
       qty.value = it.cantidad;
       qty.style = 'width:40px;text-align:right;font-size:1em;padding:2px 2px;';
-      qty.disabled = bloqueado; // Deshabilitar si cerrado o despachado
+      qty.disabled = bloqueadoCompleto; // Deshabilitar si cerrado/despachado (admin puede editar cerrados)
       qty.onchange = e => {
-        if (bloqueado) return;
+        if (bloqueadoCompleto) return;
         pedidoActual.items[idx].cantidad = parseInt(e.target.value, 10) || 1;
         renderItems();
         // Actualizar cálculos inmediatamente
@@ -1365,9 +1673,9 @@ Distribuidora Home Point.-`;
       };
       qtyCell.appendChild(qty);
 
-      /* 3) STOCK DISPONIBLE (solo para admin, consultado desde Google Sheets columna K) */
+      /* STOCK DISPONIBLE (solo para admin, consultado desde Google Sheets columna K) */
       if (admin) {
-        const stockCell = row.insertCell(3);
+        const stockCell = row.insertCell(cellIndex++);
         stockCell.className = 'cant';
         // Consultar stock desde Google Sheets
         if (window.sheetStockMap && it.codigo) {
@@ -1402,8 +1710,8 @@ Distribuidora Home Point.-`;
         }
       }
 
-      /* 4) valor unitario $ - EDITABLE SOLO PARA ADMIN */
-      const valorCell = row.insertCell(admin ? 4 : 3);
+      /* valor unitario $ - EDITABLE SOLO PARA ADMIN */
+      const valorCell = row.insertCell(cellIndex++);
       
       if (admin && (pedidoActual.status !== 'CANCELADO' && pedidoActual.status !== 'DESPACHADO/ENTREGADO')) {
         // Para administradores: campo editable (excepto cuando está cancelado o despachado)
@@ -1428,19 +1736,19 @@ Distribuidora Home Point.-`;
         valorCell.style.fontWeight = 'bold';
       }
 
-      /* 5) subtotal $ */
-      const subtotalCell = row.insertCell(admin ? 5 : 4);
+      /* subtotal $ */
+      const subtotalCell = row.insertCell(cellIndex++);
       subtotalCell.textContent = subtotal.toLocaleString('es-AR');
 
-      /* 6) botón eliminar */
-      const delCell = row.insertCell(admin ? 6 : 5);
+      /* botón eliminar */
+      const delCell = row.insertCell(cellIndex++);
       delCell.className = 'elim';
       const del = document.createElement('button');
       del.textContent = 'X';
       del.className = 'eliminar-articulo';
-      del.disabled = bloqueado; // Deshabilitar si cerrado o despachado
+      del.disabled = bloqueadoCompleto; // Deshabilitar si cerrado/despachado (admin puede editar cerrados)
       del.onclick = () => {
-        if (bloqueado) return;
+        if (bloqueadoCompleto) return;
         pedidoActual.items.splice(idx, 1); 
         renderItems();
         // Actualizar cálculos inmediatamente
@@ -1486,6 +1794,8 @@ Distribuidora Home Point.-`;
     // Obtener valores del caché o del pedido
     let descuento = window.cachedValues.descuento;
     let porcentaje = window.cachedValues.porcentaje;
+    let recargo = window.cachedValues.recargo;
+    let porcentajeRecargo = window.cachedValues.porcentajeRecargo;
     let envio = window.cachedValues.envio;
 
     // Si no hay valores en caché, obtener de Firebase
@@ -1495,6 +1805,12 @@ Distribuidora Home Point.-`;
     if (porcentaje === undefined && pedidoActual.pagos && typeof pedidoActual.pagos.porcentajeDescuento === 'number') {
       porcentaje = pedidoActual.pagos.porcentajeDescuento;
     }
+    if (recargo === undefined && pedidoActual.pagos && typeof pedidoActual.pagos.recargo === 'number') {
+      recargo = pedidoActual.pagos.recargo;
+    }
+    if (porcentajeRecargo === undefined && pedidoActual.pagos && typeof pedidoActual.pagos.porcentajeRecargo === 'number') {
+      porcentajeRecargo = pedidoActual.pagos.porcentajeRecargo;
+    }
     if (envio === undefined && pedidoActual.pagos && typeof pedidoActual.pagos.envio === 'number') {
       envio = pedidoActual.pagos.envio;
     }
@@ -1502,6 +1818,8 @@ Distribuidora Home Point.-`;
     // Valores por defecto si no hay nada
     descuento = descuento || 0;
     porcentaje = porcentaje || 0;
+    recargo = recargo || 0;
+    porcentajeRecargo = porcentajeRecargo || 0;
     envio = envio || 0;
     // Input para porcentaje y descuento
     const readonlyStyle = admin ? '' : 'background-color:#f5f5f5;cursor:not-allowed;';
@@ -1510,6 +1828,21 @@ Distribuidora Home Point.-`;
       <input type='number' id='porcentajeInput' min='0' max='100' value='${porcentaje}' style='width:40px;text-align:right;font-size:1em;padding:2px 2px;border:1px solid #ddd;${readonlyStyle}' ${admin ? '' : 'readonly'}>
       <span style='font-weight:normal;'>$</span>
       <input type='number' id='descuentoInput' min='0' value='${descuento}' style='width:80px;text-align:right;font-size:1em;padding:2px 2px;border:1px solid #ddd;${readonlyStyle}' ${admin ? '' : 'readonly'}>
+    `;
+
+    // Campo Recargo
+    let recargoDiv = document.getElementById('recargoDiv');
+    if (!recargoDiv) {
+      recargoDiv = document.createElement('div');
+      recargoDiv.id = 'recargoDiv';
+      recargoDiv.style = 'font-weight:bold;font-size:1.1em;text-align:right;margin-top:10px;display:flex;align-items:center;justify-content:flex-end;gap:10px;';
+      totalPagoWrap.appendChild(recargoDiv);
+    }
+    recargoDiv.innerHTML = `
+      <label for='porcentajeRecargoInput' style='font-weight:normal;'>Recargo %</label>
+      <input type='number' id='porcentajeRecargoInput' min='0' max='100' value='${porcentajeRecargo}' style='width:40px;text-align:right;font-size:1em;padding:2px 2px;border:1px solid #ddd;${readonlyStyle}' ${admin ? '' : 'readonly'}>
+      <span style='font-weight:normal;'>$</span>
+      <input type='number' id='recargoInput' min='0' value='${recargo}' style='width:80px;text-align:right;font-size:1em;padding:2px 2px;border:1px solid #ddd;${readonlyStyle}' ${admin ? '' : 'readonly'}>
     `;
 
     // Campo Costo de Envio
@@ -1597,8 +1930,8 @@ Distribuidora Home Point.-`;
       totalFinalDiv.title = 'Click para copiar resumen de pago';
       totalPagoWrap.appendChild(totalFinalDiv);
     }
-    // Calcular total final
-    let totalFinal = total - descuento + envio;
+    // Calcular total final (subtotal - descuento + recargo + envio)
+    let totalFinal = total - descuento + recargo + envio;
     if (totalFinal < 0) totalFinal = 0;
     totalFinalDiv.textContent = `TOTAL FINAL $ ${totalFinal.toLocaleString('es-AR')}`;
 
@@ -1606,17 +1939,37 @@ Distribuidora Home Point.-`;
     totalFinalDiv.onclick = function() {
       const subtotalActual = total;
       const descuentoActual = descuento;
+      const recargoActual = recargo;
       const envioActual = envio;
       const totalFinalActual = totalFinal;
       const aliasInput = document.getElementById('alias');
       const aliasValue = aliasInput ? aliasInput.value.trim() : '';
       
+      // Obtener medio de pago seleccionado
+      const pagoRadio = document.querySelector('input[name="tipoPago"]:checked');
+      const medioPago = pagoRadio ? pagoRadio.value : 'No especificado';
+      
       // Formatear el texto para copiar
-      const textoCopiar = `- Subtotal $ ${subtotalActual.toLocaleString('es-AR')}
-- Envio $ ${envioActual.toLocaleString('es-AR')}
-- Total $ ${totalFinalActual.toLocaleString('es-AR')}
-- Pago: Transferencia
-- ALIAS: ${aliasValue}`;
+      let textoCopiar = `- Subtotal $ ${subtotalActual.toLocaleString('es-AR')}`;
+      
+      if (descuentoActual > 0) {
+        textoCopiar += `\n- Descuento $ ${descuentoActual.toLocaleString('es-AR')}`;
+      }
+      
+      if (recargoActual > 0) {
+        textoCopiar += `\n- Recargo $ ${recargoActual.toLocaleString('es-AR')}`;
+      }
+      
+      if (envioActual > 0) {
+        textoCopiar += `\n- Envío $ ${envioActual.toLocaleString('es-AR')}`;
+      }
+      
+      textoCopiar += `\n- Total $ ${totalFinalActual.toLocaleString('es-AR')}`;
+      textoCopiar += `\n- Medio de Pago: ${medioPago}`;
+      
+      if (medioPago === 'Transferencia' && aliasValue) {
+        textoCopiar += `\n- ALIAS: ${aliasValue}`;
+      }
       
       // Copiar al portapapeles
       navigator.clipboard.writeText(textoCopiar).then(() => {
@@ -1633,10 +1986,12 @@ Distribuidora Home Point.-`;
       });
     };
 
-    // Actualizar descuento, envio y total final al cambiar porcentaje, descuento o envio
+    // Actualizar descuento, recargo, envio y total final al cambiar los valores
     setTimeout(() => {
       const porcentajeInput = document.getElementById('porcentajeInput');
       const descuentoInput = document.getElementById('descuentoInput');
+      const porcentajeRecargoInput = document.getElementById('porcentajeRecargoInput');
+      const recargoInput = document.getElementById('recargoInput');
       const envioInput = document.getElementById('envioInput');
       const totalFinalDiv = document.getElementById('totalFinalDiv');
 
@@ -1665,6 +2020,36 @@ Distribuidora Home Point.-`;
         actualizarCalculosGlobales();
       }
 
+      function actualizarPorPorcentajeRecargo() {
+        let porc = parseFloat(porcentajeRecargoInput.value) || 0;
+        if (porc < 0) porc = 0;
+        if (porc > 100) porc = 100;
+        porcentajeRecargoInput.value = porc;
+        
+        // Calcular recargo sobre subtotal + envío
+        const subtotal = calcularSubtotalActual();
+        const envio = parseFloat(envioInput.value) || 0;
+        const baseRecargo = subtotal + envio;
+        const recargo = Math.round(baseRecargo * porc / 100);
+        recargoInput.value = recargo;
+        
+        actualizarCalculosGlobales();
+      }
+      
+      function actualizarPorRecargo() {
+        let rec = parseInt(recargoInput.value, 10) || 0;
+        if (rec < 0) rec = 0;
+        recargoInput.value = rec;
+        
+        // Actualizar el porcentaje basado en el recargo (calculado sobre subtotal + envío)
+        const subtotal = calcularSubtotalActual();
+        const envio = parseFloat(envioInput.value) || 0;
+        const baseRecargo = subtotal + envio;
+        const porc = baseRecargo > 0 ? Math.round((rec/baseRecargo)*100) : 0;
+        porcentajeRecargoInput.value = porc;
+        actualizarCalculosGlobales();
+      }
+
       function calcularSubtotalActual() {
         let subtotal = 0;
         if (pedidoActual && pedidoActual.items) {
@@ -1687,12 +2072,21 @@ Distribuidora Home Point.-`;
         descuentoInput.parentNode.replaceChild(newDescuentoInput, descuentoInput);
         const descuentoInputFinal = document.getElementById('descuentoInput');
         
+        const newPorcentajeRecargoInput = porcentajeRecargoInput.cloneNode(true);
+        porcentajeRecargoInput.parentNode.replaceChild(newPorcentajeRecargoInput, porcentajeRecargoInput);
+        const porcentajeRecargoInputFinal = document.getElementById('porcentajeRecargoInput');
+        
+        const newRecargoInput = recargoInput.cloneNode(true);
+        recargoInput.parentNode.replaceChild(newRecargoInput, recargoInput);
+        const recargoInputFinal = document.getElementById('recargoInput');
+        
         const newEnvioInput = envioInput.cloneNode(true);
         envioInput.parentNode.replaceChild(newEnvioInput, envioInput);
         const envioInputFinal = document.getElementById('envioInput');
         
         // Flag para prevenir ciclos entre porcentaje y descuento
         let actualizandoPorPorcentaje = false;
+        let actualizandoPorPorcentajeRecargo = false;
         
         porcentajeInputFinal.addEventListener('input', function() {
           actualizandoPorPorcentaje = true;
@@ -1725,6 +2119,37 @@ Distribuidora Home Point.-`;
           );
         });
         
+        porcentajeRecargoInputFinal.addEventListener('input', function() {
+          actualizandoPorPorcentajeRecargo = true;
+          actualizarPorPorcentajeRecargo();
+          actualizandoPorPorcentajeRecargo = false;
+          
+          // Auto-guardar usando batch updates (2 segundos de debounce)
+          const porc = parseFloat(this.value) || 0;
+          const rec = parseFloat(recargoInputFinal.value) || 0;
+          programarActualizacion(
+            `pedidos/${pedidoActual.id}/pagos`,
+            { porcentajeRecargo: porc, recargo: rec }
+          );
+        });
+        
+        recargoInputFinal.addEventListener('input', function() {
+          // Solo actualizar el porcentaje si el usuario editó manualmente el recargo
+          if (!actualizandoPorPorcentajeRecargo) {
+            actualizarPorRecargo();
+          } else {
+            actualizarTotalFinal();
+          }
+          
+          // Auto-guardar usando batch updates (2 segundos de debounce)
+          const rec = parseFloat(this.value) || 0;
+          const porc = parseFloat(porcentajeRecargoInputFinal.value) || 0;
+          programarActualizacion(
+            `pedidos/${pedidoActual.id}/pagos`,
+            { recargo: rec, porcentajeRecargo: porc }
+          );
+        });
+        
         envioInputFinal.addEventListener('input', function() {
           actualizarTotalFinal();
           
@@ -1735,7 +2160,48 @@ Distribuidora Home Point.-`;
             { envio: env }
           );
         });
+        
       }
+      
+      // Listener para tipo de pago - cargar 3.5% al seleccionar Transferencia (para todos los usuarios)
+      const pagoRadios = document.getElementsByName('tipoPago');
+      pagoRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+          if (this.value === 'Transferencia') {
+            // Cargar 3.5% por defecto en recargo
+            if (porcentajeRecargoInput) {
+              porcentajeRecargoInput.value = '3.5';
+              // Actualizar cálculos
+              actualizarCalculosGlobales();
+              
+              // Guardar en Firebase solo si es admin
+              if (admin) {
+                const porc = 3.5;
+                const rec = parseFloat(recargoInput?.value || 0);
+                programarActualizacion(
+                  `pedidos/${pedidoActual.id}/pagos`,
+                  { porcentajeRecargo: porc, recargo: rec }
+                );
+              }
+            }
+          } else {
+            // Limpiar recargo si no es transferencia
+            if (porcentajeRecargoInput) {
+              porcentajeRecargoInput.value = '0';
+              if (recargoInput) recargoInput.value = '0';
+              actualizarCalculosGlobales();
+              
+              // Guardar en Firebase solo si es admin
+              if (admin) {
+                programarActualizacion(
+                  `pedidos/${pedidoActual.id}/pagos`,
+                  { porcentajeRecargo: 0, recargo: 0 }
+                );
+              }
+            }
+          }
+        });
+      });
     }, 0);
 
     // Selector de pago
@@ -1929,6 +2395,24 @@ Distribuidora Home Point.-`;
         }
       }
       
+      // Cargar valores de recargo desde Firebase si existen
+      const porcentajeRecargoInput = document.getElementById('porcentajeRecargoInput');
+      const recargoInput = document.getElementById('recargoInput');
+      if (porcentajeRecargoInput && recargoInput) {
+        if (pedidoActual.pagos && typeof pedidoActual.pagos.porcentajeRecargo === 'number') {
+          porcentajeRecargoInput.value = pedidoActual.pagos.porcentajeRecargo;
+        }
+        if (pedidoActual.pagos && typeof pedidoActual.pagos.recargo === 'number') {
+          recargoInput.value = pedidoActual.pagos.recargo;
+        }
+        // Si el tipo de pago es Transferencia y no hay recargo guardado, aplicar 3.5% por defecto
+        if (pagoValue === 'Transferencia' && (!pedidoActual.pagos || typeof pedidoActual.pagos.porcentajeRecargo !== 'number')) {
+          porcentajeRecargoInput.value = '3.5';
+          // Calcular el recargo basado en el 3.5%
+          actualizarCalculosGlobales();
+        }
+      }
+      
       // Actualizar visibilidad del ALIAS y configurar eventos (solo para admin)
       if (admin) {
         actualizarVisibilidadAlias();
@@ -2094,12 +2578,16 @@ document.getElementById('guardarBtn').onclick = async () => {
 
 
 
-    // Guardar descuento, porcentaje, envio y totalFinal en pedidos.pagos
+    // Guardar descuento, porcentaje, recargo, envio y totalFinal en pedidos.pagos
     const descuentoInput = document.getElementById('descuentoInput');
     const porcentajeInput = document.getElementById('porcentajeInput');
+    const recargoInput = document.getElementById('recargoInput');
+    const porcentajeRecargoInput = document.getElementById('porcentajeRecargoInput');
     const envioInput = document.getElementById('envioInput');
     let descuento = 0;
     let porcentaje = 0;
+    let recargo = 0;
+    let porcentajeRecargo = 0;
     let envio = 0;
     if (descuentoInput) {
       descuento = parseInt(descuentoInput.value, 10);
@@ -2109,6 +2597,15 @@ document.getElementById('guardarBtn').onclick = async () => {
       porcentaje = parseInt(porcentajeInput.value, 10);
       if (isNaN(porcentaje) || porcentaje < 0) porcentaje = 0;
       if (porcentaje > 100) porcentaje = 100;
+    }
+    if (recargoInput) {
+      recargo = parseInt(recargoInput.value, 10);
+      if (isNaN(recargo) || recargo < 0) recargo = 0;
+    }
+    if (porcentajeRecargoInput) {
+      porcentajeRecargo = parseFloat(porcentajeRecargoInput.value);
+      if (isNaN(porcentajeRecargo) || porcentajeRecargo < 0) porcentajeRecargo = 0;
+      if (porcentajeRecargo > 100) porcentajeRecargo = 100;
     }
     if (envioInput) {
       envio = parseInt(envioInput.value, 10);
@@ -2121,17 +2618,19 @@ document.getElementById('guardarBtn').onclick = async () => {
         const unitPesos = Math.round(it.valorU || 0);
         totalTmp += Math.round(it.cantidad * unitPesos);
       });
-      totalFinal = totalTmp - descuento + envio;
+      totalFinal = totalTmp - descuento + recargo + envio;
       if (totalFinal < 0) totalFinal = 0;
     }
 
-    // Guardar ALIAS, descuento, porcentaje y envio en pedidos.pagos
+    // Guardar ALIAS, descuento, porcentaje, recargo y envio en pedidos.pagos
     const pagosUpdate = {};
     if (tipoPago === 'Transferencia' && alias && admin) {
       pagosUpdate.alias = alias;
     }
     pagosUpdate.descuento = descuento;
     pagosUpdate.porcentajeDescuento = porcentaje;
+    pagosUpdate.recargo = recargo;
+    pagosUpdate.porcentajeRecargo = porcentajeRecargo;
     pagosUpdate.envio = envio;
     pagosUpdate.totalFinal = totalFinal;
     promises.push(
@@ -2191,13 +2690,17 @@ const cerrarPedido = () => {
     entrega = 'Envios';
   }
   
-  // Capturar valores de porcentaje, descuento y envío desde los inputs
+  // Capturar valores de porcentaje, descuento, recargo y envío desde los inputs
   const descuentoInput = document.getElementById('descuentoInput');
   const porcentajeInput = document.getElementById('porcentajeInput');
+  const recargoInput = document.getElementById('recargoInput');
+  const porcentajeRecargoInput = document.getElementById('porcentajeRecargoInput');
   const envioInput = document.getElementById('envioInput');
   
   let descuento = 0;
   let porcentaje = 0;
+  let recargo = 0;
+  let porcentajeRecargo = 0;
   let envio = 0;
   
   if (descuentoInput) {
@@ -2205,6 +2708,12 @@ const cerrarPedido = () => {
   }
   if (porcentajeInput) {
     porcentaje = parseFloat(porcentajeInput.value) || 0;
+  }
+  if (recargoInput) {
+    recargo = parseFloat(recargoInput.value) || 0;
+  }
+  if (porcentajeRecargoInput) {
+    porcentajeRecargo = parseFloat(porcentajeRecargoInput.value) || 0;
   }
   if (envioInput) {
     envio = parseFloat(envioInput.value) || 0;
@@ -2218,7 +2727,7 @@ const cerrarPedido = () => {
       const unitPesos = Math.round(it.valorU || 0);
       subtotal += Math.round(it.cantidad * unitPesos);
     });
-    totalFinal = subtotal - descuento + envio;
+    totalFinal = subtotal - descuento + recargo + envio;
     if (totalFinal < 0) totalFinal = 0;
   }
   
@@ -2234,10 +2743,12 @@ const cerrarPedido = () => {
     items: pedidoActual.items // Guardar items CON valorC y valorU
   };
   
-  // Preparar datos de pagos con porcentaje, descuento, envío y total final
+  // Preparar datos de pagos con porcentaje, descuento, recargo, envío y total final
   const pagosUpdate = {
     descuento: descuento,
     porcentajeDescuento: porcentaje,
+    recargo: recargo,
+    porcentajeRecargo: porcentajeRecargo,
     envio: envio,
     totalFinal: totalFinal
   };
@@ -2265,6 +2776,14 @@ const cerrarPedido = () => {
 const reabrirPedido = async () => {
   if (!admin) return;            // solo admin puede reabrir
   if (!pedidoActual.locked && pedidoActual.status !== 'CANCELADO' && pedidoActual.status !== 'DESPACHADO/ENTREGADO') return;
+  
+  // Solicitar clave de seguridad
+  const clave = prompt("Ingrese la clave de seguridad para reabrir el pedido:");
+  if (clave !== "Q") {
+    alert("Clave incorrecta. No se puede reabrir el pedido.");
+    return;
+  }
+  
   if (!confirm("¿Querés reabrir este pedido?")) return;
   // Determinar quién modifica
   let lastModifiedBy = 'usuario';
