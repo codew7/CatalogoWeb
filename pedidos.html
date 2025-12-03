@@ -3102,8 +3102,13 @@ document.getElementById('ImprimirBtn').onclick = () => {
   th, td { border: 1px solid #bbb; padding: 4px 15px; font-size: 0.9em; text-align: left; white-space: nowrap; }
   th { background: #4CAF50; color: #fff; }
   td.cant, th.cant, td.check, th.check { text-align: center; }
-      .stock-bajo-print { background-color: rgba(255, 152, 0, 0.15); }
-      @media print { button { display: none !important; } }
+      .stock-bajo-print { background-color: #fff3cd !important; }
+      .stock-bajo-print td { background-color: #fff3cd !important; }
+      @media print { 
+        button { display: none !important; }
+        .stock-bajo-print { background-color: #fff3cd !important; }
+        .stock-bajo-print td { background-color: #fff3cd !important; }
+      }
     </style>
     </head><body>
     <div class="header-container">
