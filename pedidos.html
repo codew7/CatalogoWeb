@@ -552,6 +552,136 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
   if (!id){ document.body.innerHTML = "<p>ID inválido</p>"; throw 'no-id'; }
 
   const pedidoRef = db.ref('pedidos/'+id);
+  
+  // Variable para bloquear la interfaz durante procesos críticos de Firebase
+  let procesoCriticoEnEjecucion = false;
+  
+  // Prevenir cierre de ventana durante procesos críticos
+  window.addEventListener('beforeunload', function(e) {
+    if (procesoCriticoEnEjecucion) {
+      e.preventDefault();
+      e.returnValue = 'Hay un proceso de registro en curso. Si cierra la ventana, los datos pueden no guardarse correctamente.';
+      return e.returnValue;
+    }
+  });
+  
+  // Función para bloquear toda la interfaz durante procesos críticos
+  function bloquearInterfaz(mensaje = 'Guardando datos...') {
+    procesoCriticoEnEjecucion = true;
+    
+    // Crear overlay de bloqueo si no existe
+    let overlay = document.getElementById('overlayBloqueo');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'overlayBloqueo';
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      `;
+      
+      const contenido = document.createElement('div');
+      contenido.style.cssText = `
+        background: white;
+        padding: 30px 50px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      `;
+      
+      const spinner = document.createElement('div');
+      spinner.style.cssText = `
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px auto;
+      `;
+      
+      const texto = document.createElement('p');
+      texto.id = 'textoBloqueo';
+      texto.style.cssText = `
+        margin: 0;
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+      `;
+      texto.textContent = mensaje;
+      
+      const advertencia = document.createElement('p');
+      advertencia.style.cssText = `
+        margin: 10px 0 0 0;
+        font-size: 12px;
+        color: #e74c3c;
+      `;
+      advertencia.textContent = '⚠️ No cierre ni recargue esta ventana';
+      
+      contenido.appendChild(spinner);
+      contenido.appendChild(texto);
+      contenido.appendChild(advertencia);
+      overlay.appendChild(contenido);
+      
+      // Agregar animación de spinner
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      document.body.appendChild(overlay);
+    } else {
+      overlay.style.display = 'flex';
+      const textoBloqueo = document.getElementById('textoBloqueo');
+      if (textoBloqueo) textoBloqueo.textContent = mensaje;
+    }
+    
+    // Deshabilitar todos los botones y controles
+    document.querySelectorAll('button, input, select, textarea').forEach(el => {
+      el.disabled = true;
+    });
+  }
+  
+  // Función para desbloquear la interfaz
+  function desbloquearInterfaz() {
+    procesoCriticoEnEjecucion = false;
+    
+    const overlay = document.getElementById('overlayBloqueo');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+    
+    // Rehabilitar controles
+    document.querySelectorAll('button, input, select, textarea').forEach(el => {
+      el.disabled = false;
+    });
+    
+    // Re-aplicar estados de bloqueo según el estado del pedido
+    if (pedidoActual) {
+      const bloqueado = pedidoActual.status === 'CANCELADO' || pedidoActual.status === 'DESPACHADO/ENTREGADO';
+      const bloqueadoCompleto = bloqueado || (pedidoActual.locked && !(admin && firebase.auth().currentUser));
+      
+      const agregarBtn = document.getElementById('agregarItemBtn');
+      const guardarBtn = document.getElementById('guardarBtn');
+      const cancelarBtn = document.getElementById('cancelarBtn');
+      
+      if (agregarBtn) agregarBtn.disabled = bloqueadoCompleto;
+      if (guardarBtn) guardarBtn.disabled = bloqueadoCompleto;
+      if (cancelarBtn) cancelarBtn.disabled = bloqueadoCompleto;
+    }
+  }
 
   // === ALIAS: Variables y funciones ===
   let aliasHistorial = [];
@@ -1203,6 +1333,9 @@ Distribuidora Home Point.-`;
           }
         }
 
+        // BLOQUEAR INTERFAZ durante proceso crítico
+        bloquearInterfaz('Procesando despacho de pedido...');
+        
         despachadoEntregadoBtn.disabled = true;
         // Función para obtener la fecha en el formato de ingresoPedido.js
         function getFechaActual() {
@@ -1213,9 +1346,14 @@ Distribuidora Home Point.-`;
         try {
           if (pedidoActual.movimientosRegistrados) {
             await pedidoRef.update({ status: 'DESPACHADO/ENTREGADO', locked: true, fecha: getFechaActual() });
+            desbloquearInterfaz();
             alert('Pedido marcado como DESPACHADO/ENTREGADO. (Movimientos ya registrados)');
             return;
           }
+          
+          // Actualizar mensaje de bloqueo
+          const textoBloqueo = document.getElementById('textoBloqueo');
+          if (textoBloqueo) textoBloqueo.textContent = 'Actualizando valores y preparando datos...';
           // === NUEVO: Actualizar valorC de cada artículo usando el código ===
           // Actualizar valores desde Google Sheets para el cálculo final
           if (pedidoActual.items) {
@@ -1232,6 +1370,9 @@ Distribuidora Home Point.-`;
               }
             });
           }
+          
+          // Actualizar mensaje de bloqueo
+          if (textoBloqueo) textoBloqueo.textContent = 'Guardando pedido en Firebase...';
           
           // Actualizar el pedido en Firebase con los nuevos items y status
           await pedidoRef.update({
@@ -1301,13 +1442,27 @@ Distribuidora Home Point.-`;
           if (alias) {
             pagoData.alias = alias;
           }
+          // Actualizar mensaje de bloqueo
+          if (textoBloqueo) textoBloqueo.textContent = 'Registrando datos de pago...';
+          
           await pedidoRef.child('pagos').set(pagoData);
+          
+          // Actualizar mensaje de bloqueo
+          if (textoBloqueo) textoBloqueo.textContent = 'Registrando movimientos de inventario y actualizando stock...';
+          
           // Registrar movimientos de salida leyendo el pedido actualizado
           await registrarMovimientoSalidaDesdePedido(pedidoActual.id);
           // Marcar que ya se registraron movimientos
           await pedidoRef.update({ movimientosRegistrados: true });
+          
+          // DESBLOQUEAR INTERFAZ después de completar proceso exitosamente
+          desbloquearInterfaz();
+          
           alert('Pedido despachado y movimientos registrados correctamente.');
         } catch (err) {
+          // DESBLOQUEAR INTERFAZ en caso de error
+          desbloquearInterfaz();
+          
           await pedidoRef.update({ status: 'ABIERTO', locked: false });
           alert('Error al registrar movimientos de salida: ' + (err.message || err));
           console.error('Error al registrar movimientos:', err);
