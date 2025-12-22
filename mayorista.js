@@ -1,1 +1,1524 @@
-const _0x3c7331=_0x13c3;(function($,x){let e=_0x13c3,t=$();for(;;)try{let a=-parseInt(e(671))/1*(parseInt(e(604))/2)+parseInt(e(612))/3*(parseInt(e(495))/4)+parseInt(e(605))/5+-parseInt(e(543))/6*(parseInt(e(453))/7)+-parseInt(e(682))/8+parseInt(e(669))/9*(-parseInt(e(412))/10)+parseInt(e(688))/11*(parseInt(e(675))/12);if(658729===a)break;t.push(t.shift())}catch(o){t.push(t.shift())}})(_0x5da0,658729),emailjs[_0x3c7331(704)](_0x3c7331(707));const WHATSAPP_URL=_0x3c7331(531),MARQUEE_TEXT="\uD83D\uDCB2&nbsp; Los valores publicados se encuentran ligados a la cotizaci\xf3n del d\xf3lar del d\xeda &nbsp; \uD83D\uDED2\uD83D\uDECD️ &nbsp; Visita nuestro Showroom y compr\xe1 sin requisitos minimos de compra &nbsp; \uD83D\uDE9A &nbsp; ENV\xcdOS A TODO EL PA\xcdS",ITEMPESOS="6";firebase[_0x3c7331(629)](firebaseConfig);const db=firebase[_0x3c7331(651)]();document[_0x3c7331(574)](_0x3c7331(568),function(){let $=_0x3c7331,x=document[$(477)]($(523)),e=x?x[$(616)]($(601)):[],t=0;e[$(680)]>0&&setInterval(()=>{t=(t+1)%e[$(680)],function a(){let o=$;if(x&&e.length>0){let i=-(100*t);x[o(517)][o(451)]=o(415)+i+"%)"}}()},5e3)});const ITEMS_PER_PAGE=30;let productos=[],datosFiltrados=[],currentPage=1,carrito=[],currentLightboxImages=[],currentImageIndex=0,datosExtraCliente={};function guardarCarritoLocal(){let $=_0x3c7331;if(!modoEdicion)try{localStorage[$(676)]($(557),JSON[$(622)](carrito))}catch(x){console[$(587)]($(563),x)}}function cargarCarritoLocal(){let $=_0x3c7331;if(!modoEdicion)try{let x=localStorage[$(454)]($(557));x&&(carrito=JSON[$(661)](x),actualizarCarrito())}catch(e){console[$(587)]($(613),e),carrito=[]}}const urlParams=new URLSearchParams(window[_0x3c7331(718)].search),pedidoEditId=urlParams[_0x3c7331(541)]("pedido"),modoEdicion=!!pedidoEditId;if(modoEdicion){localStorage[_0x3c7331(692)]("carritoMayorista");let $=document.createElement(_0x3c7331(691));$[_0x3c7331(652)]=_0x3c7331(631)+pedidoEditId,$.id=_0x3c7331(400),$.style[_0x3c7331(548)]=_0x3c7331(609),document[_0x3c7331(560)][_0x3c7331(474)]($),document[_0x3c7331(560)][_0x3c7331(517)][_0x3c7331(575)]=_0x3c7331(483),db[_0x3c7331(577)](_0x3c7331(466)+pedidoEditId).once(_0x3c7331(498)).then($=>{let x=_0x3c7331;if($[x(507)]()){let e=$[x(427)]();datosExtraCliente=e[x(530)]||{},console.log(x(687),e)}})[_0x3c7331(558)]($=>{let x=_0x3c7331;console[x(587)](x(486),$)})}const loadingOverlay=document.getElementById("loadingOverlay");fetch(_0x3c7331(450)+GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID+"/values/"+GOOGLE_SHEETS_CONFIG[_0x3c7331(672)]+"?key="+GOOGLE_SHEETS_CONFIG.API_KEY).then($=>{let x=_0x3c7331;if(!$.ok)throw Error("Error al acceder a la API: "+$[x(683)]);return $.json()})[_0x3c7331(431)]($=>{let x=_0x3c7331;loadingOverlay&&(loadingOverlay[x(517)][x(459)]=x(645));let e=$[x(471)];if(!e||0===e[x(680)])throw Error(x(591));datosFiltrados=productos=e[x(696)]($=>""!==($[3]||"")[x(521)]()[x(535)]())[x(713)](($,x)=>{function e($){let x=_0x13c3;if(!$||""===$||null==$)return new Date(1900,0,1);if($[x(419)]("/")){let e=$[x(572)]("/");if(3===e.length){let t=parseInt(e[0]),a=parseInt(e[1])-1,o=parseInt(e[2]);return new Date(o,a,t)}}return new Date(1900,0,1)}let t=e($[12]),a=e(x[12]);return a-t}),window[x(444)](0,0),mostrarPagina(1),setTimeout(()=>{let $=x;refreshStockInfo(),document.getElementById($(513))[$(580)]&&i(),setTimeout(()=>{primeraCarga=!1},100)},100);let t=new Set(productos[x(406)]($=>$[0])),a=document.getElementById(x(592)),o=Array.from(t)[x(696)]($=>$&&""!==$.trim()).sort(($,x)=>$.localeCompare(x,"es",{sensitivity:"base"}));function i(){let $=x,e=document[$(477)]($(592)).value,t=document[$(477)]($(524))[$(498)][$(615)](),a=document[$(477)]($(513)).checked,o=productos;"todos"!==e&&(o=o[$(696)]($=>$[0]===e)),""!==t[$(535)]()&&(o=o[$(696)](x=>x[3][$(615)]()[$(419)](t)||x[2][$(615)]()[$(419)](t)||x[17]&&x[17][$(615)]().includes(t))),a&&(o=o[$(696)](x=>{let e=x[10];if(null==e||""===e)return!1;let t=parseInt(String(e)[$(535)]());return!isNaN(t)&&t>1})),datosFiltrados=o,mostrarPagina(1,o)}o[x(593)]($=>{let e=x,t=document[e(546)](e(693));t.value=$,t[e(652)]=$,a.appendChild(t)}),a[x(574)]("change",()=>{i()}),document[x(477)](x(524))[x(574)](x(608),$=>{i()}),document.getElementById(x(513))[x(574)]("change",()=>{i()}),document.getElementById(x(504))[x(574)]("click",()=>{let $=x;document[$(477)]($(592))[$(498)]=$(504),document[$(477)]($(524)).value="",document[$(477)]($(513))[$(580)]=!1,datosFiltrados=productos,mostrarPagina(1)})})[_0x3c7331(558)]($=>{let x=_0x3c7331;loadingOverlay&&(loadingOverlay[x(517)].display=x(645)),console.error(x(709),$),document[x(398)](x(528))[x(652)]=$[x(408)]});let primeraCarga=!0;function mostrarPagina($,x=productos){let e=_0x3c7331;currentPage=$,x[e(680)];let t=($-1)*30,a=x[e(666)](t,t+30);cargarGrid(a),actualizarPaginacion($,x),document[e(404)]!==document[e(477)](e(524))&&setTimeout(()=>{let $=e;if(primeraCarga)window[$(444)]({top:0,behavior:$(716)});else{let x=document[$(477)]($(592));if(x){let t=x[$(456)](),a=window.pageYOffset||document[$(630)][$(658)];window.scrollTo({top:t[$(564)]+a-20,behavior:$(627)})}}},0)}function cargarGrid($){let x=_0x3c7331,e=document[x(477)](x(644));e[x(597)]="",$.forEach($=>{let t=x,a=document[t(546)](t(691));a[t(434)][t(505)](t(585));let o=document[t(546)]("input");o[t(452)]=t(442),o[t(498)]=$[2],a[t(474)](o);let i=$[14]||"",r=$[15]||"";if(i||r){let d=document[t(546)](t(691));d.classList.add(t(423)),d[t(597)]=t(668),d[t(578)]="Ver informaci\xf3n adicional",d[t(574)](t(588),()=>{mostrarInfoModal($[3],i,r)}),a[t(474)](d)}if(isValidImageUrl($[1])){let n=[];-1!==$[1][t(463)](",")?n=$[1][t(572)](",")[t(406)]($=>$.trim()):n.push($[1]);let c=document[t(546)]("img");c[t(610)]=n[0],c[t(403)]="lazy",c[t(662)]=function(){let $=t;this[$(610)]=$(677)},c[t(574)]("click",()=>{abrirLightbox(n)}),a[t(474)](c)}let l=document[t(546)]("h3");l[t(652)]=$[3],a.appendChild(l);let _=document[t(546)]("div");_.classList[t(505)](t(699)),_[t(652)]="C\xf3digo: "+$[2],a[t(474)](_);let s=document.createElement(t(691));s[t(434)][t(505)](t(488)),s.style[t(421)]=t(545),s[t(517)][t(648)]=t(501);let f=0;void 0!==$[10]&&null!==$[10]&&""!==$[10]&&(f=parseInt($[10])),isNaN(f)?s[t(597)]=t(429):f<=1?s[t(597)]='<span style="color: #ff9800;">✗ Sin stock</span>':f<=10?s[t(597)]=t(698):s.innerHTML='<span style="color: #4CAF50;">✓ Disponible</span>',a[t(474)](s);{let u=document.createElement("p");u.innerHTML=t(435)+$[13]+"</s></span>",u.style[t(494)]=t(409),a.appendChild(u)}let m=document[t(546)]("p");m[t(597)]=t(681)+$["6"],m[t(517)][t(575)]=t(441),a[t(474)](m);let p=document.createElement(t(691));p[t(517)][t(459)]=t(643),p[t(517)][t(509)]="center",p[t(517)].justifyContent=t(715),p[t(517)][t(526)]=t(409),p[t(517)].minHeight="50px";let b=document[t(546)](t(691));b[t(517)][t(459)]=t(645),b[t(517)][t(509)]=t(715),b.style.gap=t(409),b.style.transition=t(430),b[t(517)][t(582)]="0";let g=document.createElement(t(694));g.innerHTML="-",g[t(517)][t(532)]=t(514),g[t(517)].fontSize=t(589),g.style[t(515)]="35px",g[t(517)][t(701)]=t(598),g[t(517)][t(664)]="#ff9800",g[t(517)][t(489)]=t(544),g[t(517)].border="1px solid #ff9800",g[t(517)][t(533)]=t(552),g[t(517)][t(551)]=t(487);let h=document[t(546)](t(608));h[t(452)]=t(633),h[t(467)]="1",h.value="1",h[t(517)][t(701)]=t(573),h[t(517)].height=t(598),h[t(517)][t(532)]="5px",h.style[t(464)]="center",h[t(517)][t(439)]=t(425),h[t(517)][t(533)]=t(552);let y=document[t(546)]("button");y[t(597)]="+",y[t(517)].padding=t(514),y[t(517)][t(484)]="16px",y[t(517)][t(515)]=t(598),y[t(517)][t(701)]=t(598),y[t(517)][t(664)]=t(502),y[t(517)][t(489)]=t(544),y[t(517)][t(439)]=t(547),y.style[t(533)]=t(552),y[t(517)].cursor="pointer",b[t(474)](g),b[t(474)](h),b[t(474)](y);let E=document[t(546)]("button");function v(){let x=t,e=parseInt(h[x(498)]);if(e>0){let a=carrito[x(422)]($=>$[x(411)]===l[x(652)]);a?a[x(626)]=e:agregarAlCarrito(l[x(652)],$[6],e,$[2],$[0],$[7][x(521)]()[x(462)](/[,\.]/g,""),$[6][x(521)]()[x(462)](/[,\.]/g,"")),actualizarCarrito()}}E.innerHTML=t(559),E[t(517)].padding=t(586),E[t(517)].fontSize=t(589),E[t(517)][t(515)]=t(573),E[t(517)][t(701)]=t(573),E[t(517)][t(664)]="#4CAF50",E[t(517)][t(489)]="#fff",E.style[t(439)]=t(623),E[t(517)][t(533)]=t(552),E[t(517)].cursor=t(487),E[t(517)].transition=t(430),E.classList[t(505)](t(465)),!isNaN(f)&&f>0?(h[t(413)]=f,h[t(578)]=t(468)+f+t(566)):(E.disabled=!0,E[t(517)][t(664)]=t(702),E[t(517)][t(426)]="#cccccc",E.style[t(551)]="not-allowed",E[t(578)]=t(485)),E[t(574)](t(588),()=>{let x=t,e=0;if(void 0!==$[10]&&null!==$[10]&&""!==$[10]&&(e=parseInt($[10])),isNaN(e)||e<=0){alert(x(401));return}h[x(498)]="1",v(),function $(){let x=t;E.style.opacity="0",E[x(517)][x(451)]=x(416),setTimeout(()=>{let $=x;E[$(517)][$(459)]=$(645),b[$(517)][$(459)]=$(643),setTimeout(()=>{let x=$;b[x(517)][x(582)]="1",b[x(517)][x(451)]=x(624)},50)},150)}()}),y.addEventListener("click",()=>{let x=t,e=0;void 0!==$[10]&&null!==$[10]&&""!==$[10]&&(e=parseInt($[10]));let a=parseInt(h[x(498)]);if(!isNaN(e)&&a>=e){alert(x(635)+e+x(410));return}h[x(498)]=a+1,v()}),g[t(574)](t(588),()=>{let $=t,x=parseInt(h[$(498)]);if(x>1)h.value=x-1,v();else{let e=carrito[$(422)](x=>x[$(411)]===l[$(652)]);if(e){let a=carrito[$(463)](e);carrito[$(529)](a,1),actualizarCarrito()}b[$(517)].opacity="0",b[$(517)][$(451)]=$(416),setTimeout(()=>{let x=$;b[x(517)].display=x(645),E.style[x(459)]=x(641),E[x(517)].opacity="0",E.style.transform=x(416),setTimeout(()=>{let $=x;E[$(517)][$(582)]="1",E[$(517)][$(451)]=$(624)},50)},150)}}),h[t(574)](t(420),()=>{let x=t,e=parseInt(h[x(498)]),a=0;void 0!==$[10]&&null!==$[10]&&""!==$[10]&&(a=parseInt($[10])),e<=0?h[x(498)]="1":!isNaN(a)&&e>a&&(alert(x(635)+a+x(410)),h.value=a),v()}),p[t(474)](E),p[t(474)](b),a[t(474)](p),e[t(474)](a)})}function refreshStockInfo(){let $=_0x3c7331,x=document.querySelectorAll($(659));x[$(593)](x=>{let e=$,t=x.querySelector(e(599));if(t){let a=x[e(398)](e(440));if(a){let o=a.value,i=productos[e(422)]($=>$[2]===o),r=0;i&&void 0!==i[10]&&null!==i[10]&&""!==i[10]&&(r=parseInt(i[10])),isNaN(r)?t[e(597)]=e(429):r<=1?t[e(597)]=e(429):r<=10?t[e(597)]='<span style="color: #ffeb3b;">⚠ Pocas unidades</span>':t[e(597)]=e(461);let d=x[e(398)](e(497)),n=x[e(398)](e(512));d&&(!isNaN(r)&&r>0?(d[e(413)]=r,d[e(457)]=!1,d[e(578)]="M\xe1ximo "+r+e(566),n&&n[e(457)]&&(n[e(457)]=!1,n.style[e(664)]=e(695),n[e(517)].borderColor=e(695),n.style[e(551)]="pointer",n[e(578)]="")):(d[e(457)]=!0,d[e(578)]=e(485),n&&(n[e(457)]=!0,n.style[e(664)]=e(702),n[e(517)][e(426)]=e(702),n[e(517)].cursor=e(518),n[e(578)]=e(485))))}}})}function agregarAlCarrito($,x,e,t,a){let o=_0x3c7331,i=0===carrito[o(680)],r=carrito.find(x=>x[o(411)]===$);r?r[o(626)]+=e:carrito[o(424)]({nombre:$,precio:x,cantidad:e,codigo:t,categoria:a}),actualizarCarrito(),guardarCarritoLocal(),i&&!modoEdicion&&mostrarModalInfoPrimerArticulo()}function getMaxVisiblePaginationButtons(){let $=_0x3c7331,x=document.getElementById($(448)),e=window.innerWidth;x&&(e=x[$(527)]||e);let t=Math[$(413)](3,Math[$(706)]((e-220)/48));return Math.min(t,15)}function _0x13c3($,x){$-=397;let e=_0x5da0();return e[$]}function actualizarPaginacion($,x){let e=_0x3c7331,t=document.getElementById(e(448));t[e(597)]="";let a=Math[e(581)](x[e(680)]/30);if($>1){let o=document[e(546)]("button");o[e(652)]=e(536),o.style[e(701)]=e(611),o[e(574)]("click",()=>mostrarPagina($-1,x)),t[e(474)](o)}let i=getMaxVisiblePaginationButtons(),r=Math.max(1,$-Math[e(706)](i/2)),d=Math[e(467)](a,r+i-1);d-r<i-1&&(r=Math[e(413)](1,d-i+1));for(let n=r;n<=d;n++){let c=document[e(546)](e(694));c[e(652)]=n,c[e(434)][e(505)]("pagination-button"),n===$&&c[e(434)].add(e(475)),c[e(574)](e(588),()=>mostrarPagina(n,x)),t.appendChild(c)}if($<a){let l=document.createElement("button");l[e(652)]=e(571),l[e(517)][e(701)]=e(611),l[e(574)]("click",()=>mostrarPagina($+1,x)),t[e(474)](l)}}function _0x5da0(){let $=["Anterior","ultimoPedidoBtn","web",'\n            <div class="info-modal-section">\n                <h4>Tama\xf1o</h4>\n                <p>',"pedidos","get","fas fa-info-circle","6649254HUKWxF","#fff","5px 0","createElement","1px solid #ff9800","cssText","email","resize","cursor","4px","buscarSpinner","ultimoPedidoEmailInput","items","mayorista","carritoMayorista","catch",'<i class="fas fa-cart-plus"></i>',"body","target","localidad","Error al guardar carrito en localStorage:","top","focus"," unidades disponibles","Email enviado!","DOMContentLoaded","cartContainer","unidad","Siguiente","split","50px","addEventListener","marginTop","cerrarInfoPrimerArticuloBtn","ref","title","Error al actualizar el pedido: ","checked","ceil","opacity","relative","4px solid #4299e1","card","10px 10px","error","click","16px","onclick","No se encontraron datos en la hoja.","categorias","forEach","ABIERTO","https://www.home-point.com.ar/pedidos.html?id=","#e6ffed","innerHTML","35px",".stock-info","#c53030",".carousel-slide","\xa1Art\xedculos agregados exitosamente al pedido!","resolve","58fSUFIS","1793720KNkSkG","remove","orderByChild","input","\n      position: fixed;\n      top: 0;\n      left: 0;\n      width: 100vw;\n      z-index: 3001;\n      background: #fff7c2;\n      padding: 10px 0;\n      text-align: center;\n      font-weight: bold;\n      font-size: 1.1em;\n      box-shadow: 0 2px 8px #0002;\n      border-bottom: 2px solid #ffe066;\n    ","src","100px","13323DRJzvR","Error al cargar carrito desde localStorage:","lightbox-img","toLowerCase","querySelectorAll",".hamburger-dropdown-item","now",'\n        <div class="modal-content" style="max-width:450px;position:relative;">\n            <div class="modal-header" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">\n                <h2 style=\'margin:0;\'><i class="fas fa-info-circle"></i> Pedido M\xednimo Requerido</h2>\n                <p style=\'margin:8px 0 0 0;\'>Para procesar tu pedido necesitamos un m\xednimo de unidades</p>\n            </div>\n            <div class="modal-body" style="padding:30px; text-align:center;">\n                <div style="background:#fff3e0;border-radius:12px;padding:20px;margin-bottom:20px;">\n                    <i class="fas fa-shopping-cart" style="font-size:3em;color:#ff9800;margin-bottom:15px;"></i>\n                    <p style="margin:0;color:#333;line-height:1.8;font-size:1.05em;">\n                        <strong>Necesitas agregar al menos 5 unidades para procesar el pedido.</strong>\n                    </p>\n                    <div style="margin-top:20px;padding:15px;background:#fff;border-radius:8px;border-left:4px solid #ff9800;">\n                        <p style="margin:0;color:#666;font-size:0.95em;">\n                            Actualmente tienes <strong style="color:#ff9800;font-size:1.2em;">',"codigo","buscarUltimoPedidoBtn","stringify","1px solid #4CAF50","scale(1)","\n            <strong>","cantidad","smooth","next-btn","initializeApp","documentElement","⚙️ Est\xe1s agregando art\xedculos al pedido #","</p>\n            </div>\n        ","number","Este pedido est\xe1 cerrado y no se puede editar.","Stock insuficiente. Solo hay ",' en tu carrito.\n                        </p>\n                        <p style="margin:10px 0 0 0;color:#666;font-size:0.95em;">\n                            Te ',"minimo-pedido-modal","update","cliente/email","#2b6cb0","block","paddingRight","flex","catalogo","none","El carrito est\xe1 vac\xedo. Agrega productos antes de continuar.","position","fontWeight","faltan","service_lu9cpxk","database","textContent","findIndex","cart-item-delete","hamburgerBtn","4px solid #e53e3e","undefined","scrollTop",".card","prev-btn","parse","onerror","lightbox","backgroundColor","href","slice","unidades",'<i class="fas fa-info"></i>',"2410461JpaEne","send","3442JPjAwq","RANGO","No se encontraron pedidos registrados con este email","infoModalTitle","3252jbnRhO","setItem","no-disponible.png","ultimoPedidoMensaje","ultimoPedidoModal","length","<strong>Ahora $</strong> ","8356296hFRCbU","statusText","dni","precio","#fee","Datos del pedido existente cargados:","61303yCeAaa","stopPropagation","log","div","removeItem","option","button","#4CAF50","filter","key",'<span style="color: #ffeb3b;">⚠ Pocas unidades</span>',"info","parentElement","width","#cccccc","locked","init","close","floor","vcbQsbE2bgLwFAnDr","span","Error al cargar los datos:","infoModal","</strong> ","tipoCliente","sort","\xa1Pedido encontrado! Redirigiendo...","center","auto","fas fa-check-circle","location","success","querySelector","text","aviso-edicion-pedido","Este producto no tiene stock disponible.","#2f855a","loading","activeElement","currentTarget","map","clienteModal","message","5px"," unidades disponibles.","nombre","10BEUhVT","max","falta","translateX(","scale(0.8)","Error al buscar el pedido. Por favor, intenta de nuevo","carousel-pie-images","includes","change","margin","find","info-icon","push","1px solid #ddd","borderColor","val","Error enviando email:",'<span style="color: #ff9800;">✗ Sin stock</span>',"all 0.3s ease","then","Por favor, ingres\xe1 un email v\xe1lido","pedido-confirmado-modal","classList",'<span style="font-size:0.93em;"><strong>Antes $</strong> <s style="color: #e61919;">','<i class="fas fa-times"></i>',"fas fa-exclamation-circle","_blank","border",'input[type="hidden"]',"2px","hidden","contains","scrollTo","status","equalTo","El carrito est\xe1 vac\xedo.","pagination","once","https://sheets.googleapis.com/v4/spreadsheets/","transform","type","7QHdJZS","getItem","cerrarMinimoPedidoBtn","getBoundingClientRect","disabled","borderLeft","display","timestamp",'<span style="color: #4CAF50;">✓ Disponible</span>',"replace","indexOf","textAlign","btn-agregar-carrito","pedidos/","min","M\xe1ximo ",'\n        <div class="modal-content" style="max-width:450px;position:relative;">\n            <div class="modal-header">\n                <h2 style=\'margin:0;\'><i class="fas fa-check-circle"></i> \xa1Pedido Confirmado!</h2>\n                <p style=\'margin:8px 0 0 0;\'>Tu pedido se ha procesado exitosamente</p>\n            </div>\n            <div class="modal-body" style="padding:30px; text-align:center;">\n                <div style="background:#f0f9f0;border-radius:12px;padding:20px;margin-bottom:20px;">\n                    <i class="fas fa-envelope" style="font-size:3em;color:#4CAF50;margin-bottom:15px;"></i>\n                    <p style="margin:0;color:#333;line-height:1.6;">\n                        Se envi\xf3 una notificaci\xf3n a tu email con todos los detalles del pedido. \n                        Puedes verlo, modificarlo o realizar el seguimiento desde all\xed.\n                    </p>\n                </div>\n                <button id="verPedidoBtnConfirmado" class="btn-primary" style="width:100%;margin:0;">\n                    <i class="fas fa-eye"></i> Ver Mi Pedido\n                </button>\n            </div>\n        </div>\n    ',"modal","values","telefono","keydown","appendChild","active","mousedown","getElementById","show","className","clientes",'\n            <div class="info-modal-section">\n                <h4>Especificaciones del Fabricante:</h4>\n                <p>',"Error al guardar el pedido: ","54px","fontSize","Sin stock disponible","Error al cargar pedido existente:","pointer","stock-info","color","marquee-text-1","info-primer-articulo-modal","infoModalBody","</strong>&nbsp;<small>x","marginBottom","1180GVYhVu","marquee-text-2",'input[type="number"]',"value","Enter","background","bold","#ff9800","provincia","todos","add","cartFloatBtn","exists","direccion","alignItems","Error: No se encontr\xf3 el pedido original",' <strong style="color:#ff9800;font-size:1.2em;">',".btn-agregar-carrito","filtroDisponibles","5px 10px","height","closeUltimoPedidoModal","style","not-allowed","cartBadge","reduce","toString","Error al actualizar pedido:","carousel-images","buscar","#e6f7ff","gap","offsetWidth","#error","splice","cliente","https://api.whatsapp.com/send/?phone=5491121891006","padding","borderRadius","pedidos.html?id=","trim"];return(_0x5da0=function(){return $})()}function isValidImageUrl($){return $&&$.match(/\.(jpeg|jpg|gif|png)$/i)}function abrirLightbox($){let x=_0x3c7331;currentLightboxImages=$,currentImageIndex=0,document.getElementById(x(614))[x(610)]=currentLightboxImages[currentImageIndex],document[x(477)](x(663))[x(517)][x(459)]="flex",actualizarBotonesLightbox()}function actualizarBotonesLightbox(){let $=_0x3c7331,x=document.getElementById($(660)),e=document[$(477)]($(628));currentLightboxImages.length>1?(x.style[$(459)]=$(641),e[$(517)][$(459)]=$(641)):(x[$(517)][$(459)]=$(645),e.style[$(459)]=$(645))}function closeLightbox($){let x=_0x3c7331;($[x(561)]===$[x(405)]||$[x(561)].classList[x(443)](x(705)))&&(document.getElementById(x(663)).style[x(459)]="none")}function mostrarInfoModal($,x,e){let t=_0x3c7331,a=document[t(477)](t(710)),o=document[t(477)](t(674)),i=document.getElementById(t(492));o[t(652)]=$;let r="";x&&""!==x[t(535)]()&&(r+=t(481)+x+t(632)),e&&""!==e.trim()&&(r+=t(539)+e+t(632)),i[t(597)]=r,a[t(434)][t(505)]("show")}function closeInfoModal($){let x=_0x3c7331,e=document.getElementById(x(710));$&&$[x(561)]!==$.currentTarget||e[x(434)][x(606)](x(478))}function actualizarCarrito(){let $=_0x3c7331,x=document[$(477)]("cart-list"),e=document[$(477)]($(506)),t=document.getElementById($(519));x[$(597)]="";let a=carrito[$(520)]((x,e)=>x+e[$(626)],0);if(0===carrito[$(680)]){e&&(e[$(517)][$(459)]="none");let o=document[$(477)]($(569));o&&(o.classList.remove($(475)),typeof cartExpanded!==$(657)&&(cartExpanded=!1))}else e&&(e[$(517)][$(459)]=$(643));t&&(t[$(652)]=a),carrito[$(593)]((e,t)=>{let a=$,o=document.createElement("li");o.style[a(647)]=a(583),o[a(517)][a(642)]=a(598);let i=document[a(546)](a(691));i.innerHTML=a(625)+e.nombre+a(493)+e[a(626)]+"</small>\n        ";let r=document.createElement(a(694));r.className=a(654),r[a(597)]=a(436),r.onclick=function(){eliminarItemCarrito(t)},o[a(474)](i),o.appendChild(r),x[a(474)](o)})}function eliminarItemCarrito($){let x=_0x3c7331,e=carrito[$],t=document[x(616)](x(659));t[x(593)]($=>{let t=x,a=$[t(398)]("h3")?.textContent;if(a===e[t(411)]){let o=$.querySelector(t(512)),i=$.querySelector(t(497))?.[t(700)],r=$.querySelector(t(497));o&&i&&r&&(r[t(498)]="1",i[t(517)][t(459)]=t(645),i[t(517)][t(582)]="0",i[t(517)][t(451)]=t(416),o[t(517)].display=t(641),o.style[t(582)]="1",o.style[t(451)]=t(624),o.style[t(500)]="",o[t(517)][t(489)]="",o[t(517)][t(439)]="")}}),carrito[x(529)]($,1),actualizarCarrito(),guardarCarritoLocal()}function mostrarModalPedidoConfirmado($,x){let e=_0x3c7331,t=document.getElementById(e(433));t&&t.remove();let a=document[e(546)](e(691));a.id="pedido-confirmado-modal",a[e(479)]=e(470),a[e(517)][e(459)]=e(643),a[e(597)]=e(469),document.body[e(474)](a),document.getElementById("verPedidoBtnConfirmado")[e(590)]=function(){let x=e;window[x(718)][x(665)]="pedidos.html?id="+$}}function mostrarModalInfoPrimerArticulo(){let $=_0x3c7331,x=document[$(477)]($(491));x&&x.remove();let e=document.createElement("div");e.id=$(491),e[$(479)]=$(470),e[$(517)][$(459)]="flex",e.innerHTML='\n        <div class="modal-content" style="max-width:450px;position:relative;">\n            <div class="modal-header" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);">\n                <h2 style=\'margin:0;\'><i class="fas fa-info-circle"></i> Informaci\xf3n Importante</h2>\n                <p style=\'margin:8px 0 0 0;\'>Sobre el proceso de pedido</p>\n            </div>\n            <div class="modal-body" style="padding:30px; text-align:center;">\n                <div style="background:#e3f2fd;border-radius:12px;padding:20px;margin-bottom:20px;">\n                    <i class="fas fa-truck" style="font-size:3em;color:#2196F3;margin-bottom:15px;"></i>\n                    <p style="margin:0;color:#333;line-height:1.8;font-size:1.05em;">\n                        <strong>La solicitud de pedido se utiliza solo para env\xedos.</strong>\n                    </p>\n                    <p style="margin:15px 0 0 0;color:#555;line-height:1.6;font-size:0.95em;">\n                        Si retir\xe1s en nuestro showroom, <strong>no hace falta generar un pedido</strong>.\n                    </p>\n                </div>\n                <button id="cerrarInfoPrimerArticuloBtn" class="btn-primary" style="width:100%;margin:0;background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);">\n                    <i class="fas fa-check"></i> Entendido\n                </button>\n            </div>\n        </div>\n    ',document[$(560)].appendChild(e),document[$(477)]($(576))[$(590)]=function(){e[$(606)]()},e.onclick=function(x){x[$(561)]===e&&e.remove()}}function mostrarModalMinimoPedido($){let x=_0x3c7331,e=document[x(477)](x(637));e&&e.remove();let t=5-$,a=document[x(546)](x(691));a.id="minimo-pedido-modal",a[x(479)]=x(470),a[x(517)][x(459)]=x(643),a[x(597)]=x(619)+$+x(711)+(1===$?x(570):"unidades")+x(636)+(1===t?x(414):x(649))+x(511)+t+x(711)+(1===t?x(570):x(667))+' m\xe1s.\n                        </p>\n                    </div>\n                </div>\n                <button id="cerrarMinimoPedidoBtn" class="btn-primary" style="width:100%;margin:0;background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">\n                    <i class="fas fa-check"></i> Entendido\n                </button>\n            </div>\n        </div>\n    ',document[x(560)][x(474)](a),document[x(477)](x(455))[x(590)]=function(){a[x(606)]()},a[x(590)]=function($){$.target===a&&a[x(606)]()}}function limpiarCarrito(){let $=_0x3c7331;carrito=[],document.querySelectorAll($(659))[$(593)](x=>{let e=$,t=x[e(398)](".btn-agregar-carrito"),a=x[e(398)](e(497))?.[e(700)],o=x[e(398)](e(497));t&&a&&o&&(o[e(498)]="1",a.style[e(459)]="none",a[e(517)].opacity="0",a[e(517)][e(451)]=e(416),t.style[e(459)]=e(641),t[e(517)][e(582)]="1",t.style.transform=e(624),t.style[e(500)]="",t[e(517)][e(489)]="",t.style.border="")}),actualizarCarrito(),guardarCarritoLocal()}function enviarPedido(){let $=_0x3c7331;if(0===carrito[$(680)]){alert($(646));return}let x=carrito[$(520)]((x,e)=>x+e[$(626)],0);if(x<5&&!modoEdicion){mostrarModalMinimoPedido(x);return}if(modoEdicion){enviarPedidoFinal();return}let e=document[$(477)]($(407));e&&(e[$(517)][$(459)]=$(643))}function enviarPedidoFinal(){let $=_0x3c7331;if(modoEdicion&&pedidoEditId){let x=db[$(577)]("pedidos/"+pedidoEditId);x[$(449)]($(498))[$(431)](e=>{let t=$;if(!e[t(507)]()){alert(t(510));return}let a=e.val();if(a[t(703)]){alert(t(634));return}return carrito[t(593)]($=>{let x=t,e=a[x(555)][x(653)](e=>e.nombre===$[x(411)]);e>-1?a[x(555)][e][x(626)]+=$[x(626)]:a[x(555)][x(424)]({nombre:$[x(411)],cantidad:$[x(626)],valorUSD:$[x(685)],codigo:$[x(620)]||"",categoria:$.categoria||""})}),a[t(530)]={nombre:datosExtraCliente[t(411)]||a[t(530)]?.[t(411)]||"",telefono:datosExtraCliente[t(472)]||a[t(530)]?.[t(472)]||"",localidad:datosExtraCliente.localidad||a.cliente?.[t(562)]||"",direccion:datosExtraCliente[t(508)]||a[t(530)]?.[t(508)]||"",provincia:datosExtraCliente[t(503)]||a[t(530)]?.[t(503)]||"",dni:String(datosExtraCliente[t(684)]||a.cliente?.[t(684)]||""),email:datosExtraCliente[t(549)]||a[t(530)]?.[t(549)]||"",tipoCliente:datosExtraCliente[t(712)]||a.cliente?.[t(712)]||t(556)},x[t(638)]({items:a[t(555)],cliente:a[t(530)],adminViewed:!1,lastUpdated:Date[t(618)]()})})[$(431)](()=>{let x=$;alert(x(602)),setTimeout(()=>{window.location[x(462)]("pedidos.html?id="+pedidoEditId)},300)})[$(558)](x=>{let e=$;console.error(e(522),x),alert(e(579)+x.message)});return}if(0===carrito[$(680)]){alert($(447));return}let e=datosExtraCliente.email||"";db[$(577)]("clientes")[$(607)]("email")[$(446)](e[$(615)]()).limitToFirst(1).once($(498)).then(x=>{let t=$;return!x[t(507)]()&&e?db.ref(t(480)).push({email:e[t(615)](),nombre:datosExtraCliente[t(411)]||"",telefono:datosExtraCliente.telefono||"",localidad:datosExtraCliente[t(562)]||"",direccion:datosExtraCliente[t(508)]||"",provincia:datosExtraCliente[t(503)]||"",dni:String(datosExtraCliente[t(684)]||""),tipoCliente:datosExtraCliente[t(712)]||t(556),registro:t(538)}):Promise[t(603)]()}).then(()=>{let x=$,e=db[x(577)](x(540))[x(424)](),t=e[x(697)],a={id:t,timestamp:Date[x(618)](),locked:!1,adminViewed:!1,createdby:"web",status:x(594),cliente:{nombre:datosExtraCliente[x(411)]||"",telefono:datosExtraCliente[x(472)]||"",localidad:datosExtraCliente[x(562)]||"",direccion:datosExtraCliente[x(508)]||"",provincia:datosExtraCliente[x(503)]||"",dni:String(datosExtraCliente.dni||""),email:datosExtraCliente[x(549)]||"",tipoCliente:datosExtraCliente.tipoCliente||x(556)},items:carrito.map($=>({nombre:$.nombre,cantidad:$[x(626)],valorUSD:$[x(685)],codigo:$[x(620)]||"",categoria:$.categoria||""}))};return e.set(a).then(()=>t)})[$(431)](x=>{let e=$;datosExtraCliente[e(549)]&&/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(datosExtraCliente.email)&&emailjs[e(670)](e(650),"template_xqo1j5z",{email:datosExtraCliente[e(549)],name:datosExtraCliente[e(411)],linkPedido:e(595)+x})[e(431)](function($){let x=e;console[x(690)](x(567),$[x(445)],$[x(399)])},function($){console.error(e(428),$)}),mostrarModalPedidoConfirmado(x,datosExtraCliente.email),limpiarCarrito(),datosExtraCliente={}}).catch(x=>{let e=$;console[e(587)]("Error al guardar pedido o cliente:",x),alert(e(482)+x[e(408)])})}window[_0x3c7331(574)](_0x3c7331(550),()=>{let $=_0x3c7331;if(typeof currentPage!==$(657)){let x=datosFiltrados[$(680)]>0?datosFiltrados:productos;actualizarPaginacion(currentPage,x)}}),document[_0x3c7331(477)](_0x3c7331(628))[_0x3c7331(574)]("click",$=>{let x=_0x3c7331;$.stopPropagation(),currentLightboxImages[x(680)]>0&&(currentImageIndex=(currentImageIndex+1)%currentLightboxImages[x(680)],document.getElementById(x(614))[x(610)]=currentLightboxImages[currentImageIndex])}),document[_0x3c7331(477)](_0x3c7331(660)).addEventListener(_0x3c7331(588),$=>{let x=_0x3c7331;$[x(689)](),currentLightboxImages[x(680)]>0&&(currentImageIndex=(currentLightboxImages.length+currentImageIndex-1)%currentLightboxImages[x(680)],document[x(477)](x(614)).src=currentLightboxImages[currentImageIndex])}),document[_0x3c7331(477)](_0x3c7331(614))[_0x3c7331(574)](_0x3c7331(587),function(){currentLightboxImages[_0x3c7331(680)]>0&&0!==currentImageIndex&&(currentImageIndex=0,this.src=currentLightboxImages[0])}),document[_0x3c7331(574)](_0x3c7331(568),function(){let $=_0x3c7331;document[$(477)]($(490)).innerHTML=MARQUEE_TEXT,document[$(477)]($(496))[$(597)]=MARQUEE_TEXT,cargarCarritoLocal()});const hamburgerBtn=document[_0x3c7331(477)](_0x3c7331(655)),hamburgerDropdown=document[_0x3c7331(477)]("hamburgerDropdown");hamburgerBtn[_0x3c7331(574)](_0x3c7331(588),function($){let x=_0x3c7331;$[x(689)](),hamburgerDropdown.classList.toggle(x(475))}),document[_0x3c7331(574)]("click",function($){let x=_0x3c7331;hamburgerBtn.contains($[x(561)])||hamburgerDropdown.contains($[x(561)])||hamburgerDropdown[x(434)][x(606)](x(475))}),document[_0x3c7331(616)](_0x3c7331(617)).forEach($=>{let x=_0x3c7331;$[x(574)](x(588),function(){let $=x;hamburgerDropdown.classList[$(606)]($(475))})});const ultimoPedidoBtn=document[_0x3c7331(477)](_0x3c7331(537)),ultimoPedidoModal=document.getElementById(_0x3c7331(679)),closeUltimoPedidoModal=document[_0x3c7331(477)](_0x3c7331(516)),buscarUltimoPedidoBtn=document[_0x3c7331(477)](_0x3c7331(621)),ultimoPedidoEmailInput=document[_0x3c7331(477)](_0x3c7331(554)),buscarBtnText=document[_0x3c7331(477)]("buscarBtnText"),buscarSpinner=document[_0x3c7331(477)](_0x3c7331(553)),ultimoPedidoMensaje=document.getElementById(_0x3c7331(678));function mostrarMensajeBusqueda($,x){let e=_0x3c7331,t=ultimoPedidoMensaje,a=t[e(398)](".fas"),o=t.querySelector(e(708));$===e(587)?(t.style[e(664)]=e(686),t[e(517)].borderLeft=e(656),t[e(517)][e(489)]=e(600),a[e(479)]=e(437)):$===e(397)?(t[e(517)].backgroundColor=e(596),t.style[e(458)]="4px solid #48bb78",t[e(517)][e(489)]=e(402),a[e(479)]=e(717)):$===e(699)&&(t[e(517)][e(664)]=e(525),t[e(517)][e(458)]=e(584),t[e(517)].color=e(640),a[e(479)]=e(542)),o[e(652)]=x,t[e(517)][e(459)]="flex",t[e(517)][e(509)]="center"}function ocultarMensajeBusqueda(){let $=_0x3c7331;ultimoPedidoMensaje[$(517)][$(459)]=$(645)}function setEstadoCargaBusqueda($){let x=_0x3c7331;buscarUltimoPedidoBtn[x(457)]=$,buscarUltimoPedidoBtn[x(517)][x(582)]=$?"0.7":"1",buscarUltimoPedidoBtn[x(517)][x(551)]=$?x(518):"pointer",buscarBtnText.style[x(459)]=$?x(645):"inline",buscarSpinner[x(517)][x(459)]=x($?641:645),ultimoPedidoEmailInput[x(457)]=$}ultimoPedidoBtn.addEventListener(_0x3c7331(588),function(){let $=_0x3c7331;ultimoPedidoModal.style[$(459)]="flex",ultimoPedidoEmailInput[$(498)]="",ocultarMensajeBusqueda(),setTimeout(()=>ultimoPedidoEmailInput.focus(),100)}),closeUltimoPedidoModal[_0x3c7331(574)]("click",function(){let $=_0x3c7331;ultimoPedidoModal[$(517)].display=$(645),ocultarMensajeBusqueda()}),ultimoPedidoModal[_0x3c7331(574)](_0x3c7331(476),function($){let x=_0x3c7331;$[x(561)]===ultimoPedidoModal&&(ultimoPedidoModal.style.display=x(645),ocultarMensajeBusqueda())}),buscarUltimoPedidoBtn[_0x3c7331(574)]("click",function(){let $=_0x3c7331,x=ultimoPedidoEmailInput[$(498)][$(535)]()[$(615)]();if(ocultarMensajeBusqueda(),!x||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x)){mostrarMensajeBusqueda("error",$(432)),ultimoPedidoEmailInput[$(565)]();return}setEstadoCargaBusqueda(!0),db.ref($(540)).orderByChild($(639)).equalTo(x)[$(449)]($(498))[$(431)](x=>{let e=$;if(setEstadoCargaBusqueda(!1),!x[e(507)]()){mostrarMensajeBusqueda("error",e(673));return}let t=null;x.forEach($=>{let x=e,a=$[x(427)]();(!t||a[x(460)]>t.timestamp)&&(t=a)}),t&&t.id?(mostrarMensajeBusqueda(e(397),e(714)),setTimeout(()=>{let $=e;window.open($(534)+t.id,$(438)),ultimoPedidoModal[$(517)].display=$(645),ocultarMensajeBusqueda(),ultimoPedidoEmailInput[$(498)]=""},800)):mostrarMensajeBusqueda(e(587),"No se encontraron pedidos registrados con este email")})[$(558)](()=>{let x=$;setEstadoCargaBusqueda(!1),mostrarMensajeBusqueda(x(587),x(417))})}),ultimoPedidoEmailInput[_0x3c7331(574)](_0x3c7331(473),function($){let x=_0x3c7331;$[x(697)]===x(499)&&buscarUltimoPedidoBtn[x(588)]()}),document[_0x3c7331(574)](_0x3c7331(568),function(){let $=_0x3c7331,x=document[$(477)]($(418));if(x){let e=x.querySelectorAll($(601)),t=0;e[$(680)]>0&&setInterval(()=>{t=(t+1)%e[$(680)],function e(){let a=$,o=-(100*t);x.style[a(451)]=a(415)+o+"%)"}()},5e3)}});
+// Initialize EmailJS
+emailjs.init("vcbQsbE2bgLwFAnDr");
+
+// Constants
+const WHATSAPP_URL = "https://api.whatsapp.com/send/?phone=5491121891006";
+const MARQUEE_TEXT = "💲&nbsp; Los valores publicados se encuentran ligados a la cotización del dólar del día &nbsp; 🛒🛍️ &nbsp; Visita nuestro Showroom y comprá sin requisitos minimos de compra &nbsp; 🚚 &nbsp; ENVÍOS A TODO EL PAÍS";
+const ITEMPESOS = "6";
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Carousel functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const carouselImages = document.getElementById('carousel-images');
+    const slides = carouselImages ? carouselImages.querySelectorAll('.carousel-slide') : [];
+    let currentIndex = 0;
+
+    function updateCarousel() {
+        if (carouselImages && slides.length > 0) {
+            const offset = -currentIndex * 100;
+            carouselImages.style.transform = `translateX(${offset}%)`;
+        }
+    }
+
+    if (slides.length > 0) {
+        setInterval(() => {
+            currentIndex = (currentIndex + 1) % slides.length;
+            updateCarousel();
+        }, 5000); // Cambiar imagen cada 5 segundos
+    }
+});
+
+// Main application variables
+const ITEMS_PER_PAGE = 30;
+
+let productos = [];
+let datosFiltrados = []; // Variable para mantener los datos filtrados actuales
+let currentPage = 1;
+let carrito = [];
+let currentLightboxImages = [];
+let currentImageIndex = 0;
+let datosExtraCliente = {}; // Datos del cliente para el pedido
+
+// Función para guardar el carrito en localStorage
+function guardarCarritoLocal() {
+    // No guardar en localStorage si estamos en modo edición
+    if (modoEdicion) {
+        return;
+    }
+    
+    try {
+        localStorage.setItem('carritoMayorista', JSON.stringify(carrito));
+    } catch (e) {
+        console.error('Error al guardar carrito en localStorage:', e);
+    }
+}
+
+// Función para cargar el carrito desde localStorage
+function cargarCarritoLocal() {
+    // No cargar desde localStorage si estamos en modo edición
+    if (modoEdicion) {
+        return;
+    }
+    
+    try {
+        const carritoGuardado = localStorage.getItem('carritoMayorista');
+        if (carritoGuardado) {
+            carrito = JSON.parse(carritoGuardado);
+            actualizarCarrito();
+        }
+    } catch (e) {
+        console.error('Error al cargar carrito desde localStorage:', e);
+        carrito = [];
+    }
+}
+
+// === soporte para editar un pedido existente ===
+const urlParams    = new URLSearchParams(window.location.search);
+const pedidoEditId = urlParams.get('pedido');   // si viene de pedidos.html
+const modoEdicion  = !!pedidoEditId;
+
+if (modoEdicion) {
+    // Limpiar el carrito guardado en localStorage al entrar en modo edición
+    localStorage.removeItem('carritoMayorista');
+    
+    const aviso = document.createElement('div');
+    aviso.textContent = `⚙️ Estás agregando artículos al pedido #${pedidoEditId}`;
+    aviso.id = 'aviso-edicion-pedido';
+    aviso.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      z-index: 3001;
+      background: #fff7c2;
+      padding: 10px 0;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.1em;
+      box-shadow: 0 2px 8px #0002;
+      border-bottom: 2px solid #ffe066;
+    `;
+    document.body.appendChild(aviso);
+    // Agregar margen superior al body para que no tape el header
+    document.body.style.marginTop = '54px';
+    
+    // Cargar los datos del pedido existente
+    db.ref('pedidos/' + pedidoEditId).once('value')
+        .then(snapshot => {
+            if (snapshot.exists()) {
+                const pedidoExistente = snapshot.val();
+                // Guardar los datos del cliente del pedido existente
+                datosExtraCliente = pedidoExistente.cliente || {};
+                console.log('Datos del pedido existente cargados:', pedidoExistente);
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar pedido existente:', error);
+        });
+}
+
+const loadingOverlay = document.getElementById('loadingOverlay');
+
+// Fetch data from Google Sheets
+fetch(`https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/values/${GOOGLE_SHEETS_CONFIG.RANGO}?key=${GOOGLE_SHEETS_CONFIG.API_KEY}`)
+    .then(response => {
+        if (!response.ok) throw new Error(`Error al acceder a la API: ${response.statusText}`);
+        return response.json();
+    })
+    .then(data => {
+        if (loadingOverlay) loadingOverlay.style.display = 'none'; // Ocultar el overlay de carga
+        const items = data.values;
+        if (!items || items.length === 0) throw new Error("No se encontraron datos en la hoja.");
+        
+        // y ordenar descendente por la fecha (índice 12 - columna M)
+            productos = items
+                .filter(item => (item[3] || '').toString().trim() !== '') // Excluir filas con columna D vacía
+            .sort((a, b) => {
+                // Función para convertir fecha DD/MM/YYYY a objeto Date
+                function parsearFecha(fechaStr) {
+                    if (!fechaStr || fechaStr === '' || fechaStr === null || fechaStr === undefined) {
+                        return new Date(1900, 0, 1); // Fecha muy antigua
+                    }
+                    
+                    // Si está en formato DD/MM/YYYY
+                    if (fechaStr.includes('/')) {
+                        const partes = fechaStr.split('/');
+                        if (partes.length === 3) {
+                            const dia = parseInt(partes[0]);
+                            const mes = parseInt(partes[1]) - 1; // Los meses en JS van de 0-11
+                            const año = parseInt(partes[2]);
+                            return new Date(año, mes, dia);
+                        }
+                    }
+                    
+                    // Si no puede parsearse, devolver fecha antigua
+                    return new Date(1900, 0, 1);
+                }
+                
+                // Obtener las fechas de la columna M (índice 12)
+                const dateA = parsearFecha(a[12]);
+                const dateB = parsearFecha(b[12]);
+                
+                // Ordenar por fecha descendente (más recientes primero)
+                return dateB - dateA;
+            });
+        
+        // Inicializar datosFiltrados con todos los productos
+        datosFiltrados = productos;
+        
+        // Asegurar que el scroll esté en la parte superior al cargar
+        window.scrollTo(0, 0);
+        
+        mostrarPagina(1);
+        
+        // Primero refrescar la información de stock, luego aplicar filtros
+        // Esto previene la condición de carrera en navegadores móviles
+        setTimeout(() => {
+            refreshStockInfo();
+            // Aplicar filtros después de actualizar el stock
+            if (document.getElementById('filtroDisponibles').checked) {
+                aplicarFiltros();
+            }
+            // Después de completar la carga inicial, permitir scroll hacia categorías
+            setTimeout(() => {
+                primeraCarga = false;
+            }, 100);
+        }, 100);
+
+        // Usar la lista filtrada para obtener categorías
+        const categoriasSet = new Set(productos.map(item => item[0]));
+        const selectCategorias = document.getElementById('categorias');
+        
+        // Convertir a array, filtrar categorías vacías y ordenar alfabéticamente
+        const categoriasOrdenadas = Array.from(categoriasSet)
+            .filter(categoria => categoria && categoria.trim() !== '') // Filtrar categorías vacías
+            .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' })); // Ordenar alfabéticamente
+        
+        categoriasOrdenadas.forEach(categoria => {
+            const option = document.createElement('option');
+            option.value = categoria;
+            option.textContent = categoria;
+            selectCategorias.appendChild(option);
+        });
+
+        selectCategorias.addEventListener('change', () => {
+            aplicarFiltros();
+        });
+
+        document.getElementById('buscar').addEventListener('input', (e) => {
+            aplicarFiltros();
+        });
+
+        document.getElementById('filtroDisponibles').addEventListener('change', () => {
+            aplicarFiltros();
+        });
+
+        document.getElementById('todos').addEventListener('click', () => {
+            // Resetear todos los filtros
+            document.getElementById('categorias').value = 'todos';
+            document.getElementById('buscar').value = '';
+            document.getElementById('filtroDisponibles').checked = false;
+            // Resetear los datos filtrados para mostrar todos los productos
+            datosFiltrados = productos;
+            // Mostrar todos los productos
+            mostrarPagina(1);
+        });
+
+        // Función para aplicar todos los filtros combinados
+        function aplicarFiltros() {
+            const categoria = document.getElementById('categorias').value;
+            const query = document.getElementById('buscar').value.toLowerCase();
+            const soloDisponibles = document.getElementById('filtroDisponibles').checked;
+            let filtrados = productos;
+            // Filtrar por categoría
+            if (categoria !== "todos") {
+                filtrados = filtrados.filter(item => item[0] === categoria);
+            }
+            // Filtrar por búsqueda
+            if (query.trim() !== '') {
+                filtrados = filtrados.filter(item => 
+                    item[3].toLowerCase().includes(query) || // Nombre
+                    item[2].toLowerCase().includes(query) || // Código
+                    (item[17] && item[17].toLowerCase().includes(query)) // Keywords
+                );
+            }
+            
+            // Filtrar por disponibilidad (solo disponibles y pocas unidades)
+            if (soloDisponibles) {
+                filtrados = filtrados.filter(item => {
+                    // Extraer y validar el valor de stock
+                    const stockValue = item[10];
+                    if (stockValue === undefined || stockValue === null || stockValue === "") {
+                        return false; // Sin stock
+                    }
+                    // Convertir a string y limpiar espacios antes de parsear
+                    const stock = parseInt(String(stockValue).trim());
+                    // Mostrar solo si tiene stock válido (mayor a 0)
+                    return !isNaN(stock) && stock > 1;
+                });
+            }
+            
+            // Guardar los datos filtrados en la variable global
+            datosFiltrados = filtrados;
+            mostrarPagina(1, filtrados);
+        }
+    })
+    .catch(error => {
+        if (loadingOverlay) loadingOverlay.style.display = 'none'; // Ocultar el overlay de carga en caso de error
+        console.error('Error al cargar los datos:', error);
+        document.querySelector('#error').textContent = error.message;
+    });
+
+let primeraCarga = true;
+function mostrarPagina(pagina, datos = productos) {
+    currentPage = pagina;
+    const totalPaginas = Math.ceil(datos.length / ITEMS_PER_PAGE);
+    const inicio = (pagina - 1) * ITEMS_PER_PAGE;
+    const fin = inicio + ITEMS_PER_PAGE;
+    const datosPagina = datos.slice(inicio, fin);
+
+    cargarGrid(datosPagina);
+    actualizarPaginacion(pagina, datos);
+
+    // Solo hacer scroll si no se está escribiendo en el campo de búsqueda
+    if (document.activeElement !== document.getElementById('buscar')) {
+        // Usar setTimeout para asegurar que el DOM se haya actualizado
+        setTimeout(() => {
+            if (primeraCarga) {
+                // En la primera carga, mantener scroll arriba
+                window.scrollTo({ top: 0, behavior: 'auto' });
+            } else {
+                // En interacciones posteriores, scroll hacia categorías
+                const selectCategorias = document.getElementById('categorias');
+                if (selectCategorias) {
+                    const rect = selectCategorias.getBoundingClientRect();
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    window.scrollTo({
+                        top: rect.top + scrollTop - 20, // 20px de margen superior opcional
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        }, 0);
+    }
+}
+
+function cargarGrid(data) {
+    const grid = document.getElementById('catalogo');
+    grid.innerHTML = '';
+
+    data.forEach(item => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+
+        // Agregar input hidden con el código del artículo para referencias posteriores
+        const hiddenCode = document.createElement('input');
+        hiddenCode.type = 'hidden';
+        hiddenCode.value = item[2]; // Código del artículo
+        card.appendChild(hiddenCode);
+
+        // Agregar ícono de información si hay descripción o tamaño
+        const descripcion = item[14] || ''; // Columna O
+        const tamano = item[15] || ''; // Columna P
+        
+        if (descripcion || tamano) {
+            const infoIcon = document.createElement('div');
+            infoIcon.classList.add('info-icon');
+            infoIcon.innerHTML = '<i class="fas fa-info"></i>';
+            infoIcon.title = 'Ver información adicional';
+            infoIcon.addEventListener('click', () => {
+                mostrarInfoModal(item[3], descripcion, tamano);
+            });
+            card.appendChild(infoIcon);
+        }
+
+        // 1. Imagen
+        if (isValidImageUrl(item[1])) {
+            let imageUrls = [];
+            if (item[1].indexOf(',') !== -1) {
+                imageUrls = item[1].split(',').map(url => url.trim());
+            } else {
+                imageUrls.push(item[1]);
+            }
+            const img = document.createElement('img');
+            img.src = imageUrls[0];
+            img.loading = 'lazy'; // Agregar lazy loading
+            img.onerror = function() {
+                this.src = 'no-disponible.png'; // Imagen de respaldo
+            };
+            img.addEventListener('click', () => {
+                abrirLightbox(imageUrls);
+            });
+            card.appendChild(img);
+        }
+
+        // 2. Nombre del Artículo
+        const articulo = document.createElement('h3');
+        articulo.textContent = item[3];
+        card.appendChild(articulo);
+
+        // 3. Código
+        const info = document.createElement('div');
+        info.classList.add('info');
+        info.textContent = `Código: ${item[2]}`;
+        card.appendChild(info);
+
+        // 4. Disponibilidad de stock (ahora desde columna K, item[10])
+        const stockInfo = document.createElement('div');
+        stockInfo.classList.add('stock-info');
+        stockInfo.style.margin = '5px 0';
+        stockInfo.style.fontWeight = 'bold';
+
+        let stock = 0;
+        if (item[10] !== undefined && item[10] !== null && item[10] !== "") {
+            stock = parseInt(item[10]);
+        }
+        if (!isNaN(stock)) {
+            if (stock <= 1) {
+                stockInfo.innerHTML = `<span style="color: #ff9800;">✗ Sin stock</span>`;
+            } else if (stock <= 10) {
+                stockInfo.innerHTML = `<span style="color: #ffeb3b;">⚠ Pocas unidades</span>`;
+            } else {
+                stockInfo.innerHTML = `<span style="color: #4CAF50;">✓ Disponible</span>`;
+            }
+        } else {
+            stockInfo.innerHTML = `<span style="color: #ff9800;">✗ Sin stock</span>`;
+        }
+        card.appendChild(stockInfo);
+
+        // 5. Valor ANTES
+        if (ITEMPESOS == "6") {
+            const valorUSD = document.createElement('p');
+            valorUSD.innerHTML = `<span style=\"font-size:0.93em;\"><strong>Antes $</strong> <s style=\"color: #e61919;\">${item[13]}</s></span>`;
+            valorUSD.style.marginBottom = '5px';
+            card.appendChild(valorUSD);
+        }
+
+        // 6. Valor $
+        const valorPesos = document.createElement('p');
+        valorPesos.innerHTML = `<strong>Ahora $</strong> ${item[ITEMPESOS]}`;
+        valorPesos.style.marginTop = '2px';
+        card.appendChild(valorPesos);
+
+        // 7. Cantidad + Botón carrito
+        const actionContainer = document.createElement('div');
+        actionContainer.style.display = 'flex';
+        actionContainer.style.alignItems = 'center';
+        actionContainer.style.justifyContent = 'center';
+        actionContainer.style.gap = '5px';
+        actionContainer.style.minHeight = '50px';
+
+        // Contenedor para el control de cantidad (inicialmente oculto)
+        const quantityContainer = document.createElement('div');
+        quantityContainer.style.display = 'none';
+        quantityContainer.style.alignItems = 'center';
+        quantityContainer.style.gap = '5px';
+        quantityContainer.style.transition = 'all 0.3s ease';
+        quantityContainer.style.opacity = '0';
+
+        // Botón decrementar
+        const btnDecrementar = document.createElement('button');
+        btnDecrementar.innerHTML = '-';
+        btnDecrementar.style.padding = '5px 10px';
+        btnDecrementar.style.fontSize = '16px';
+        btnDecrementar.style.height = '35px';
+        btnDecrementar.style.width = '35px';
+        btnDecrementar.style.backgroundColor = '#ff9800';
+        btnDecrementar.style.color = '#fff';
+        btnDecrementar.style.border = '1px solid #ff9800';
+        btnDecrementar.style.borderRadius = '4px';
+        btnDecrementar.style.cursor = 'pointer';
+
+        // Campo de cantidad
+        const cantidadSelector = document.createElement('input');
+        cantidadSelector.type = 'number';
+        cantidadSelector.min = '1';
+        cantidadSelector.value = '1';
+        cantidadSelector.style.width = '50px';
+        cantidadSelector.style.height = '35px';
+        cantidadSelector.style.padding = '5px';
+        cantidadSelector.style.textAlign = 'center';
+        cantidadSelector.style.border = '1px solid #ddd';
+        cantidadSelector.style.borderRadius = '4px';
+
+        // Botón incrementar
+        const btnIncrementar = document.createElement('button');
+        btnIncrementar.innerHTML = '+';
+        btnIncrementar.style.padding = '5px 10px';
+        btnIncrementar.style.fontSize = '16px';
+        btnIncrementar.style.height = '35px';
+        btnIncrementar.style.width = '35px';
+        btnIncrementar.style.backgroundColor = '#ff9800';
+        btnIncrementar.style.color = '#fff';
+        btnIncrementar.style.border = '1px solid #ff9800';
+        btnIncrementar.style.borderRadius = '4px';
+        btnIncrementar.style.cursor = 'pointer';
+
+        // Agregar elementos al contenedor de cantidad
+        quantityContainer.appendChild(btnDecrementar);
+        quantityContainer.appendChild(cantidadSelector);
+        quantityContainer.appendChild(btnIncrementar);
+
+        // Botón inicial del carrito
+        const btnCarrito = document.createElement('button');
+        btnCarrito.innerHTML = '<i class="fas fa-cart-plus"></i>';
+        btnCarrito.style.padding = '10px 10px';
+        btnCarrito.style.fontSize = '16px';
+        btnCarrito.style.height = '50px';
+        btnCarrito.style.width = '50px';
+        btnCarrito.style.backgroundColor = '#4CAF50';
+        btnCarrito.style.color = '#fff';
+        btnCarrito.style.border = '1px solid #4CAF50';
+        btnCarrito.style.borderRadius = '4px';
+        btnCarrito.style.cursor = 'pointer';
+        btnCarrito.style.transition = 'all 0.3s ease';
+        btnCarrito.classList.add('btn-agregar-carrito');
+
+        // Establecer máximo basado en stock disponible (desde columna K)
+        if (!isNaN(stock) && stock > 0) {
+            cantidadSelector.max = stock;
+            cantidadSelector.title = `Máximo ${stock} unidades disponibles`;
+        } else {
+            // Sin stock disponible o sin información de stock
+            btnCarrito.disabled = true;
+            btnCarrito.style.backgroundColor = '#cccccc';
+            btnCarrito.style.borderColor = '#cccccc';
+            btnCarrito.style.cursor = 'not-allowed';
+            btnCarrito.title = 'Sin stock disponible';
+        }
+
+        // Función para actualizar carrito
+        function actualizarArticuloEnCarrito() {
+            const cantidad = parseInt(cantidadSelector.value);
+            if (cantidad > 0) {
+                const existe = carrito.find(cartItem => cartItem.nombre === articulo.textContent);
+                if (existe) {
+                    existe.cantidad = cantidad;
+                } else {
+                    agregarAlCarrito(articulo.textContent, item[6], cantidad, item[2], item[0], item[7].toString().replace(/[,\.]/g, ''), item[6].toString().replace(/[,\.]/g, ''));
+                }
+                actualizarCarrito();
+            }
+        }
+
+        // Función para mostrar control de cantidad
+        function mostrarControlCantidad() {
+            btnCarrito.style.opacity = '0';
+            btnCarrito.style.transform = 'scale(0.8)';
+            
+            setTimeout(() => {
+                btnCarrito.style.display = 'none';
+                quantityContainer.style.display = 'flex';
+                
+                setTimeout(() => {
+                    quantityContainer.style.opacity = '1';
+                    quantityContainer.style.transform = 'scale(1)';
+                }, 50);
+            }, 150);
+        }
+
+        // Evento click del botón carrito
+        btnCarrito.addEventListener('click', () => {
+            // Consultar stock desde columna K
+            let stockDisponibleClick = 0;
+            if (item[10] !== undefined && item[10] !== null && item[10] !== "") {
+                stockDisponibleClick = parseInt(item[10]);
+            }
+            if (isNaN(stockDisponibleClick) || stockDisponibleClick <= 0) {
+                alert('Este producto no tiene stock disponible.');
+                return;
+            }
+            // Agregar al carrito y mostrar control
+            cantidadSelector.value = '1';
+            actualizarArticuloEnCarrito();
+            mostrarControlCantidad();
+        });
+
+        // Eventos de los botones de cantidad
+        btnIncrementar.addEventListener('click', () => {
+            // Consultar stock desde columna K
+            let stockDisponibleClick = 0;
+            if (item[10] !== undefined && item[10] !== null && item[10] !== "") {
+                stockDisponibleClick = parseInt(item[10]);
+            }
+            const cantidad = parseInt(cantidadSelector.value);
+            if (!isNaN(stockDisponibleClick) && cantidad >= stockDisponibleClick) {
+                alert(`Stock insuficiente. Solo hay ${stockDisponibleClick} unidades disponibles.`);
+                return;
+            }
+            cantidadSelector.value = cantidad + 1;
+            actualizarArticuloEnCarrito();
+        });
+
+        btnDecrementar.addEventListener('click', () => {
+            const cantidad = parseInt(cantidadSelector.value);
+            if (cantidad > 1) {
+                cantidadSelector.value = cantidad - 1;
+                actualizarArticuloEnCarrito();
+            } else {
+                // Remover del carrito y volver al botón inicial
+                const existe = carrito.find(cartItem => cartItem.nombre === articulo.textContent);
+                if (existe) {
+                    const index = carrito.indexOf(existe);
+                    carrito.splice(index, 1);
+                    actualizarCarrito();
+                }
+                
+                // Animación de vuelta al botón carrito
+                quantityContainer.style.opacity = '0';
+                quantityContainer.style.transform = 'scale(0.8)';
+                
+                setTimeout(() => {
+                    quantityContainer.style.display = 'none';
+                    btnCarrito.style.display = 'block';
+                    btnCarrito.style.opacity = '0';
+                    btnCarrito.style.transform = 'scale(0.8)';
+                    
+                    setTimeout(() => {
+                        btnCarrito.style.opacity = '1';
+                        btnCarrito.style.transform = 'scale(1)';
+                    }, 50);
+                }, 150);
+            }
+        });
+
+        // Evento change del input de cantidad
+        cantidadSelector.addEventListener('change', () => {
+            const cantidad = parseInt(cantidadSelector.value);
+            let stockDisponibleClick = 0;
+            if (item[10] !== undefined && item[10] !== null && item[10] !== "") {
+                stockDisponibleClick = parseInt(item[10]);
+            }
+            if (cantidad <= 0) {
+                cantidadSelector.value = '1';
+            } else if (!isNaN(stockDisponibleClick) && cantidad > stockDisponibleClick) {
+                alert(`Stock insuficiente. Solo hay ${stockDisponibleClick} unidades disponibles.`);
+                cantidadSelector.value = stockDisponibleClick;
+            }
+            actualizarArticuloEnCarrito();
+        });
+
+        // Agregar elementos al contenedor principal
+        actionContainer.appendChild(btnCarrito);
+        actionContainer.appendChild(quantityContainer);
+
+        card.appendChild(actionContainer);
+        grid.appendChild(card);
+    });
+}
+
+// Función para refrescar la información de stock en todas las tarjetas visibles
+function refreshStockInfo() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        const stockInfo = card.querySelector('.stock-info');
+        if (stockInfo) {
+            // Obtener el código del artículo desde el input hidden
+            const hiddenInput = card.querySelector('input[type="hidden"]');
+            if (hiddenInput) {
+                // Buscar el producto en la lista global productos
+                const codigo = hiddenInput.value;
+                const producto = productos.find(item => item[2] === codigo);
+                let stock = 0;
+                if (producto && producto[10] !== undefined && producto[10] !== null && producto[10] !== "") {
+                    stock = parseInt(producto[10]);
+                }
+                if (!isNaN(stock)) {
+                    if (stock <= 1) {
+                        stockInfo.innerHTML = `<span style="color: #ff9800;">✗ Sin stock</span>`;
+                    } else if (stock <= 10) {
+                        stockInfo.innerHTML = `<span style="color: #ffeb3b;">⚠ Pocas unidades</span>`;
+                    } else {
+                        stockInfo.innerHTML = `<span style="color: #4CAF50;">✓ Disponible</span>`;
+                    }
+                } else {
+                    stockInfo.innerHTML = `<span style="color: #ff9800;">✗ Sin stock</span>`;
+                }
+
+                // También actualizar los controles de cantidad si existen
+                const cantidadSelector = card.querySelector('input[type="number"]');
+                const btnCarrito = card.querySelector('.btn-agregar-carrito');
+
+                if (cantidadSelector) {
+                    if (!isNaN(stock) && stock > 0) {
+                        cantidadSelector.max = stock;
+                        cantidadSelector.disabled = false;
+                        cantidadSelector.title = `Máximo ${stock} unidades disponibles`;
+
+                        // Rehabilitar botón carrito si existe y está deshabilitado
+                        if (btnCarrito && btnCarrito.disabled) {
+                            btnCarrito.disabled = false;
+                            btnCarrito.style.backgroundColor = '#4CAF50';
+                            btnCarrito.style.borderColor = '#4CAF50';
+                            btnCarrito.style.cursor = 'pointer';
+                            btnCarrito.title = '';
+                        }
+                    } else {
+                        cantidadSelector.disabled = true;
+                        cantidadSelector.title = 'Sin stock disponible';
+
+                        // Deshabilitar botón carrito si existe
+                        if (btnCarrito) {
+                            btnCarrito.disabled = true;
+                            btnCarrito.style.backgroundColor = '#cccccc';
+                            btnCarrito.style.borderColor = '#cccccc';
+                            btnCarrito.style.cursor = 'not-allowed';
+                            btnCarrito.title = 'Sin stock disponible';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function agregarAlCarrito(nombre, precio, cantidad, codigo, categoria) {
+    // Verificar si el carrito está vacío antes de agregar (para mostrar modal solo la primera vez)
+    const carritoVacio = carrito.length === 0;
+    
+    const existe = carrito.find(item => item.nombre === nombre);
+    if (existe) {
+        // Si el artículo ya existe, actualizamos la cantidad
+        existe.cantidad += cantidad;
+    } else {
+        // Si no existe, lo agregamos al carrito
+        carrito.push({ nombre, precio, cantidad, codigo, categoria});
+    }
+    actualizarCarrito();
+    guardarCarritoLocal();
+    
+    // Mostrar modal informativo solo al agregar el primer artículo (no en modo edición)
+    if (carritoVacio && !modoEdicion) {
+        mostrarModalInfoPrimerArticulo();
+    }
+}
+
+function getMaxVisiblePaginationButtons() {
+    // Cada botón ocupa 48px (40px ancho + 8px margen), ajusta si tu CSS es diferente
+    const minButtonWidth = 48;
+    const container = document.getElementById('pagination');
+    let availableWidth = window.innerWidth;
+    if (container) {
+        // Si la paginación está en un contenedor más pequeño, usa su ancho
+        availableWidth = container.offsetWidth || availableWidth;
+    }
+    // Deja espacio para botones "Anterior" y "Siguiente" (2x100px)
+    const reserved = 220;
+    const maxButtons = Math.max(3, Math.floor((availableWidth - reserved) / minButtonWidth));
+    return Math.min(maxButtons, 15); // Límite máximo de 15 botones
+}
+
+function actualizarPaginacion(paginaActual, datos) {
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+
+    const totalPaginas = Math.ceil(datos.length / ITEMS_PER_PAGE);
+
+    // Botón "Anterior"
+    if (paginaActual > 1) {
+        const btnAnterior = document.createElement('button');
+        btnAnterior.textContent = 'Anterior';
+        btnAnterior.style.width = '100px';
+        btnAnterior.addEventListener('click', () => mostrarPagina(paginaActual - 1, datos));
+        pagination.appendChild(btnAnterior);
+    }
+
+    // Botones numerados
+    const MAX_VISIBLE_BUTTONS = getMaxVisiblePaginationButtons();
+    let startPage = Math.max(1, paginaActual - Math.floor(MAX_VISIBLE_BUTTONS / 2));
+    let endPage = Math.min(totalPaginas, startPage + MAX_VISIBLE_BUTTONS - 1);
+
+    if (endPage - startPage < MAX_VISIBLE_BUTTONS - 1) {
+        startPage = Math.max(1, endPage - MAX_VISIBLE_BUTTONS + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        const btnPagina = document.createElement('button');
+        btnPagina.textContent = i;
+        btnPagina.classList.add('pagination-button');
+        if (i === paginaActual) {
+            btnPagina.classList.add('active'); // Clase para el botón activo
+        }
+        btnPagina.addEventListener('click', () => mostrarPagina(i, datos));
+        pagination.appendChild(btnPagina);
+    }
+
+    // Botón "Siguiente"
+    if (paginaActual < totalPaginas) {
+        const btnSiguiente = document.createElement('button');
+        btnSiguiente.textContent = 'Siguiente';
+        btnSiguiente.style.width = '100px'; // Define el ancho del botón
+        btnSiguiente.addEventListener('click', () => mostrarPagina(paginaActual + 1, datos));
+        pagination.appendChild(btnSiguiente);
+    }
+}
+
+// Recalcular paginación al redimensionar la ventana
+window.addEventListener('resize', () => {
+    // Usar datosFiltrados si existen filtros aplicados, sino productos
+    if (typeof currentPage !== 'undefined') {
+        const datosActuales = datosFiltrados.length > 0 ? datosFiltrados : productos;
+        actualizarPaginacion(currentPage, datosActuales);
+    }
+});
+
+function isValidImageUrl(url) {
+    return url && url.match(/\.(jpeg|jpg|gif|png)$/i);
+}
+
+function abrirLightbox(images) {
+    currentLightboxImages = images;
+    currentImageIndex = 0;
+    document.getElementById('lightbox-img').src = currentLightboxImages[currentImageIndex];
+    document.getElementById('lightbox').style.display = 'flex';
+    actualizarBotonesLightbox();
+}
+
+function actualizarBotonesLightbox() {
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    if (currentLightboxImages.length > 1) {
+        prevBtn.style.display = 'block';
+        nextBtn.style.display = 'block';
+    } else {
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+    }
+}
+
+document.getElementById('next-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (currentLightboxImages.length > 0) {
+        currentImageIndex = (currentImageIndex + 1) % currentLightboxImages.length;
+        document.getElementById('lightbox-img').src = currentLightboxImages[currentImageIndex];
+    }
+});
+
+document.getElementById('prev-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (currentLightboxImages.length > 0) {
+        currentImageIndex = (currentLightboxImages.length + currentImageIndex - 1) % currentLightboxImages.length;
+        document.getElementById('lightbox-img').src = currentLightboxImages[currentImageIndex];
+    }
+});
+
+document.getElementById('lightbox-img').addEventListener('error', function() {
+    // Si ocurre un error y no se trata de la primera imagen, mostramos la primera
+    if (currentLightboxImages.length > 0 && currentImageIndex !== 0) {
+        currentImageIndex = 0;
+        this.src = currentLightboxImages[0];
+    }
+});
+
+function closeLightbox(event) {
+    if (event.target === event.currentTarget || event.target.classList.contains('close')) {
+        document.getElementById('lightbox').style.display = 'none';
+    }
+}
+
+// Función para mostrar el modal de información del producto
+function mostrarInfoModal(nombreProducto, descripcion, tamano) {
+    const modal = document.getElementById('infoModal');
+    const modalTitle = document.getElementById('infoModalTitle');
+    const modalBody = document.getElementById('infoModalBody');
+    
+    // Configurar el título
+    modalTitle.textContent = nombreProducto;
+    
+    // Construir el contenido del modal
+    let contenido = '';
+    
+    if (descripcion && descripcion.trim() !== '') {
+        contenido += `
+            <div class="info-modal-section">
+                <h4>Especificaciones del Fabricante:</h4>
+                <p>${descripcion}</p>
+            </div>
+        `;
+    }
+    
+    if (tamano && tamano.trim() !== '') {
+        contenido += `
+            <div class="info-modal-section">
+                <h4>Tamaño</h4>
+                <p>${tamano}</p>
+            </div>
+        `;
+    }
+    
+    modalBody.innerHTML = contenido;
+    
+    // Mostrar el modal
+    modal.classList.add('show');
+}
+
+// Función para cerrar el modal de información
+function closeInfoModal(event) {
+    const modal = document.getElementById('infoModal');
+    
+    // Cerrar si se hace click fuera del contenido o si no hay evento (llamada directa)
+    if (!event || event.target === event.currentTarget) {
+        modal.classList.remove('show');
+    }
+}
+
+function actualizarCarrito() {
+    const cartList = document.getElementById('cart-list');
+    const cartFloatBtn = document.getElementById('cartFloatBtn');
+    const cartBadge = document.getElementById('cartBadge');
+
+    cartList.innerHTML = '';
+
+    // Calcular total de unidades
+    let totalUnidades = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+
+    if (carrito.length === 0) {
+        // Ocultar botón flotante y badge si está vacío
+        if (cartFloatBtn) cartFloatBtn.style.display = 'none';
+        // Cerrar el carrito expandido si está abierto
+        const cartContainer = document.getElementById('cartContainer');
+        if (cartContainer) {
+            cartContainer.classList.remove('active');
+            if (typeof cartExpanded !== 'undefined') cartExpanded = false;
+        }
+    } else {
+        // Mostrar botón flotante si hay items
+        if (cartFloatBtn) cartFloatBtn.style.display = 'flex';
+    }
+
+    // Actualizar badge
+    if (cartBadge) {
+        cartBadge.textContent = totalUnidades;
+    }
+
+    // Renderizar items con botón de eliminar
+    carrito.forEach((item, index) => {
+        let li = document.createElement('li');
+        li.style.position = 'relative';
+        li.style.paddingRight = '35px';
+        
+        const itemInfo = document.createElement('div');
+        itemInfo.innerHTML = `
+            <strong>${item.nombre}</strong>&nbsp;<small>x${item.cantidad}</small>
+        `;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'cart-item-delete';
+        deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+        deleteBtn.onclick = function() {
+            eliminarItemCarrito(index);
+        };
+        
+        li.appendChild(itemInfo);
+        li.appendChild(deleteBtn);
+        cartList.appendChild(li);
+    });
+}
+
+// Función para eliminar un item individual del carrito
+function eliminarItemCarrito(index) {
+    const itemEliminado = carrito[index];
+    
+    // Buscar la tarjeta del producto en el catálogo
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        const nombreProducto = card.querySelector('h3')?.textContent;
+        if (nombreProducto === itemEliminado.nombre) {
+            const btnCarrito = card.querySelector('.btn-agregar-carrito');
+            const quantityContainer = card.querySelector('input[type="number"]')?.parentElement;
+            const cantidadInput = card.querySelector('input[type="number"]');
+            
+            if (btnCarrito && quantityContainer && cantidadInput) {
+                // Resetear valor del input
+                cantidadInput.value = '1';
+                
+                // Ocultar controles de cantidad
+                quantityContainer.style.display = 'none';
+                quantityContainer.style.opacity = '0';
+                quantityContainer.style.transform = 'scale(0.8)';
+                
+                // Mostrar botón de carrito original
+                btnCarrito.style.display = 'block';
+                btnCarrito.style.opacity = '1';
+                btnCarrito.style.transform = 'scale(1)';
+                
+                // Restaurar estilos del botón
+                btnCarrito.style.background = '';
+                btnCarrito.style.color = '';
+                btnCarrito.style.border = '';
+            }
+        }
+    });
+    
+    // Eliminar el item del carrito
+    carrito.splice(index, 1);
+    
+    // Actualizar carrito y localStorage
+    actualizarCarrito();
+    guardarCarritoLocal();
+}
+
+// Modal de confirmación de pedido realizado
+function mostrarModalPedidoConfirmado(pedidoId, email) {
+    // Elimina cualquier modal previo
+    let modalExistente = document.getElementById('pedido-confirmado-modal');
+    if (modalExistente) {
+        modalExistente.remove();
+    }
+    let overlay = document.createElement('div');
+    overlay.id = 'pedido-confirmado-modal';
+    overlay.className = 'modal';
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+        <div class="modal-content" style="max-width:450px;position:relative;">
+            <div class="modal-header">
+                <h2 style='margin:0;'><i class="fas fa-check-circle"></i> ¡Pedido Confirmado!</h2>
+                <p style='margin:8px 0 0 0;'>Tu pedido se ha procesado exitosamente</p>
+            </div>
+            <div class="modal-body" style="padding:30px; text-align:center;">
+                <div style="background:#f0f9f0;border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <i class="fas fa-envelope" style="font-size:3em;color:#4CAF50;margin-bottom:15px;"></i>
+                    <p style="margin:0;color:#333;line-height:1.6;">
+                        Se envió una notificación a tu email con todos los detalles del pedido. 
+                        Puedes verlo, modificarlo o realizar el seguimiento desde allí.
+                    </p>
+                </div>
+                <button id="verPedidoBtnConfirmado" class="btn-primary" style="width:100%;margin:0;">
+                    <i class="fas fa-eye"></i> Ver Mi Pedido
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    // Botón para ver el pedido - redirige directamente
+    document.getElementById('verPedidoBtnConfirmado').onclick = function() {
+        window.location.href = `pedidos.html?id=${pedidoId}`;
+    };
+}
+
+// Modal informativo al agregar el primer artículo
+function mostrarModalInfoPrimerArticulo() {
+    // Elimina cualquier modal previo
+    let modalExistente = document.getElementById('info-primer-articulo-modal');
+    if (modalExistente) {
+        modalExistente.remove();
+    }
+    
+    let overlay = document.createElement('div');
+    overlay.id = 'info-primer-articulo-modal';
+    overlay.className = 'modal';
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+        <div class="modal-content" style="max-width:450px;position:relative;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);">
+                <h2 style='margin:0;'><i class="fas fa-info-circle"></i> Información Importante</h2>
+                <p style='margin:8px 0 0 0;'>Sobre el proceso de pedido</p>
+            </div>
+            <div class="modal-body" style="padding:30px; text-align:center;">
+                <div style="background:#e3f2fd;border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <i class="fas fa-truck" style="font-size:3em;color:#2196F3;margin-bottom:15px;"></i>
+                    <p style="margin:0;color:#333;line-height:1.8;font-size:1.05em;">
+                        <strong>La solicitud de pedido se utiliza solo para envíos.</strong>
+                    </p>
+                    <p style="margin:15px 0 0 0;color:#555;line-height:1.6;font-size:0.95em;">
+                        Si retirás en nuestro showroom, <strong>no hace falta generar un pedido</strong>.
+                    </p>
+                </div>
+                <button id="cerrarInfoPrimerArticuloBtn" class="btn-primary" style="width:100%;margin:0;background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);">
+                    <i class="fas fa-check"></i> Entendido
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    // Botón para cerrar el modal
+    document.getElementById('cerrarInfoPrimerArticuloBtn').onclick = function() {
+        overlay.remove();
+    };
+    
+    // Cerrar al hacer click fuera del modal
+    overlay.onclick = function(event) {
+        if (event.target === overlay) {
+            overlay.remove();
+        }
+    };
+}
+
+// Modal de notificación de mínimo de pedido
+function mostrarModalMinimoPedido(unidadesActuales) {
+    // Elimina cualquier modal previo
+    let modalExistente = document.getElementById('minimo-pedido-modal');
+    if (modalExistente) {
+        modalExistente.remove();
+    }
+    
+    const unidadesFaltantes = 5 - unidadesActuales;
+    
+    let overlay = document.createElement('div');
+    overlay.id = 'minimo-pedido-modal';
+    overlay.className = 'modal';
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+        <div class="modal-content" style="max-width:450px;position:relative;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
+                <h2 style='margin:0;'><i class="fas fa-info-circle"></i> Pedido Mínimo Requerido</h2>
+                <p style='margin:8px 0 0 0;'>Para procesar tu pedido necesitamos un mínimo de unidades</p>
+            </div>
+            <div class="modal-body" style="padding:30px; text-align:center;">
+                <div style="background:#fff3e0;border-radius:12px;padding:20px;margin-bottom:20px;">
+                    <i class="fas fa-shopping-cart" style="font-size:3em;color:#ff9800;margin-bottom:15px;"></i>
+                    <p style="margin:0;color:#333;line-height:1.8;font-size:1.05em;">
+                        <strong>Necesitas agregar al menos 5 unidades para procesar el pedido.</strong>
+                    </p>
+                    <div style="margin-top:20px;padding:15px;background:#fff;border-radius:8px;border-left:4px solid #ff9800;">
+                        <p style="margin:0;color:#666;font-size:0.95em;">
+                            Actualmente tienes <strong style="color:#ff9800;font-size:1.2em;">${unidadesActuales}</strong> ${unidadesActuales === 1 ? 'unidad' : 'unidades'} en tu carrito.
+                        </p>
+                        <p style="margin:10px 0 0 0;color:#666;font-size:0.95em;">
+                            Te ${unidadesFaltantes === 1 ? 'falta' : 'faltan'} <strong style="color:#ff9800;font-size:1.2em;">${unidadesFaltantes}</strong> ${unidadesFaltantes === 1 ? 'unidad' : 'unidades'} más.
+                        </p>
+                    </div>
+                </div>
+                <button id="cerrarMinimoPedidoBtn" class="btn-primary" style="width:100%;margin:0;background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
+                    <i class="fas fa-check"></i> Entendido
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    // Botón para cerrar el modal
+    document.getElementById('cerrarMinimoPedidoBtn').onclick = function() {
+        overlay.remove();
+    };
+    
+    // Cerrar al hacer click fuera del modal
+    overlay.onclick = function(event) {
+        if (event.target === overlay) {
+            overlay.remove();
+        }
+    };
+}
+
+function limpiarCarrito() {
+    carrito = [];
+    
+    // Restaurar todos los controles a su estado original
+    document.querySelectorAll('.card').forEach(card => {
+        const btnCarrito = card.querySelector('.btn-agregar-carrito');
+        const quantityContainer = card.querySelector('input[type="number"]')?.parentElement;
+        const cantidadInput = card.querySelector('input[type="number"]');
+        
+        if (btnCarrito && quantityContainer && cantidadInput) {
+            // Resetear valor del input
+            cantidadInput.value = '1';
+            
+            // Ocultar controles de cantidad
+            quantityContainer.style.display = 'none';
+            quantityContainer.style.opacity = '0';
+            quantityContainer.style.transform = 'scale(0.8)';
+            
+            // Mostrar botón de carrito original
+            btnCarrito.style.display = 'block';
+            btnCarrito.style.opacity = '1';
+            btnCarrito.style.transform = 'scale(1)';
+            
+            // Restaurar estilos del botón
+            btnCarrito.style.background = '';
+            btnCarrito.style.color = '';
+            btnCarrito.style.border = '';
+        }
+    });
+    
+    // Actualizar el carrito (esto ocultará el botón flotante automáticamente)
+    actualizarCarrito();
+    guardarCarritoLocal();
+}
+
+// Función para calcular el total del carrito en pesos
+function calcularTotalCarrito() {
+    return carrito.reduce((sum, item) => {
+        // Limpiar el precio de caracteres no numéricos y convertir a número
+        const precioLimpio = parseFloat(item.precio.toString().replace(/[^0-9.-]/g, ''));
+        return sum + (precioLimpio * item.cantidad);
+    }, 0);
+}
+
+// Función para abrir el modal de datos del cliente
+function enviarPedido() {
+    if (carrito.length === 0) {
+        alert('El carrito está vacío. Agrega productos antes de continuar.');
+        return;
+    }
+    
+    // Calcular el total de unidades en el carrito
+    const totalUnidades = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+    
+    // Validar que haya al menos 5 unidades (no en modo edición)
+    if (totalUnidades < 5 && !modoEdicion) {
+        mostrarModalMinimoPedido(totalUnidades);
+        return;
+    }
+    
+    // Validar que el total del carrito sea al menos $200,000 (no en modo edición)
+    const totalCarrito = calcularTotalCarrito();
+    if (totalCarrito < 200000 && !modoEdicion) {
+        alert('Error al enviar carrito');
+        return;
+    }
+    
+    // Si estamos en modo edición, ir directo a enviar el pedido sin pedir datos
+    if (modoEdicion) {
+        enviarPedidoFinal();
+        return;
+    }
+    
+    const clienteModal = document.getElementById('clienteModal');
+    if (clienteModal) {
+        clienteModal.style.display = 'flex';
+    }
+}
+
+// Función para procesar y enviar el pedido final
+function enviarPedidoFinal() {
+    // Si estamos en modo edición, actualizar el pedido existente
+    if (modoEdicion && pedidoEditId) {
+        const pedidoRef = db.ref('pedidos/' + pedidoEditId);
+        
+        pedidoRef.once('value').then(snapshot => {
+            if (!snapshot.exists()) {
+                alert('Error: No se encontró el pedido original');
+                return;
+            }
+            
+            const pedido = snapshot.val();
+            
+            if (pedido.locked) {
+                alert("Este pedido está cerrado y no se puede editar.");
+                return;
+            }
+            
+            // Fusionar artículos: si el artículo ya existe, sumar cantidad; si no, agregarlo
+            carrito.forEach(sel => {
+                const idx = pedido.items.findIndex(it => it.nombre === sel.nombre);
+                if (idx > -1) {
+                    // El artículo ya existe, sumar la cantidad
+                    pedido.items[idx].cantidad += sel.cantidad;
+                } else {
+                    // El artículo no existe, agregarlo
+                    pedido.items.push({
+                        nombre: sel.nombre,
+                        cantidad: sel.cantidad,
+                        valorUSD: sel.precio,
+                        codigo: sel.codigo || '',
+                        categoria: sel.categoria || ''
+                    });
+                }
+            });
+            
+            // Actualizar datos del cliente si están disponibles
+            pedido.cliente = {
+                nombre: datosExtraCliente.nombre || pedido.cliente?.nombre || '',
+                telefono: datosExtraCliente.telefono || pedido.cliente?.telefono || '',
+                localidad: datosExtraCliente.localidad || pedido.cliente?.localidad || '',
+                direccion: datosExtraCliente.direccion || pedido.cliente?.direccion || '',
+                provincia: datosExtraCliente.provincia || pedido.cliente?.provincia || '',
+                dni: String(datosExtraCliente.dni || pedido.cliente?.dni || ''),
+                email: datosExtraCliente.email || pedido.cliente?.email || '',
+                tipoCliente: datosExtraCliente.tipoCliente || pedido.cliente?.tipoCliente || 'mayorista'
+            };
+            
+            // Actualizar el pedido en Firebase
+            return pedidoRef.update({
+                items: pedido.items,
+                cliente: pedido.cliente,
+                adminViewed: false,
+                lastUpdated: Date.now()
+            });
+        })
+        .then(() => {
+            // Redirigir al pedido actualizado
+            alert('¡Artículos agregados exitosamente al pedido!');
+            setTimeout(() => {
+                window.location.replace(`pedidos.html?id=${pedidoEditId}`);
+            }, 300);
+        })
+        .catch(error => {
+            console.error('Error al actualizar pedido:', error);
+            alert('Error al actualizar el pedido: ' + error.message);
+        });
+        return;
+    }
+    
+    // Lógica para pedidos nuevos - guardar en Firebase
+    if (carrito.length === 0) {
+        alert("El carrito está vacío.");
+        return;
+    }
+    
+    // Primero verificar si el cliente ya está registrado
+    const emailCliente = datosExtraCliente.email || '';
+    
+    db.ref('clientes').orderByChild('email').equalTo(emailCliente.toLowerCase()).limitToFirst(1).once('value')
+        .then(snap => {
+            // Si el cliente no existe, registrarlo
+            if (!snap.exists() && emailCliente) {
+                return db.ref('clientes').push({
+                    email: emailCliente.toLowerCase(),
+                    nombre: datosExtraCliente.nombre || '',
+                    telefono: datosExtraCliente.telefono || '',
+                    localidad: datosExtraCliente.localidad || '',
+                    direccion: datosExtraCliente.direccion || '',
+                    provincia: datosExtraCliente.provincia || '',
+                    dni: String(datosExtraCliente.dni || ''),
+                    tipoCliente: datosExtraCliente.tipoCliente || 'mayorista',
+                    registro: 'web'
+                });
+            }
+            // Si ya existe, no hacer nada (continuar)
+            return Promise.resolve();
+        })
+        .then(() => {
+            // Ahora crear el pedido
+            const pedidoRef = db.ref('pedidos').push();
+            const pedidoId = pedidoRef.key;
+
+            const pedidoObj = {
+                id: pedidoId,
+                timestamp: Date.now(),
+                locked: false,
+                adminViewed: false,
+                createdby: "web",
+                status: 'ABIERTO',
+
+                cliente: {
+                    nombre: datosExtraCliente.nombre || '',
+                    telefono: datosExtraCliente.telefono || '',
+                    localidad: datosExtraCliente.localidad || '',
+                    direccion: datosExtraCliente.direccion || '',
+                    provincia: datosExtraCliente.provincia || '',
+                    dni: String(datosExtraCliente.dni || ''),
+                    email: datosExtraCliente.email || '',
+                    tipoCliente: datosExtraCliente.tipoCliente || 'mayorista'
+                },
+
+                items: carrito.map(it => ({
+                    nombre: it.nombre,
+                    cantidad: it.cantidad,
+                    valorUSD: it.precio,
+                    codigo: it.codigo || '',
+                    categoria: it.categoria || ''
+                }))
+            };
+
+            return pedidoRef.set(pedidoObj).then(() => pedidoId);
+        })
+        .then((pedidoId) => {
+            // Enviar email automático
+            if (datosExtraCliente.email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(datosExtraCliente.email)) {
+                emailjs.send("service_lu9cpxk", "template_xqo1j5z", {
+                    email: datosExtraCliente.email,
+                    name: datosExtraCliente.nombre,
+                    linkPedido: `https://www.home-point.com.ar/pedidos.html?id=${pedidoId}`
+                })
+                .then(function(response) {
+                    console.log("Email enviado!", response.status, response.text);
+                }, function(error) {
+                    console.error("Error enviando email:", error);
+                });
+            }
+
+            // Mostrar modal de confirmación
+            mostrarModalPedidoConfirmado(pedidoId, datosExtraCliente.email);
+            
+            // Limpiar carrito y datos del cliente
+            limpiarCarrito();
+            datosExtraCliente = {};
+        })
+        .catch(error => {
+            console.error('Error al guardar pedido o cliente:', error);
+            alert('Error al guardar el pedido: ' + error.message);
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('marquee-text-1').innerHTML = MARQUEE_TEXT;
+    document.getElementById('marquee-text-2').innerHTML = MARQUEE_TEXT;
+    
+    // Cargar el carrito guardado en localStorage
+    cargarCarritoLocal();
+});
+
+// === Menú Hamburguesa ===
+const hamburgerBtn = document.getElementById('hamburgerBtn');
+const hamburgerDropdown = document.getElementById('hamburgerDropdown');
+
+// Toggle del menú hamburguesa
+hamburgerBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    hamburgerDropdown.classList.toggle('active');
+});
+
+// Cerrar el menú al hacer click fuera
+document.addEventListener('click', function(e) {
+    if (!hamburgerBtn.contains(e.target) && !hamburgerDropdown.contains(e.target)) {
+        hamburgerDropdown.classList.remove('active');
+    }
+});
+
+// Cerrar el menú al hacer click en un item
+document.querySelectorAll('.hamburger-dropdown-item').forEach(item => {
+    item.addEventListener('click', function() {
+        hamburgerDropdown.classList.remove('active');
+    });
+});
+
+// === Último Pedido ===
+const ultimoPedidoBtn = document.getElementById('ultimoPedidoBtn');
+const ultimoPedidoModal = document.getElementById('ultimoPedidoModal');
+const closeUltimoPedidoModal = document.getElementById('closeUltimoPedidoModal');
+const buscarUltimoPedidoBtn = document.getElementById('buscarUltimoPedidoBtn');
+const ultimoPedidoEmailInput = document.getElementById('ultimoPedidoEmailInput');
+const buscarBtnText = document.getElementById('buscarBtnText');
+const buscarSpinner = document.getElementById('buscarSpinner');
+const ultimoPedidoMensaje = document.getElementById('ultimoPedidoMensaje');
+
+function mostrarMensajeBusqueda(tipo, texto) {
+  const mensajeDiv = ultimoPedidoMensaje;
+  const iconoElement = mensajeDiv.querySelector('.fas');
+  const textoElement = mensajeDiv.querySelector('span');
+  
+  // Configurar estilos según el tipo
+  if (tipo === 'error') {
+    mensajeDiv.style.backgroundColor = '#fee';
+    mensajeDiv.style.borderLeft = '4px solid #e53e3e';
+    mensajeDiv.style.color = '#c53030';
+    iconoElement.className = 'fas fa-exclamation-circle';
+  } else if (tipo === 'success') {
+    mensajeDiv.style.backgroundColor = '#e6ffed';
+    mensajeDiv.style.borderLeft = '4px solid #48bb78';
+    mensajeDiv.style.color = '#2f855a';
+    iconoElement.className = 'fas fa-check-circle';
+  } else if (tipo === 'info') {
+    mensajeDiv.style.backgroundColor = '#e6f7ff';
+    mensajeDiv.style.borderLeft = '4px solid #4299e1';
+    mensajeDiv.style.color = '#2b6cb0';
+    iconoElement.className = 'fas fa-info-circle';
+  }
+  
+  textoElement.textContent = texto;
+  mensajeDiv.style.display = 'flex';
+  mensajeDiv.style.alignItems = 'center';
+}
+
+function ocultarMensajeBusqueda() {
+  ultimoPedidoMensaje.style.display = 'none';
+}
+
+function setEstadoCargaBusqueda(cargando) {
+  buscarUltimoPedidoBtn.disabled = cargando;
+  buscarUltimoPedidoBtn.style.opacity = cargando ? '0.7' : '1';
+  buscarUltimoPedidoBtn.style.cursor = cargando ? 'not-allowed' : 'pointer';
+  buscarBtnText.style.display = cargando ? 'none' : 'inline';
+  buscarSpinner.style.display = cargando ? 'block' : 'none';
+  ultimoPedidoEmailInput.disabled = cargando;
+}
+
+ultimoPedidoBtn.addEventListener('click', function() {
+  ultimoPedidoModal.style.display = 'flex';
+  ultimoPedidoEmailInput.value = '';
+  ocultarMensajeBusqueda();
+  setTimeout(() => ultimoPedidoEmailInput.focus(), 100);
+});
+
+closeUltimoPedidoModal.addEventListener('click', function() {
+  ultimoPedidoModal.style.display = 'none';
+  ocultarMensajeBusqueda();
+});
+
+// Cerrar modal al hacer click fuera del contenido
+ultimoPedidoModal.addEventListener('mousedown', function(e) {
+  if (e.target === ultimoPedidoModal) {
+    ultimoPedidoModal.style.display = 'none';
+    ocultarMensajeBusqueda();
+  }
+});
+
+buscarUltimoPedidoBtn.addEventListener('click', function() {
+  const email = ultimoPedidoEmailInput.value.trim().toLowerCase();
+  ocultarMensajeBusqueda();
+  
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    mostrarMensajeBusqueda('error', 'Por favor, ingresá un email válido');
+    ultimoPedidoEmailInput.focus();
+    return;
+  }
+  
+  setEstadoCargaBusqueda(true);
+  
+  // Buscar el último pedido por email
+  db.ref('pedidos').orderByChild('cliente/email').equalTo(email).once('value')
+    .then(snap => {
+      setEstadoCargaBusqueda(false);
+      
+      if (!snap.exists()) {
+        mostrarMensajeBusqueda('error', 'No se encontraron pedidos registrados con este email');
+        return;
+      }
+      
+      // Buscar el pedido con mayor timestamp
+      let ultimo = null;
+      snap.forEach(child => {
+        const pedido = child.val();
+        if (!ultimo || (pedido.timestamp > ultimo.timestamp)) {
+          ultimo = pedido;
+        }
+      });
+      
+      if (ultimo && ultimo.id) {
+        mostrarMensajeBusqueda('success', '¡Pedido encontrado! Redirigiendo...');
+        setTimeout(() => {
+          window.open(`pedidos.html?id=${ultimo.id}`, '_blank');
+          ultimoPedidoModal.style.display = 'none';
+          ocultarMensajeBusqueda();
+          ultimoPedidoEmailInput.value = '';
+        }, 800);
+      } else {
+        mostrarMensajeBusqueda('error', 'No se encontraron pedidos registrados con este email');
+      }
+    })
+    .catch(() => {
+      setEstadoCargaBusqueda(false);
+      mostrarMensajeBusqueda('error', 'Error al buscar el pedido. Por favor, intenta de nuevo');
+    });
+});
+
+// Permitir Enter para buscar
+ultimoPedidoEmailInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') buscarUltimoPedidoBtn.click();
+});
+
+// Carrusel Pie de Página
+document.addEventListener('DOMContentLoaded', function() {
+    const carouselPieImages = document.getElementById('carousel-pie-images');
+    if (carouselPieImages) {
+        const slidesPie = carouselPieImages.querySelectorAll('.carousel-slide');
+        let currentPieIndex = 0;
+
+        function updateCarouselPie() {
+            const offset = -currentPieIndex * 100;
+            carouselPieImages.style.transform = `translateX(${offset}%)`;
+        }
+
+        if (slidesPie.length > 0) {
+            setInterval(() => {
+                currentPieIndex = (currentPieIndex + 1) % slidesPie.length;
+                updateCarouselPie();
+            }, 5000);
+        }
+    }
+});
