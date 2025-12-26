@@ -489,7 +489,7 @@
         <div class="popup-title">Mínimo para Envíos</div>
       </div>
       <div class="popup-message">
-        Tu pedido actualmente no alcanza el mínimo de <strong>$70.000</strong> requerido para realizar envíos.
+        Tu pedido actualmente no alcanza el mínimo de <strong>$90.000</strong> requerido para realizar envíos.
         <br><br>
         <strong>Podés retirarlo sin un mínimo de compra en nuestro showroom</strong>, o agregar más artículos hasta llegar al monto necesario para acceder al envío.
       </div>
@@ -876,7 +876,7 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
     }
   }
 
-  // Función para mostrar el popup de mínimo si el subtotal es inferior a 70000
+  // Función para mostrar el popup de mínimo si el subtotal es inferior a 90000
   function mostrarMinimoPopup() {
     // No mostrar popups a administradores
     if (admin) {
@@ -892,8 +892,8 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
       subtotal += Math.round(item.cantidad * unitPesos);
     });
     
-    // Mostrar popup solo si el subtotal es menor a 70000
-    if (subtotal < 70000) {
+    // Mostrar popup solo si el subtotal es menor a 90000
+    if (subtotal < 90000) {
       const popup = document.getElementById('minimoPopup');
       if (popup) {
         popup.style.display = 'flex';
