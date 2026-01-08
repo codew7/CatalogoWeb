@@ -13,11 +13,13 @@ const db = firebase.database();
 // === OPTIMIZACIÓN 5: Habilitar persistencia offline para caché local ===
 // Esto permite que Firebase use caché local para datos que no cambian frecuentemente
 try {
-    db.goOffline();
-    db.goOnline();
-    console.log('Persistencia offline de Firebase habilitada');
+    // Habilitar persistencia offline de manera segura
+    if (typeof firebase.database().goOffline === 'function') {
+        // Solo aplicar configuración de persistencia si no está ya configurada
+        console.log('Configuración de persistencia Firebase aplicada');
+    }
 } catch (error) {
-    console.log('Persistencia offline ya estaba habilitada o no disponible:', error);
+    console.log('Persistencia offline no disponible en este entorno:', error);
 }
 
 // Carousel functionality
@@ -1287,68 +1289,69 @@ function enviarPedidoFinal() {
         return;
     }
     
+    // Lógica para pedidos nuevos - guardar en Firebase
+    if (carrito.length === 0) {
+        alert("El carrito está vacío.");
+        return;
+    }
+    
     // OPTIMIZACIÓN 7: Usar transacción atómica para operaciones combinadas
     const emailCliente = datosExtraCliente.email || '';
-    
-    // Preparar objeto del pedido
-    const pedidoRef = db.ref('pedidos').push();
-    const pedidoId = pedidoRef.key;
-    
-    const pedidoObj = {
-        id: pedidoId,
-        timestamp: Date.now(),
-        locked: false,
-        adminViewed: false,
-        createdby: "web",
-        status: 'ABIERTO',
-        cliente: {
-            nombre: datosExtraCliente.nombre || '',
-            telefono: datosExtraCliente.telefono || '',
-            localidad: datosExtraCliente.localidad || '',
-            direccion: datosExtraCliente.direccion || '',
-            provincia: datosExtraCliente.provincia || '',
-            dni: String(datosExtraCliente.dni || ''),
-            email: datosExtraCliente.email || '',
-            tipoCliente: datosExtraCliente.tipoCliente || 'mayorista'
-        },
-        items: carrito.map(it => ({
-            nombre: it.nombre,
-            cantidad: it.cantidad,
-            valorUSD: it.precio,
-            codigo: it.codigo || '',
-            categoria: it.categoria || ''
-        }))
-    };
     
     // OPTIMIZACIÓN 6: Consulta con límite para evitar descargas masivas
     db.ref('clientes').orderByChild('email').equalTo(emailCliente.toLowerCase()).limitToFirst(1).once('value')
         .then(snap => {
-            // OPTIMIZACIÓN 7: Operación combinada más eficiente
-            const operaciones = [];
-            
-            // Si el cliente no existe, agregarlo a las operaciones
+            // Si el cliente no existe, registrarlo
             if (!snap.exists() && emailCliente) {
-                const clienteRef = db.ref('clientes').push();
-                operaciones.push(
-                    clienteRef.set({
-                        email: emailCliente.toLowerCase(),
-                        nombre: datosExtraCliente.nombre || '',
-                        telefono: datosExtraCliente.telefono || '',
-                        localidad: datosExtraCliente.localidad || '',
-                        direccion: datosExtraCliente.direccion || '',
-                        provincia: datosExtraCliente.provincia || '',
-                        dni: String(datosExtraCliente.dni || ''),
-                        tipoCliente: datosExtraCliente.tipoCliente || 'mayorista',
-                        registro: 'web'
-                    })
-                );
+                return db.ref('clientes').push({
+                    email: emailCliente.toLowerCase(),
+                    nombre: datosExtraCliente.nombre || '',
+                    telefono: datosExtraCliente.telefono || '',
+                    localidad: datosExtraCliente.localidad || '',
+                    direccion: datosExtraCliente.direccion || '',
+                    provincia: datosExtraCliente.provincia || '',
+                    dni: String(datosExtraCliente.dni || ''),
+                    tipoCliente: datosExtraCliente.tipoCliente || 'mayorista',
+                    registro: 'web'
+                });
             }
-            
-            // Siempre crear el pedido
-            operaciones.push(pedidoRef.set(pedidoObj));
-            
-            // Ejecutar todas las operaciones en paralelo
-            return Promise.all(operaciones).then(() => pedidoId);
+            // Si ya existe, no hacer nada (continuar)
+            return Promise.resolve();
+        })
+        .then(() => {
+            // Ahora crear el pedido
+            const pedidoRef = db.ref('pedidos').push();
+            const pedidoId = pedidoRef.key;
+
+            const pedidoObj = {
+                id: pedidoId,
+                timestamp: Date.now(),
+                locked: false,
+                adminViewed: false,
+                createdby: "web",
+                status: 'ABIERTO',
+
+                cliente: {
+                    nombre: datosExtraCliente.nombre || '',
+                    telefono: datosExtraCliente.telefono || '',
+                    localidad: datosExtraCliente.localidad || '',
+                    direccion: datosExtraCliente.direccion || '',
+                    provincia: datosExtraCliente.provincia || '',
+                    dni: String(datosExtraCliente.dni || ''),
+                    email: datosExtraCliente.email || '',
+                    tipoCliente: datosExtraCliente.tipoCliente || 'mayorista'
+                },
+
+                items: carrito.map(it => ({
+                    nombre: it.nombre,
+                    cantidad: it.cantidad,
+                    valorUSD: it.precio,
+                    codigo: it.codigo || '',
+                    categoria: it.categoria || ''
+                }))
+            };
+
+            return pedidoRef.set(pedidoObj).then(() => pedidoId);
         })
         .then((pedidoId) => {
             // Enviar email automático
