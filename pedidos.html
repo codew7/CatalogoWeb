@@ -62,7 +62,7 @@
   <style>
     body{
       font-family:Arial,Helvetica,sans-serif;
-      padding:6px;
+      padding:1px;
       background:#f1f1f1;
       min-height:100vh;
       display:flex;
@@ -95,7 +95,7 @@
 
     @media (max-width: 600px) {
       #items {
-        padding: 8px;
+        padding: 5px;
         border-radius: 0;
         box-shadow: none;
         min-width: 0;
@@ -683,41 +683,62 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
     }
   }
 
-  // === ALIAS: Variables y funciones ===
+  // === ALIAS: Variables y funciones con localStorage ===
   let aliasHistorial = [];
 
-  // Cargar historial de alias desde Firebase (optimizado: 50 en lugar de 200)
-  function cargarHistorialAlias() {
-    db.ref('pedidos').orderByChild('timestamp').limitToLast(50).once('value').then(snap => {
-      const aliasSet = new Set(); // Para evitar duplicados
-      const aliasTemp = [];
-      
-      // Extraer solo los alias (sin cargar todos los datos del pedido)
-      snap.forEach(child => {
-        const pagos = child.val()?.pagos;
-        if (pagos?.alias && pagos.alias.trim() !== '') {
-          const alias = pagos.alias.trim().toUpperCase();
-          if (!aliasSet.has(alias) && aliasSet.size < 10) {
-            aliasSet.add(alias);
-            aliasTemp.push({
-              alias: alias,
-              timestamp: child.val().timestamp || 0
-            });
-          }
-        }
-      });
-      
-      // Ordenar por timestamp descendente
-      aliasHistorial = aliasTemp
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .map(item => item.alias)
-        .slice(0, 10);
+  // Cargar historial de alias desde localStorage
+  function cargarHistorialAliasDesdeLocalStorage() {
+    try {
+      const aliasGuardados = localStorage.getItem('historialAlias');
+      if (aliasGuardados) {
+        aliasHistorial = JSON.parse(aliasGuardados);
+      } else {
+        aliasHistorial = [];
+      }
       
       // Actualizar datalist
       actualizarDatalistAlias();
-    }).catch(err => {
-      console.error('Error cargando historial de alias:', err);
-    });
+    } catch (error) {
+      console.error('Error cargando historial de alias desde localStorage:', error);
+      aliasHistorial = [];
+    }
+  }
+
+  // Guardar alias en localStorage
+  function guardarAliasEnLocalStorage(nuevoAlias) {
+    try {
+      if (!nuevoAlias || nuevoAlias.trim() === '') return;
+      
+      const aliasLimpio = nuevoAlias.trim().toUpperCase();
+      
+      // Cargar historial actual
+      let historial = [];
+      const aliasGuardados = localStorage.getItem('historialAlias');
+      if (aliasGuardados) {
+        historial = JSON.parse(aliasGuardados);
+      }
+      
+      // Remover el alias si ya existe para evitar duplicados
+      historial = historial.filter(alias => alias !== aliasLimpio);
+      
+      // Agregar el nuevo alias al principio
+      historial.unshift(aliasLimpio);
+      
+      // Mantener solo los últimos 15 alias
+      if (historial.length > 15) {
+        historial = historial.slice(0, 15);
+      }
+      
+      // Guardar en localStorage
+      localStorage.setItem('historialAlias', JSON.stringify(historial));
+      
+      // Actualizar el historial en memoria y el datalist
+      aliasHistorial = historial;
+      actualizarDatalistAlias();
+      
+    } catch (error) {
+      console.error('Error guardando alias en localStorage:', error);
+    }
   }
 
   // Función para actualizar el datalist de alias
@@ -827,7 +848,7 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
   }
 
   // Cargar historial de alias al inicializar
-  cargarHistorialAlias();
+  cargarHistorialAliasDesdeLocalStorage();
 
   // Función para cerrar el popup de aviso
   function cerrarAvisoPopup() {
@@ -1302,6 +1323,8 @@ Distribuidora Home Point.-`;
           const pagosUpdate = {};
           if (tipoPago === 'Transferencia' && alias && admin) {
             pagosUpdate.alias = alias;
+            // Guardar en localStorage
+            guardarAliasEnLocalStorage(alias);
           }
           pagosUpdate.descuento = descuento;
           pagosUpdate.porcentajeDescuento = porcentaje;
@@ -2783,6 +2806,8 @@ document.getElementById('guardarBtn').onclick = async () => {
     const pagosUpdate = {};
     if (tipoPago === 'Transferencia' && alias && admin) {
       pagosUpdate.alias = alias;
+      // Guardar en localStorage
+      guardarAliasEnLocalStorage(alias);
     }
     pagosUpdate.descuento = descuento;
     pagosUpdate.porcentajeDescuento = porcentaje;
@@ -2921,6 +2946,8 @@ const cerrarPedido = () => {
     if (aliasInput && aliasInput.value.trim()) {
       const alias = aliasInput.value.trim().toUpperCase();
       pagosUpdate.alias = alias;
+      // Guardar en localStorage
+      guardarAliasEnLocalStorage(alias);
     }
   }
   
