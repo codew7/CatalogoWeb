@@ -556,6 +556,9 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
   // Variable para bloquear la interfaz durante procesos críticos de Firebase
   let procesoCriticoEnEjecucion = false;
   
+  // Variable para evitar que el botón despachadoEntregadoBtn se ejecute más de una vez
+  let despachoYaEjecutado = false;
+  
   // Prevenir cierre de ventana durante procesos críticos
   window.addEventListener('beforeunload', function(e) {
     if (procesoCriticoEnEjecucion) {
@@ -1231,6 +1234,13 @@ Distribuidora Home Point.-`;
       despachadoEntregadoBtn.onclick = async () => {
         if (pedidoActual.status === 'CANCELADO') return;
         if (despachadoEntregadoBtn.disabled) return;
+        
+        // Evitar ejecución múltiple del botón
+        if (despachoYaEjecutado) {
+          alert('El despacho ya fue procesado. No se puede ejecutar nuevamente.');
+          return;
+        }
+        despachoYaEjecutado = true;
 
         // Guardar cambios automáticamente antes de despachar
         try {
@@ -1341,6 +1351,7 @@ Distribuidora Home Point.-`;
           await Promise.all(promises);
 
         } catch (error) {
+          despachoYaEjecutado = false; // Permitir reintento en caso de error
           alert('Error al guardar cambios antes del despacho: ' + error.message);
           return;
         }
@@ -1350,6 +1361,7 @@ Distribuidora Home Point.-`;
         if (tipoPagoRadio && tipoPagoRadio.value === 'Transferencia') {
           const aliasInput = document.getElementById('alias');
           if (!aliasInput || !aliasInput.value.trim()) {
+            despachoYaEjecutado = false; // Permitir reintento si falta el alias
             alert('El campo ALIAS es obligatorio para transferencias antes de despachar el pedido.');
             if (aliasInput) aliasInput.focus();
             return;
@@ -1471,7 +1483,7 @@ Distribuidora Home Point.-`;
           await pedidoRef.child('pagos').set(pagoData);
           
           // Actualizar mensaje de bloqueo
-          if (textoBloqueo) textoBloqueo.textContent = 'Registrando movimientos de inventario y actualizando stock...';
+          if (textoBloqueo) textoBloqueo.textContent = 'Registrando movimientos de inventario...';
           
           // Registrar movimientos de salida leyendo el pedido actualizado
           await registrarMovimientoSalidaDesdePedido(pedidoActual.id);
@@ -1485,6 +1497,9 @@ Distribuidora Home Point.-`;
         } catch (err) {
           // DESBLOQUEAR INTERFAZ en caso de error
           desbloquearInterfaz();
+          
+          // Permitir reintento en caso de error
+          despachoYaEjecutado = false;
           
           await pedidoRef.update({ status: 'ABIERTO', locked: false });
           alert('Error al registrar movimientos de salida: ' + (err.message || err));
@@ -3025,22 +3040,8 @@ const reabrirPedido = async () => {
     const movimientosSnap = await db.ref('movimientos').orderByChild('pedidoId').equalTo(pedidoActual.id).once('value');
     const movimientos = movimientosSnap.val();
     
-    // Restaurar stock solo si hay movimientos de SALIDA
+    // Eliminar los movimientos si existen
     if (movimientos) {
-      const movimientosArray = Object.values(movimientos);
-      const movimientosSalida = movimientosArray.filter(mov => mov.tipo === 'SALIDA');
-      
-      if (movimientosSalida.length > 0) {
-        // Restaurar stock sumando las cantidades que se habían restado
-        for (const mov of movimientosSalida) {
-          if (mov.codigo && mov.nombre && mov.cantidad) {
-            // Restaurar sumando la cantidad (revertir la SALIDA)
-            await actualizarStock(mov.codigo, mov.nombre, mov.cantidad, 'ENTRADA');
-          }
-        }
-      }
-      
-      // Eliminar los movimientos
       const updates = {};
       Object.keys(movimientos).forEach(key => {
         updates[key] = null;
@@ -3051,7 +3052,7 @@ const reabrirPedido = async () => {
     // Actualizar el pedido como cancelado
     await pedidoRef.update({ status: 'CANCELADO', locked: true, lastModifiedBy, lastModifiedEmail, movimientosRegistrados: false });
     
-    alert("Pedido cancelado. Ya no podrá ser modificado. Los movimientos asociados han sido eliminados y el stock ha sido restaurado.");
+    alert("Pedido cancelado. Ya no podrá ser modificado. Los movimientos asociados han sido eliminados.");
   } catch (e) {
     console.error('Error al cancelar pedido:', e);
     alert("Error al cancelar o eliminar movimientos");
@@ -3371,54 +3372,9 @@ if (admin) {
   }
 }
 
-// === ACTUALIZACIÓN DE STOCK EN TIEMPO REAL ===
-/**
- * Actualiza el stock de un artículo usando transacciones de Firebase para garantizar atomicidad.
- * @param {string} codigo - Código del artículo
- * @param {string} nombre - Nombre del artículo
- * @param {number} cantidad - Cantidad a modificar
- * @param {string} tipo - Tipo de movimiento: 'ENTRADA', 'SALIDA', 'RETIRO'
- */
-async function actualizarStock(codigo, nombre, cantidad, tipo) {
-  if (!codigo || !nombre || !cantidad) return;
-  
-  const stockRef = db.ref('stock/' + codigo);
-  
-  try {
-    await stockRef.transaction(function(currentData) {
-      // Si no existe data previa, crear objeto base
-      if (currentData === null) {
-        currentData = {
-          nombre: nombre,
-          stockActual: 0
-        };
-      }
-      
-      let stockActual = currentData.stockActual || 0;
-      
-      // Calcular nuevo stock según tipo de movimiento
-      if (tipo === 'ENTRADA') {
-        stockActual += cantidad;
-      } else if (tipo === 'SALIDA' || tipo === 'RETIRO') {
-        stockActual -= cantidad;
-      }
-      
-      // Stock mínimo es 0
-      stockActual = Math.max(0, stockActual);
-      
-      // Preservar todos los campos existentes y solo actualizar stockActual
-      return {
-        ...currentData,
-        nombre: nombre,
-        stockActual: stockActual
-      };
-    });
-  } catch (error) {
-    console.error('Error actualizando stock:', error, { codigo, nombre, cantidad, tipo });
-  }
-}
-
 // === REGISTRO AUTOMÁTICO DE MOVIMIENTOS DE SALIDA (SÓLO CAMPOS BÁSICOS) ===
+// NOTA: La función actualizarStock ha sido eliminada. 
+// El stock ya no se actualiza directamente en el nodo 'stock' de Firebase desde este archivo.
 /**
  * Lee el pedido actualizado y registra todos los artículos como movimientos de salida en Firebase.
  * @param {string} pedidoId - ID del pedido
@@ -3448,15 +3404,8 @@ async function registrarMovimientoSalidaDesdePedido(pedidoId) {
   }
   if (Object.keys(updates).length === 0) throw new Error('No hay artículos válidos para registrar en movimientos.');
   await movimientosRef.update(updates);
-  
-  // Actualizar stock después de registrar los movimientos
-  for (const it of pedido.items) {
-    const nombre = it.nombre || '';
-    const cantidad = it.cantidad || 0;
-    const codigo = it.codigo || '';
-    if (!nombre || !codigo) continue;
-    await actualizarStock(codigo, nombre, cantidad, 'SALIDA');
-  }
+  // NOTA: La actualización de stock en el nodo 'stock' ha sido eliminada.
+  // Los movimientos se siguen registrando correctamente.
 }
 
 // === HABILITAR/DESHABILITAR BOTONES SEGÚN ENTREGA ===
