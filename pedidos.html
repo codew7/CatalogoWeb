@@ -383,72 +383,6 @@
       background: #45a049;
     }
 
-    /* Estilos para el popup de mínimo */
-    #minimoPopup {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10000;
-    }
-
-    #minimoPopup .popup-content {
-      background: #fff;
-      padding: 30px;
-      border-radius: 8px;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      position: relative;
-    }
-
-    #minimoPopup .popup-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-      color: #ff9800;
-    }
-
-    #minimoPopup .popup-icon {
-      font-size: 2.5em;
-      margin-right: 15px;
-    }
-
-    #minimoPopup .popup-title {
-      font-size: 1.3em;
-      font-weight: bold;
-      color: #333;
-    }
-
-    #minimoPopup .popup-message {
-      color: #555;
-      line-height: 1.6;
-      margin-bottom: 25px;
-      text-align: justify;
-    }
-
-    #minimoPopup .popup-button {
-      background: #4CAF50;
-      color: #fff;
-      border: none;
-      padding: 12px 30px;
-      border-radius: 4px;
-      font-size: 1em;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-      transition: background 0.3s;
-    }
-
-    #minimoPopup .popup-button:hover {
-      background: #45a049;
-    }
-
   </style>
 </head>
 <body>
@@ -478,22 +412,6 @@
         <label for="noVolverMostrar">No volver a mostrar este mensaje</label>
       </div>
       <button class="popup-button" onclick="cerrarAvisoPopup()">Entendido</button>
-    </div>
-  </div>
-
-  <!-- Popup de mínimo -->
-  <div id="minimoPopup" style="display: none;">
-    <div class="popup-content">
-      <div class="popup-header">
-        <div class="popup-icon">⚠️</div>
-        <div class="popup-title">Mínimo para Envíos</div>
-      </div>
-      <div class="popup-message">
-        Tu pedido actualmente no alcanza el mínimo de <strong>$90.000</strong> requerido para realizar envíos.
-        <br><br>
-        <strong>Podés retirarlo sin un mínimo de compra en nuestro showroom</strong>, o agregar más artículos hasta llegar al monto necesario para acceder al envío.
-      </div>
-      <button class="popup-button" onclick="cerrarMinimoPopup()">Entendido</button>
     </div>
   </div>
 
@@ -864,20 +782,9 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
     if (popup) {
       popup.style.display = 'none';
     }
-    
-    // Después de cerrar el primer popup, verificar si mostrar el segundo
-    setTimeout(() => {
-      mostrarMinimoPopup();
-    }, 300);
   }
 
-  // Función para cerrar el popup de mínimo
-  function cerrarMinimoPopup() {
-    const popup = document.getElementById('minimoPopup');
-    if (popup) {
-      popup.style.display = 'none';
-    }
-  }
+
 
   // Función para mostrar el popup de aviso al cargar el pedido
   function mostrarAvisoPopup() {
@@ -889,8 +796,6 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
     // Verificar si el usuario ya vio el mensaje
     const yaVisto = localStorage.getItem('avisoStockVisto');
     if (yaVisto === 'true') {
-      // Si ya vio el primer popup, mostrar directamente el segundo si aplica
-      mostrarMinimoPopup();
       return;
     }
     
@@ -900,30 +805,7 @@ let admin = false; // Declarar admin al principio para evitar errores de hoistin
     }
   }
 
-  // Función para mostrar el popup de mínimo si el subtotal es inferior a 90000
-  function mostrarMinimoPopup() {
-    // No mostrar popups a administradores
-    if (admin) {
-      return;
-    }
-    
-    if (!pedidoActual || !pedidoActual.items) return;
-    
-    // Calcular subtotal
-    let subtotal = 0;
-    pedidoActual.items.forEach(item => {
-      const unitPesos = Math.round(item.valorU || 0);
-      subtotal += Math.round(item.cantidad * unitPesos);
-    });
-    
-    // Mostrar popup solo si el subtotal es menor a 90000
-    if (subtotal < 90000) {
-      const popup = document.getElementById('minimoPopup');
-      if (popup) {
-        popup.style.display = 'flex';
-      }
-    }
-  }
+
 
   // Variable para almacenar la función del listener
   let listenerActivo = null;
