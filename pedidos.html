@@ -47,7 +47,7 @@
           hablarBtn.onclick = function() {
             const pedidoId = id;
             const mensaje = encodeURIComponent(`Quiero cerrar mi pedido: https://www.home-point.com.ar/pedidos.html?id=${pedidoId}`);
-            window.open(`https://api.whatsapp.com/send/?phone=5491121891006&text=${mensaje}`, '_blank');
+            window.open(`https://api.whatsapp.com/send/?phone=5491176460030&text=${mensaje}`, '_blank');
           };
         } else {
           hablarBtn.style.display = 'none';
@@ -1068,32 +1068,24 @@ En caso de no poder retirarlo dentro de las próximas 24 hs, recomendamos consul
 
 Adjuntamos el enlace que te llevará a tu pedido.
 
-Distribuidora Home Point.-
+Distribuidora HomePoint.-
 
 ${pedidoLink}`;
         } else if (tipo === '2') {
           // Mensaje Rapido 2
           mensaje = `Hola, ${nombreCliente}:
 
-Nos comunicamos desde Distribuidora HomePoint en relación a tu pedido.
+Nos comunicamos de Distribuidora HomePoint en relación a tu pedido.
 
 Adjuntamos el enlace a tu pedido:
 ${pedidoLink}`;
 
         } else if (tipo === '3') {
           // Mensaje Rapido 3
-          mensaje = `Hola, ${nombreCliente}:
-
-Te contactamos de Distribuidora Home Point.
-
-[Escribe aquí tu segundo mensaje personalizado]
+          mensaje = `Nuevo pedido Distribuidora HomePoint.
 
 Link a tu pedido:
-${pedidoLink}
-
-Saludos cordiales.
-
-Distribuidora Home Point.-`;
+${pedidoLink}`;
         }
         
         // Codificar el mensaje para URL
