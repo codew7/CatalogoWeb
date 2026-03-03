@@ -1357,17 +1357,9 @@ ${pedidoLink}`;
           await pedidoRef.child('pagos').set(pagoData);
           
           // Actualizar mensaje de bloqueo
-          if (textoBloqueo) textoBloqueo.textContent = 'Registrando movimientos de inventario...';
-          
-          // Registrar movimientos de salida leyendo el pedido actualizado
-          await registrarMovimientoSalidaDesdePedido(pedidoActual.id);
-          // Marcar que ya se registraron movimientos
-          await pedidoRef.update({ movimientosRegistrados: true });
-          
           // DESBLOQUEAR INTERFAZ después de completar proceso exitosamente
           desbloquearInterfaz();
-          
-          alert('Pedido despachado y movimientos registrados correctamente.');
+          alert('Pedido despachado correctamente.');
         } catch (err) {
           // DESBLOQUEAR INTERFAZ en caso de error
           desbloquearInterfaz();
@@ -3254,33 +3246,7 @@ if (admin) {
  * @param {string} pedidoId - ID del pedido
  * @returns {Promise<void>}
  */
-async function registrarMovimientoSalidaDesdePedido(pedidoId) {
-  const pedidoSnap = await db.ref('pedidos/' + pedidoId).once('value');
-  const pedido = pedidoSnap.val();
-  if (!pedido || !Array.isArray(pedido.items) || !pedido.items.length) throw new Error('No hay artículos para registrar en movimientos.');
-  const movimientosRef = db.ref('movimientos');
-  const timestamp = Date.now();
-  const updates = {};
-  for (const it of pedido.items) {
-    const nombre = it.nombre || '';
-    const cantidad = it.cantidad || 0;
-    const codigo = it.codigo || '';
-    if (!nombre) continue; // No registrar si no hay nombre
-    const key = movimientosRef.push().key;
-    updates[key] = {
-      timestamp,
-      pedidoId,
-      nombre,
-      cantidad,
-      codigo,
-      tipo: 'SALIDA'
-    };
-  }
-  if (Object.keys(updates).length === 0) throw new Error('No hay artículos válidos para registrar en movimientos.');
-  await movimientosRef.update(updates);
-  // NOTA: La actualización de stock en el nodo 'stock' ha sido eliminada.
-  // Los movimientos se siguen registrando correctamente.
-}
+// ...existing code...
 
 // === HABILITAR/DESHABILITAR BOTONES SEGÚN ENTREGA ===
 function actualizarEstadoBotonesPorEntrega() {
