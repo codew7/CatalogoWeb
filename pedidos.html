@@ -2875,17 +2875,7 @@ const reabrirPedido = async () => {
       movimientosRegistrados: false,
       items: pedidoActual.items // Guardar items sin valorC y valorU
     });
-    // Eliminar movimientos relacionados a este pedido
-    const movimientosSnap = await db.ref('movimientos').orderByChild('pedidoId').equalTo(pedidoActual.id).once('value');
-    const movimientos = movimientosSnap.val();
-    if (movimientos) {
-      const updates = {};
-      Object.keys(movimientos).forEach(key => {
-        updates[key] = null;
-      });
-      await db.ref('movimientos').update(updates);
-    }
-    alert("Pedido reabierto y movimientos eliminados.");
+    alert("Pedido reabierto.");
   } catch (e) {
     alert("Error al reabrir o eliminar movimientos");
   }
@@ -2902,26 +2892,12 @@ const reabrirPedido = async () => {
     lastModifiedEmail = firebase.auth().currentUser.email || '';
   }
   try {
-    // Primero obtener los movimientos antes de eliminarlos
-    const movimientosSnap = await db.ref('movimientos').orderByChild('pedidoId').equalTo(pedidoActual.id).once('value');
-    const movimientos = movimientosSnap.val();
-    
-    // Eliminar los movimientos si existen
-    if (movimientos) {
-      const updates = {};
-      Object.keys(movimientos).forEach(key => {
-        updates[key] = null;
-      });
-      await db.ref('movimientos').update(updates);
-    }
-    
     // Actualizar el pedido como cancelado
     await pedidoRef.update({ status: 'CANCELADO', locked: true, lastModifiedBy, lastModifiedEmail, movimientosRegistrados: false });
-    
-    alert("Pedido cancelado. Ya no podrá ser modificado. Los movimientos asociados han sido eliminados.");
+    alert("Pedido cancelado. Ya no podrá ser modificado.");
   } catch (e) {
     console.error('Error al cancelar pedido:', e);
-    alert("Error al cancelar o eliminar movimientos");
+    alert("Error al cancelar el pedido");
   }
 };
 
