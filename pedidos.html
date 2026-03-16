@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Detalle de pedido.">
+  <title>Pedido | HomePoint</title>
+
+  <link rel="icon" href="faviconnegro.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
+
+  <script>
+    let pedidoActual = null;
+    let sheetValorMap = {};
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f0f0;
+      --surface: #ffffff;
+      --text-primary: #1a1a1a;
+      --text-secondary: #555;
+      --text-muted: #888;
+      --accent: #4CAF50;
+      --accent-light: #e8f5e9;
+      --accent-hover: #43a047;
+      --accent-dark: #388E3C;
+      --border: #e0e0e0;
+      --border-light: #f0f0f0;
+      --danger: #e53935;
+      --danger-light: #ffebee;
+      --info: #1565c0;
+      --info-light: #e3f2fd;
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,0.15);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* === LOADING OVERLAY === */
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      gap: 16px;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.27rem;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .loading-subtext {
+      font-size: 0.94rem;
+      color: var(--text-muted);
+      text-align: center;
+      max-width: 260px;
+    }
+
+    /* === MAIN LAYOUT === */
+    .page-wrapper {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: 40px;
+    }
+
+    /* === HEADER === */
+    .page-header {
+      text-align: center;
+      padding: 15px 0 8px;
+      animation: fadeDown 0.5s ease both;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header h1 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.92rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    #fechaIngreso {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    /* === STATUS BADGE === */
+    #estado {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 12px;
+    }
+
+    .status-abierto { background: var(--accent-light); color: var(--accent-dark); border: 1px solid #c8e6c9; }
+    .status-cerrado { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
+    .status-cancelado { background: var(--danger-light); color: var(--danger); border: 1px solid #ffcdd2; }
+    .status-despachado { background: var(--info-light); color: var(--info); border: 1px solid #bbdefb; }
+
+    /* === CARDS === */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      border: none;
+      margin-bottom: 12px;
+      overflow: hidden;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .card:nth-child(2) { animation-delay: 0.05s; }
+    .card:nth-child(3) { animation-delay: 0.1s; }
+    .card:nth-child(4) { animation-delay: 0.15s; }
+
+    .card-header {
+      padding: 14px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.01rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fafafa;
+    }
+
+    .card-body {
+      padding: 16px 18px;
+    }
+
+    /* === CLIENT INFO === */
+    .client-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .client-field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .client-field.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .client-label {
+      font-size: 0.77rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .client-value {
+      font-size: 0.99rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: color var(--transition);
+      word-break: break-word;
+    }
+
+    .client-value:hover { color: var(--accent); }
+
+    .client-value a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .client-value a:hover { text-decoration: underline; }
+
+    .btn-edit-client {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 0.86rem;
+      font-weight: 500;
+      padding: 5px 14px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .btn-edit-client:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    /* === ITEMS TABLE === */
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .items-table thead th {
+      font-size: 0.77rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 2px solid var(--border);
+      background: transparent;
+      white-space: nowrap;
+    }
+
+    .items-table thead th:nth-child(n+2) { text-align: right; }
+
+    .items-table tbody td {
+      padding: 12px;
+      font-size: 0.97rem;
+      border-bottom: 1px solid var(--border-light);
+      vertical-align: middle;
+    }
+
+    .items-table tbody tr:last-child td { border-bottom: none; }
+
+    .items-table tbody td:nth-child(n+2) { text-align: right; }
+
+    .item-name {
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--text-primary);
+      transition: color var(--transition);
+      line-height: 1.3;
+    }
+
+    .item-name:hover { color: var(--accent); }
+
+    .qty-stepper {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .qty-stepper-btn {
+      width: 28px;
+      height: 30px;
+      border: none;
+      background: var(--border-light);
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      padding: 0;
+      min-width: 28px;
+      line-height: 1;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .qty-stepper-btn:hover:not(:disabled) {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
+    .qty-stepper-btn:active:not(:disabled) {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .qty-stepper-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .qty-input {
+      width: 36px;
+      text-align: center;
+      font-size: 0.94rem;
+      font-family: 'DM Sans', sans-serif;
+      padding: 4px 0;
+      border: none;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      -moz-appearance: textfield;
+      height: 30px;
+    }
+
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .qty-input:focus {
+      outline: none;
+      background: var(--accent-light);
+    }
+
+    .qty-input:disabled {
+      background: var(--border-light);
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    .item-price { color: var(--text-secondary); white-space: nowrap; }
+    .item-subtotal { font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+
+    .btn-delete-item {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.94rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      padding: 0;
+      min-width: 28px;
+    }
+
+    .btn-delete-item:hover {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .btn-delete-item:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* === TOTALS === */
+    .totals-section {
+      padding: 16px 18px;
+      border-top: 2px solid var(--border);
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 0.97rem;
+    }
+
+    .total-row-label { color: var(--text-secondary); }
+
+    .total-row-value { font-weight: 500; text-align: right; }
+
+    .total-row.grand-total {
+      padding-top: 12px;
+      margin-top: 6px;
+      border-top: 2px solid var(--text-primary);
+    }
+
+    .total-row.grand-total .total-row-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .total-row.grand-total .total-row-value {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.27rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: color var(--transition);
+    }
+
+    .total-row.grand-total .total-row-value:hover { color: var(--accent); }
+
+    .readonly-input {
+      width: 72px;
+      text-align: right;
+      font-size: 0.94rem;
+      font-family: 'DM Sans', sans-serif;
+      padding: 3px 6px;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      background: var(--border-light);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      -moz-appearance: textfield;
+    }
+
+    .readonly-input::-webkit-outer-spin-button,
+    .readonly-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .pct-input { width: 44px; }
+
+    /* === RADIO SELECTORS === */
+    .selector-section {
+      padding: 16px 18px;
+    }
+
+    .selector-section + .selector-section {
+      border-top: 1px solid var(--border-light);
+    }
+
+    .selector-label {
+      font-size: 0.77rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      width: 90%;
+      margin: 0 auto;
+    }
+
+    .radio-option {
+      position: relative;
+      cursor: pointer;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .radio-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .radio-option .radio-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all var(--transition);
+      cursor: pointer;
+      white-space: normal;
+      width: 100%;
+      text-align: center;
+    }
+
+    .radio-option input[type="radio"]:checked + .radio-label {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .radio-option input[type="radio"]:disabled + .radio-label {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .radio-option .radio-label img {
+      height: 20px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    /* === ACTION BUTTONS === */
+    .actions-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      animation: fadeUp 0.4s ease both;
+      animation-delay: 0.2s;
+    }
+
+    .btn {
+      flex: 1;
+      min-width: 140px;
+      padding: 13px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.97rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: center;
+      letter-spacing: 0.01em;
+    }
+
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-danger {
+      background: var(--surface);
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: var(--danger-light);
+    }
+
+    .btn-secondary {
+      background: #5c6bc0;
+      color: #fff;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #4a5aa8;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-whatsapp {
+      background: #25d366;
+      color: #fff;
+    }
+
+    .btn-whatsapp:hover:not(:disabled) {
+      background: #20b858;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* === LIGHTBOX === */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.85);
+      z-index: 4000;
+      backdrop-filter: blur(4px);
+    }
+
+    .lightbox img {
+      max-width: 85vw;
+      max-height: 80vh;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .lightbox .close {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      font-size: 2rem;
+      color: #fff;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity var(--transition);
+      background: none;
+      border: none;
+    }
+
+    .lightbox .close:hover { opacity: 1; }
+
+    /* === POPUP === */
+    #avisoPopup {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      backdrop-filter: blur(3px);
+      padding: 16px;
+    }
+
+    .popup-content {
+      background: var(--surface);
+      padding: 28px;
+      border-radius: var(--radius);
+      max-width: 420px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .popup-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .popup-icon {
+      font-size: 2rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .popup-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.27rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .popup-message {
+      color: var(--text-secondary);
+      font-size: 0.97rem;
+      line-height: 1.6;
+      margin-bottom: 22px;
+    }
+
+    .popup-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .popup-checkbox input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .popup-checkbox label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .popup-button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.99rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: background var(--transition);
+    }
+
+    .popup-button:hover { background: var(--accent-hover); }
+
+    /* === MODAL === */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 5000;
+      backdrop-filter: blur(3px);
+      padding: 16px;
+    }
+
+    .modal-content {
+      background: var(--surface);
+      padding: 24px;
+      border-radius: var(--radius);
+      max-width: 480px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .modal-content h3 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.21rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      background: none;
+      border: none;
+      font-size: 1.54rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color var(--transition);
+      padding: 0;
+      min-width: auto;
+    }
+
+    .modal-close:hover { color: var(--text-primary); }
+
+    .modal-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.97rem;
+      margin-bottom: 10px;
+      transition: border-color var(--transition);
+      color: var(--text-primary);
+      background: var(--surface);
+    }
+
+    .modal-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(76,175,80,0.15);
+    }
+
+    .modal-input[readonly] {
+      background: var(--border-light);
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    select.modal-input {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%235a5a5a' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    .modal-save-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.99rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 6px;
+      transition: background var(--transition);
+    }
+
+    .modal-save-btn:hover { background: var(--accent-hover); }
+
+    /* === DISCLAIMER === */
+    .disclaimer {
+      margin-top: 24px;
+      padding: 18px;
+      background: transparent;
+      border-top: 1px solid var(--border);
+      animation: fadeUp 0.4s ease both;
+      animation-delay: 0.25s;
+    }
+
+    .disclaimer p {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 6px;
+    }
+
+    .disclaimer p:last-child { margin-bottom: 0; }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 500px) {
+      .page-wrapper { padding: 10px; }
+
+      .page-header h1 { font-size: 1.54rem; }
+
+      .card-body { padding: 14px; }
+      .card-header { padding: 12px 14px; }
+
+      .client-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .items-table thead th { padding: 8px 8px; font-size: 0.72rem; }
+      .items-table tbody td { padding: 10px 8px; font-size: 0.9rem; }
+
+      .totals-section { padding: 14px; }
+
+      .selector-section { padding: 14px; }
+
+      .radio-option .radio-label {
+        padding: 7px 12px;
+        font-size: 0.86rem;
+      }
+
+      .radio-option .radio-label img { height: 16px; }
+
+      .actions-row {
+        flex-direction: column;
+      }
+
+      .btn { min-width: 100%; }
+
+      .popup-content { padding: 22px; }
+      .modal-content { padding: 20px; }
+    }
+
+    @media (min-width: 501px) and (max-width: 768px) {
+      .client-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* === UTILITY === */
+    .hidden { display: none !important; }
+
+    .copied-feedback {
+      color: var(--accent) !important;
+      transition: color 0.15s;
+    }
+
+    /* === CONFIRM DELETE MODAL === */
+    #confirmDeleteModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 6000;
+      backdrop-filter: blur(3px);
+      padding: 16px;
+    }
+
+    #confirmDeleteModal.active { display: flex; }
+
+    .confirm-modal-box {
+      background: var(--surface);
+      padding: 24px;
+      border-radius: var(--radius);
+      max-width: 360px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+      animation: fadeUp 0.2s ease both;
+    }
+
+    .confirm-modal-box .confirm-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--danger-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+    }
+
+    .confirm-modal-box .confirm-icon svg {
+      width: 24px;
+      height: 24px;
+      color: var(--danger);
+    }
+
+    .confirm-modal-box h4 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .confirm-modal-box p {
+      font-size: 0.94rem;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .confirm-modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .confirm-modal-actions button {
+      flex: 1;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.94rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      border: none;
+    }
+
+    .confirm-btn-cancel {
+      background: var(--border-light);
+      color: var(--text-secondary);
+      border: 1px solid var(--border) !important;
+    }
+
+    .confirm-btn-cancel:hover {
+      background: var(--border);
+    }
+
+    .confirm-btn-delete {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .confirm-btn-delete:hover {
+      background: #c62828;
+    }
+
+    /* === RADIO ICON === */
+    .radio-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      display: inline-flex;
+    }
+
+    .radio-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Cargando pedido</div>
+    <div class="loading-subtext">Por favor, espere mientras se cargan los datos</div>
+  </div>
+
+  <!-- Popup de aviso -->
+  <div id="avisoPopup" style="display: none;">
+    <div class="popup-content">
+      <div class="popup-header">
+        <div class="popup-icon">&#9432;</div>
+        <div class="popup-title">Información Importante</div>
+      </div>
+      <div class="popup-message">
+        La solicitud de pedido realizada se toma como una intención de compra y <strong>no asegura la disponibilidad total de la mercadería</strong> hasta concretar la operación.
+        <br><br>
+        La mercadería no queda reservada hasta ese momento.
+        <br><br>
+        La confirmación final de stock se efectúa únicamente al retirar los productos en nuestro showroom o al coordinar el envío correspondiente.
+      </div>
+      <div class="popup-checkbox" onclick="document.getElementById('noVolverMostrar').checked = !document.getElementById('noVolverMostrar').checked;">
+        <input type="checkbox" id="noVolverMostrar">
+        <label for="noVolverMostrar">No volver a mostrar este mensaje</label>
+      </div>
+      <button class="popup-button" onclick="cerrarAvisoPopup()">Entendido</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="page-wrapper">
+
+    <!-- Header -->
+    <div class="page-header">
+      <h1>Detalle del Pedido</h1>
+      <div id="fechaIngreso"></div>
+      <div id="estado"></div>
+    </div>
+
+    <!-- Client Card -->
+    <div class="card">
+      <div class="card-header">
+        <span>Datos del cliente</span>
+        <button id="editarClienteBtn" class="btn-edit-client">Editar</button>
+      </div>
+      <div class="card-body">
+        <div class="client-grid">
+          <div class="client-field full-width">
+            <span class="client-label">Nombre</span>
+            <span class="client-value" id="nombreCliente" title="Click para copiar"></span>
+          </div>
+          <div class="client-field">
+            <span class="client-label">Email</span>
+            <span class="client-value" id="emailCliente" title="Click para copiar"></span>
+          </div>
+          <div class="client-field">
+            <span class="client-label">Teléfono</span>
+            <span class="client-value" id="telefonoCliente"></span>
+          </div>
+          <div class="client-field">
+            <span class="client-label">Dirección</span>
+            <span class="client-value" id="direccionCliente" title="Click para copiar dirección y localidad"></span>
+          </div>
+          <div class="client-field">
+            <span class="client-label">Localidad</span>
+            <span class="client-value" id="localidadCliente" title="Click para copiar dirección y localidad"></span>
+          </div>
+          <div class="client-field">
+            <span class="client-label">Provincia</span>
+            <span class="client-value" id="provinciaCliente"></span>
+          </div>
+          <div class="client-field">
+            <span class="client-label">DNI</span>
+            <span class="client-value" id="dniCliente"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Card -->
+    <div class="card">
+      <div class="card-header">
+        <span>Detalle de Artículos</span>
+      </div>
+      <div id="items"></div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions-row">
+      <button id="agregarItemBtn" class="btn btn-primary">Agregar Artículos</button>
+      <button id="hablarBtn" class="btn btn-secondary" style="display:none;">Solicitar Cierre</button>
+      <button id="cancelarBtn" class="btn btn-danger">Cancelar Pedido</button>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+      <p>* Los precios se congelan únicamente al momento de confirmar al vendedor el cierre del pedido.</p>
+      <p>** La cotización final se mantendrá vigente únicamente durante el día en curso; en caso de demorarse el pago, se recotizará el total.</p>
+      <p>*** La mercadería se separará únicamente al momento de abonar el pedido.</p>
+      <p>**** Los envíos se despachan únicamente a sucursal para reducir tiempos, costos de envío y simplificar el proceso de despacho. La cotización se encuentra sujeta a la distancia, el tamaño y el peso final del pedido.</p>
+    </div>
+
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div id="confirmDeleteModal" onclick="if(event.target===this)cerrarConfirmDelete()">
+    <div class="confirm-modal-box">
+      <div class="confirm-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </div>
+      <h4>Eliminar artículo</h4>
+      <p id="confirmDeleteMsg">¿Eliminar este artículo del pedido?</p>
+      <div class="confirm-modal-actions">
+        <button class="confirm-btn-cancel" onclick="cerrarConfirmDelete()">Cancelar</button>
+        <button class="confirm-btn-delete" id="confirmDeleteBtn">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="imgLightbox" class="lightbox" onclick="cerrarLB(event)">
+    <span class="close" onclick="cerrarLB(event)">&times;</span>
+    <img id="lbImg" src="" alt="">
+  </div>
+
+<script>
+  const qs    = new URLSearchParams(location.search);
+  const id    = qs.get('id');
+
+  if (!id){ document.body.innerHTML = "<p style='text-align:center;padding:40px;font-family:DM Sans,sans-serif;'>ID inválido</p>"; throw 'no-id'; }
+
+  const pedidoRef = db.ref('pedidos/'+id);
+
+  // Confirm delete modal
+  let pendingDeleteIdx = null;
+  function mostrarConfirmDelete(idx, nombre) {
+    pendingDeleteIdx = idx;
+    document.getElementById('confirmDeleteMsg').textContent = `¿Eliminar "${nombre}" del pedido?`;
+    document.getElementById('confirmDeleteModal').classList.add('active');
+  }
+  function cerrarConfirmDelete() {
+    pendingDeleteIdx = null;
+    document.getElementById('confirmDeleteModal').classList.remove('active');
+  }
+  document.getElementById('confirmDeleteBtn').onclick = function() {
+    if (pendingDeleteIdx !== null && pedidoActual && pedidoActual.items) {
+      pedidoActual.items.splice(pendingDeleteIdx, 1);
+      cerrarConfirmDelete();
+      renderItems();
+      setTimeout(() => actualizarCalculosGlobales(), 100);
+      autoGuardarItems();
+    }
+  };
+
+  // Sistema de batch updates para reducir escrituras a Firebase
+  let updateQueue = {};
+  let updateTimer = null;
+
+  function programarActualizacion(path, data) {
+    if (!updateQueue[path]) updateQueue[path] = {};
+    updateQueue[path] = { ...updateQueue[path], ...data };
+
+    if (updateTimer) clearTimeout(updateTimer);
+
+    updateTimer = setTimeout(() => {
+      const promises = Object.entries(updateQueue).map(([path, data]) =>
+        firebase.database().ref(path).update(data)
+      );
+
+      Promise.all(promises)
+        .then(() => {
+          updateQueue = {};
+          console.log('Cambios guardados automáticamente');
+        })
+        .catch(err => console.error('Error guardando cambios:', err));
+    }, 2000);
+  }
+
+  function autoGuardarItems() {
+    if (!pedidoActual || !pedidoActual.items) return;
+
+    const tipoPago = document.querySelector('input[name="tipoPago"]:checked')?.value || '';
+    const tipoEntrega = document.querySelector('input[name="tipoEntrega"]:checked')?.value || '';
+    let entrega = '';
+    if (tipoEntrega && tipoEntrega !== 'Retiro en local') {
+      entrega = 'Envios';
+    }
+
+    programarActualizacion(`pedidos/${pedidoActual.id}`, {
+      items: pedidoActual.items,
+      lastUpdated: Date.now(),
+      tipoPago: tipoPago,
+      tipoEntrega: tipoEntrega,
+      entrega: entrega,
+      lastModifiedBy: 'usuario',
+      lastModifiedEmail: ''
+    });
+  }
+
+  function guardarTipoPago() {
+    const tipoPago = document.querySelector('input[name="tipoPago"]:checked');
+    if (tipoPago && pedidoActual && pedidoActual.id) {
+      programarActualizacion(
+        `pedidos/${pedidoActual.id}`,
+        { tipoPago: tipoPago.value }
+      );
+    }
+  }
+
+  function guardarTipoEntrega() {
+    const tipoEntrega = document.querySelector('input[name="tipoEntrega"]:checked');
+    if (tipoEntrega && pedidoActual && pedidoActual.id) {
+      let entrega = '';
+      if (tipoEntrega.value && tipoEntrega.value !== 'Retiro en local') {
+        entrega = 'Envios';
+      }
+
+      programarActualizacion(
+        `pedidos/${pedidoActual.id}`,
+        { tipoEntrega: tipoEntrega.value, entrega: entrega }
+      );
+    }
+  }
+
+  function cerrarAvisoPopup() {
+    const checkbox = document.getElementById('noVolverMostrar');
+    if (checkbox && checkbox.checked) {
+      localStorage.setItem('avisoStockVisto', 'true');
+    }
+    const popup = document.getElementById('avisoPopup');
+    if (popup) {
+      popup.style.display = 'none';
+    }
+  }
+
+  function mostrarAvisoPopup() {
+    const yaVisto = localStorage.getItem('avisoStockVisto');
+    if (yaVisto === 'true') return;
+
+    const popup = document.getElementById('avisoPopup');
+    if (popup) popup.style.display = 'flex';
+  }
+
+  let listenerActivo = null;
+
+  async function cargarPedidoInicial() {
+    const snap = await pedidoRef.once('value');
+    pedidoActual = snap.val();
+
+    if (!pedidoActual){
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      if (loadingOverlay) loadingOverlay.style.display = 'none';
+
+      document.body.innerHTML = "<p style='text-align:center;padding:40px;font-family:DM Sans,sans-serif;'>Pedido caducado o no encontrado</p>";
+      return;
+    }
+
+    if (!pedidoActual.status) {
+      await pedidoRef.update({ status: 'ABIERTO' });
+      pedidoActual.status = 'ABIERTO';
+    }
+
+    procesarPedidoCargado();
+
+    setTimeout(() => { mostrarAvisoPopup(); }, 500);
+
+    if (!pedidoActual.locked &&
+        pedidoActual.status !== 'DESPACHADO/ENTREGADO' &&
+        pedidoActual.status !== 'CANCELADO') {
+      activarListenerTiempoReal();
+    }
+  }
+
+  function activarListenerTiempoReal() {
+    if (listenerActivo) return;
+
+    listenerActivo = (snap) => {
+      const pedidoNuevo = snap.val();
+      if (!pedidoNuevo) return;
+
+      const cambiosRelevantes =
+        JSON.stringify(pedidoNuevo.items) !== JSON.stringify(pedidoActual.items) ||
+        pedidoNuevo.status !== pedidoActual.status ||
+        pedidoNuevo.locked !== pedidoActual.locked;
+
+      if (cambiosRelevantes) {
+        pedidoActual = pedidoNuevo;
+        procesarPedidoCargado();
+      }
+
+      if (pedidoNuevo.locked ||
+          pedidoNuevo.status === 'DESPACHADO/ENTREGADO' ||
+          pedidoNuevo.status === 'CANCELADO') {
+        desactivarListenerTiempoReal();
+      }
+    };
+
+    pedidoRef.on('value', listenerActivo);
+  }
+
+  function desactivarListenerTiempoReal() {
+    if (listenerActivo) {
+      pedidoRef.off('value', listenerActivo);
+      listenerActivo = null;
+    }
+  }
+
+  function procesarPedidoCargado() {
+    if (!pedidoActual) return;
+
+    actualizarValoresItems();
+
+    const cliente = pedidoActual.cliente || {};
+    document.getElementById('nombreCliente').textContent = cliente.nombre || '';
+    document.getElementById('direccionCliente').textContent = cliente.direccion || '';
+    document.getElementById('localidadCliente').textContent = cliente.localidad || '';
+    document.getElementById('provinciaCliente').textContent = cliente.provincia || '';
+    document.getElementById('dniCliente').textContent = cliente.dni || '';
+
+    if (cliente.telefono) {
+      let telClean = cliente.telefono.replace(/[^\d]/g, '');
+      if (telClean.startsWith('0')) telClean = telClean.substring(1);
+      if (!telClean.startsWith('54')) telClean = '54' + telClean;
+      document.getElementById('telefonoCliente').innerHTML = `<a href='https://api.whatsapp.com/send/?phone=${telClean}' target='_blank'>${cliente.telefono}</a>`;
+    } else {
+      document.getElementById('telefonoCliente').textContent = '-';
+    }
+    document.getElementById('emailCliente').textContent = cliente.email || '-';
+
+    // Copy to clipboard handlers
+    const nombreEl = document.getElementById('nombreCliente');
+    const emailEl = document.getElementById('emailCliente');
+
+    if (nombreEl && cliente.nombre) {
+      nombreEl.onclick = function() {
+        navigator.clipboard.writeText(cliente.nombre).then(() => {
+          const textoOriginal = this.textContent;
+          this.textContent = 'Copiado';
+          this.classList.add('copied-feedback');
+          setTimeout(() => {
+            this.textContent = textoOriginal;
+            this.classList.remove('copied-feedback');
+          }, 1500);
+        }).catch(() => {});
+      };
+    }
+
+    if (emailEl && cliente.email) {
+      emailEl.onclick = function() {
+        navigator.clipboard.writeText(cliente.email).then(() => {
+          const textoOriginal = this.textContent;
+          this.textContent = 'Copiado';
+          this.classList.add('copied-feedback');
+          setTimeout(() => {
+            this.textContent = textoOriginal;
+            this.classList.remove('copied-feedback');
+          }, 1500);
+        }).catch(() => {});
+      };
+    }
+
+    const direccionEl = document.getElementById('direccionCliente');
+    const localidadEl = document.getElementById('localidadCliente');
+
+    function copyDireccionLocalidadHandler() {
+      const parts = [];
+      if (cliente.direccion) parts.push(cliente.direccion);
+      if (cliente.localidad) parts.push(cliente.localidad);
+      const textToCopy = parts.join(', ');
+      if (!textToCopy) return;
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const textoOriginal = this.textContent;
+        this.textContent = 'Copiado';
+        this.classList.add('copied-feedback');
+        setTimeout(() => {
+          this.textContent = textoOriginal;
+          this.classList.remove('copied-feedback');
+        }, 1500);
+      }).catch(() => {});
+    }
+
+    if (direccionEl) {
+      direccionEl.style.cursor = 'pointer';
+      direccionEl.onclick = copyDireccionLocalidadHandler;
+    }
+
+    if (localidadEl) {
+      localidadEl.style.cursor = 'pointer';
+      localidadEl.onclick = copyDireccionLocalidadHandler;
+    }
+
+    // Fecha de ingreso
+    let fechaIngreso = '';
+    if (pedidoActual.timestamp) {
+      const d = new Date(pedidoActual.timestamp);
+      fechaIngreso = d.toLocaleString('es-AR');
+    } else if (!isNaN(Number(pedidoActual.id)) && Number(pedidoActual.id) > 1000000000000) {
+      const d = new Date(Number(pedidoActual.id));
+      fechaIngreso = d.toLocaleString('es-AR');
+    }
+    document.getElementById('fechaIngreso').textContent = fechaIngreso || '';
+
+    // Estado
+    const estadoEl = document.getElementById('estado');
+    estadoEl.className = '';
+    if (pedidoActual.status === 'DESPACHADO/ENTREGADO') {
+      estadoEl.textContent = 'ESTADO: DESPACHADO / ENTREGADO';
+      estadoEl.className = 'status-despachado';
+    } else if (pedidoActual.status === 'CANCELADO') {
+      estadoEl.textContent = 'ESTADO: CANCELADO';
+      estadoEl.className = 'status-cancelado';
+    } else if (pedidoActual.locked) {
+      estadoEl.textContent = 'ESTADO: CERRADO';
+      estadoEl.className = 'status-cerrado';
+    } else {
+      estadoEl.textContent = 'ESTADO: ABIERTO';
+      estadoEl.className = 'status-abierto';
+    }
+
+    if (Object.keys(sheetValorMap).length > 0) renderItems();
+
+    const bloqueado = pedidoActual.status === 'CANCELADO' || pedidoActual.status === 'DESPACHADO/ENTREGADO';
+    const bloqueadoCompleto = bloqueado || pedidoActual.locked;
+
+    document.getElementById('agregarItemBtn').disabled = bloqueadoCompleto;
+    document.getElementById('cancelarBtn').disabled = bloqueadoCompleto;
+
+    const pagoRadios = document.getElementsByName('tipoPago');
+    for (let r of pagoRadios) r.disabled = bloqueadoCompleto;
+    const entregaRadios = document.getElementsByName('tipoEntrega');
+    for (let r of entregaRadios) r.disabled = bloqueadoCompleto;
+  }
+
+  // Mostrar botón "Solicitar Cierre"
+  const hablarBtn = document.getElementById('hablarBtn');
+  if (hablarBtn) {
+    hablarBtn.style.display = 'inline-block';
+    hablarBtn.onclick = function() {
+      const mensaje = encodeURIComponent(`Quiero cerrar mi pedido: https://www.home-point.com.ar/pedidos.html?id=${id}`);
+      window.open(`https://api.whatsapp.com/send/?phone=5491176460030&text=${mensaje}`, '_blank');
+    };
+  }
+
+  cargarDatosSheets();
+  cargarPedidoInicial();
+
+  window.addEventListener('beforeunload', () => {
+    desactivarListenerTiempoReal();
+  });
+
+  function cargarDatosSheets() {
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/values/${GOOGLE_SHEETS_CONFIG.RANGO}?key=${GOOGLE_SHEETS_CONFIG.API_KEY}`)
+      .then(r => r.json())
+      .then(data => {
+        const values = data.values || [];
+        sheetValorMap = {};
+
+        const codigosNecesarios = new Set(
+          pedidoActual?.items?.map(item => item.codigo).filter(Boolean) || []
+        );
+
+        const procesarTodo = !pedidoActual || codigosNecesarios.size === 0;
+
+        values.forEach(row => {
+          const codigo = row[2];
+
+          if (!procesarTodo && codigo && !codigosNecesarios.has(codigo)) {
+            return;
+          }
+
+          const valorU = row[6];
+          const valorC = row[7];
+
+          if (codigo) {
+            let valorULimpio = 0;
+            if (valorU) {
+              valorULimpio = parseFloat(valorU.toString().replace(/\$/g, '').replace(/,/g, '')) || 0;
+            }
+
+            let valorCLimpio = 0;
+            if (valorC) {
+              valorCLimpio = parseFloat(valorC.toString().replace(/\$/g, '').replace(/,/g, '')) || 0;
+            }
+
+            sheetValorMap[codigo] = {
+              valorU: valorULimpio,
+              valorC: valorCLimpio
+            };
+          }
+        });
+
+        if (pedidoActual) {
+          actualizarValoresItems();
+          renderItems();
+        }
+      })
+      .catch(err => {
+        console.error('Error cargando datos de Google Sheets:', err);
+        alert('Error al cargar los precios desde la base de datos');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+      });
+  }
+
+  function actualizarValoresItems() {
+    if (!pedidoActual || !pedidoActual.items || Object.keys(sheetValorMap).length === 0) return;
+
+    pedidoActual.items.forEach(item => {
+      if (item.codigo && sheetValorMap[item.codigo]) {
+        const valoresSheet = sheetValorMap[item.codigo];
+
+        if (item.valorU === undefined || item.valorU === null || item.valorU === '') {
+          if (item.valorU !== valoresSheet.valorU) {
+            item.valorU = valoresSheet.valorU;
+          }
+        }
+
+        if (item.valorC === undefined || item.valorC === null || item.valorC === '') {
+          if (item.valorC !== valoresSheet.valorC) {
+            item.valorC = valoresSheet.valorC;
+          }
+        }
+      }
+    });
+  }
+
+  function getCotizacionActual() { return 1; }
+
+  window.cachedValues = window.cachedValues || {};
+
+  function actualizarCalculosGlobales() {
+    let subtotal = 0;
+    if (pedidoActual && pedidoActual.items) {
+      pedidoActual.items.forEach(it => {
+        const unitPesos = Math.round(it.valorU || 0);
+        subtotal += Math.round(it.cantidad * unitPesos);
+      });
+    }
+
+    const totalDiv = document.getElementById('total');
+    if (totalDiv) {
+      totalDiv.textContent = `$ ${subtotal.toLocaleString('es-AR')}`;
+    }
+
+    const porcentajeInput = document.getElementById('porcentajeInput');
+    const descuentoInput = document.getElementById('descuentoInput');
+    const porcentajeRecargoInput = document.getElementById('porcentajeRecargoInput');
+    const recargoInput = document.getElementById('recargoInput');
+    const envioInput = document.getElementById('envioInput');
+    const totalFinalDiv = document.getElementById('totalFinalDiv');
+
+    if (porcentajeInput && descuentoInput && porcentajeRecargoInput && recargoInput && envioInput && totalFinalDiv) {
+      const porcentaje = parseFloat(porcentajeInput.value) || 0;
+      const descuento = parseFloat(descuentoInput.value) || 0;
+      const porcentajeRecargo = parseFloat(porcentajeRecargoInput.value) || 0;
+      const recargo = parseFloat(recargoInput.value) || 0;
+      const envio = parseFloat(envioInput.value) || 0;
+
+      const descuentoCalculado = Math.round(subtotal * porcentaje / 100);
+      if (descuentoInput.value != descuentoCalculado) {
+        descuentoInput.value = descuentoCalculado;
+      }
+
+      const baseRecargo = subtotal + envio;
+      const recargoCalculado = Math.round(baseRecargo * porcentajeRecargo / 100);
+      if (recargoInput.value != recargoCalculado) {
+        recargoInput.value = recargoCalculado;
+      }
+
+      let totalFinal = subtotal - parseFloat(descuentoInput.value || 0) + parseFloat(recargoInput.value || 0) + envio;
+      if (totalFinal < 0) totalFinal = 0;
+      totalFinalDiv.textContent = `$ ${totalFinal.toLocaleString('es-AR')}`;
+
+      window.cachedValues = {
+        ...window.cachedValues,
+        porcentaje: parseFloat(porcentajeInput.value) || 0,
+        descuento: parseFloat(descuentoInput.value) || 0,
+        porcentajeRecargo: parseFloat(porcentajeRecargoInput.value) || 0,
+        recargo: parseFloat(recargoInput.value) || 0,
+        envio: envio
+      };
+
+      if (!pedidoActual.pagos) pedidoActual.pagos = {};
+      pedidoActual.pagos.porcentajeDescuento = parseFloat(porcentajeInput.value) || 0;
+      pedidoActual.pagos.descuento = parseFloat(descuentoInput.value) || 0;
+      pedidoActual.pagos.porcentajeRecargo = parseFloat(porcentajeRecargoInput.value) || 0;
+      pedidoActual.pagos.recargo = parseFloat(recargoInput.value) || 0;
+      pedidoActual.pagos.envio = envio;
+    }
+  }
+
+  let lastRenderHash = '';
+
+  function renderItems() {
+    const currentHash = JSON.stringify({
+      items: pedidoActual?.items?.map(i => ({
+        codigo: i.codigo,
+        cantidad: i.cantidad,
+        valorU: i.valorU,
+        nombre: i.nombre
+      })),
+      locked: pedidoActual?.locked,
+      status: pedidoActual?.status,
+      tipoPago: pedidoActual?.tipoPago,
+      tipoEntrega: pedidoActual?.tipoEntrega,
+      recargo: pedidoActual?.pagos?.recargo,
+      porcentajeRecargo: pedidoActual?.pagos?.porcentajeRecargo
+    });
+
+    if (currentHash === lastRenderHash) return;
+    lastRenderHash = currentHash;
+
+    const cont = document.getElementById('items');
+    cont.innerHTML = '';
+
+    /* ===== Items Table ===== */
+    const tbl = document.createElement('table');
+    tbl.className = 'items-table';
+
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+      <tr>
+        <th>Artículo</th>
+        <th>Cant</th>
+        <th>Precio</th>
+        <th>Total</th>
+        <th></th>
+      </tr>`;
+    tbl.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+
+    let total = 0;
+    const bloqueado = pedidoActual.status === 'CANCELADO' || pedidoActual.status === 'DESPACHADO/ENTREGADO';
+    const bloqueadoCompleto = bloqueado || pedidoActual.locked;
+
+    pedidoActual.items.forEach((it, idx) => {
+      const unitPesos = Math.round(it.valorU || 0);
+      const subtotal = Math.round(it.cantidad * unitPesos);
+      total += subtotal;
+
+      const row = document.createElement('tr');
+
+      /* Name */
+      const nameCell = document.createElement('td');
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = it.nombre;
+      nameSpan.className = 'item-name';
+      nameSpan.onclick = () => abrirLB(it.nombre);
+      nameCell.appendChild(nameSpan);
+      row.appendChild(nameCell);
+
+      /* Qty with stepper */
+      const qtyCell = document.createElement('td');
+      const stepper = document.createElement('div');
+      stepper.className = 'qty-stepper';
+
+      const btnMinus = document.createElement('button');
+      btnMinus.className = 'qty-stepper-btn';
+      btnMinus.textContent = '\u2212';
+      btnMinus.disabled = bloqueadoCompleto;
+      btnMinus.onclick = () => {
+        if (bloqueadoCompleto) return;
+        const cur = parseInt(qty.value, 10) || 1;
+        if (cur > 1) {
+          qty.value = cur - 1;
+          qty.dispatchEvent(new Event('change'));
+        }
+      };
+
+      const qty = document.createElement('input');
+      qty.type = 'number';
+      qty.min = 1;
+      qty.value = it.cantidad;
+      qty.className = 'qty-input';
+      qty.disabled = bloqueadoCompleto;
+      qty.onchange = e => {
+        if (bloqueadoCompleto) return;
+        pedidoActual.items[idx].cantidad = parseInt(e.target.value, 10) || 1;
+        delete pedidoActual.items[idx].listo;
+        renderItems();
+        setTimeout(() => actualizarCalculosGlobales(), 100);
+        autoGuardarItems();
+      };
+
+      const btnPlus = document.createElement('button');
+      btnPlus.className = 'qty-stepper-btn';
+      btnPlus.textContent = '+';
+      btnPlus.disabled = bloqueadoCompleto;
+      btnPlus.onclick = () => {
+        if (bloqueadoCompleto) return;
+        const cur = parseInt(qty.value, 10) || 1;
+        qty.value = cur + 1;
+        qty.dispatchEvent(new Event('change'));
+      };
+
+      stepper.appendChild(btnMinus);
+      stepper.appendChild(qty);
+      stepper.appendChild(btnPlus);
+      qtyCell.appendChild(stepper);
+      row.appendChild(qtyCell);
+
+      /* Unit Price */
+      const valorCell = document.createElement('td');
+      valorCell.className = 'item-price';
+      valorCell.textContent = `$ ${unitPesos.toLocaleString('es-AR')}`;
+      row.appendChild(valorCell);
+
+      /* Subtotal */
+      const subtotalCell = document.createElement('td');
+      subtotalCell.className = 'item-subtotal';
+      subtotalCell.textContent = `$ ${subtotal.toLocaleString('es-AR')}`;
+      row.appendChild(subtotalCell);
+
+      /* Delete with confirmation */
+      const delCell = document.createElement('td');
+      const del = document.createElement('button');
+      del.innerHTML = '&times;';
+      del.className = 'btn-delete-item';
+      del.disabled = bloqueadoCompleto;
+      del.onclick = () => {
+        if (bloqueadoCompleto) return;
+        mostrarConfirmDelete(idx, it.nombre);
+      };
+      delCell.appendChild(del);
+      row.appendChild(delCell);
+
+      tbody.appendChild(row);
+    });
+
+    tbl.appendChild(tbody);
+    cont.appendChild(tbl);
+
+    /* ===== Totals Section ===== */
+    const totalsSection = document.createElement('div');
+    totalsSection.className = 'totals-section';
+
+    // Get cached/firebase values
+    let descuento = window.cachedValues.descuento;
+    let porcentaje = window.cachedValues.porcentaje;
+    let recargo = window.cachedValues.recargo;
+    let porcentajeRecargo = window.cachedValues.porcentajeRecargo;
+    let envio = window.cachedValues.envio;
+
+    if (descuento === undefined && pedidoActual.pagos && typeof pedidoActual.pagos.descuento === 'number') {
+      descuento = pedidoActual.pagos.descuento;
+    }
+    if (porcentaje === undefined && pedidoActual.pagos && typeof pedidoActual.pagos.porcentajeDescuento === 'number') {
+      porcentaje = pedidoActual.pagos.porcentajeDescuento;
+    }
+    if (recargo === undefined && pedidoActual.pagos && typeof pedidoActual.pagos.recargo === 'number') {
+      recargo = pedidoActual.pagos.recargo;
+    }
+    if (porcentajeRecargo === undefined && pedidoActual.pagos && typeof pedidoActual.pagos.porcentajeRecargo === 'number') {
+      porcentajeRecargo = pedidoActual.pagos.porcentajeRecargo;
+    }
+    if (envio === undefined && pedidoActual.pagos && typeof pedidoActual.pagos.envio === 'number') {
+      envio = pedidoActual.pagos.envio;
+    }
+
+    descuento = descuento || 0;
+    porcentaje = porcentaje || 0;
+    recargo = recargo || 0;
+    porcentajeRecargo = porcentajeRecargo || 0;
+    envio = envio || 0;
+
+    let totalFinal = total - descuento + recargo + envio;
+    if (totalFinal < 0) totalFinal = 0;
+
+    totalsSection.innerHTML = `
+      <div class="total-row">
+        <span class="total-row-label">Subtotal</span>
+        <span class="total-row-value" id="total">$ ${total.toLocaleString('es-AR')}</span>
+      </div>
+      <div class="total-row" ${descuento === 0 && porcentaje === 0 ? 'style="display:none"' : ''}>
+        <span class="total-row-label">Descuento
+          <input type="number" id="porcentajeInput" class="readonly-input pct-input" min="0" max="100" value="${porcentaje}" readonly> %
+        </span>
+        <span class="total-row-value" style="color:var(--accent);">
+          - $ <input type="number" id="descuentoInput" class="readonly-input" min="0" value="${descuento}" readonly>
+        </span>
+      </div>
+      <div class="total-row" ${recargo === 0 && porcentajeRecargo === 0 ? 'style="display:none"' : ''}>
+        <span class="total-row-label">Recargo
+          <input type="number" id="porcentajeRecargoInput" class="readonly-input pct-input" min="0" max="100" value="${porcentajeRecargo}" readonly> %
+        </span>
+        <span class="total-row-value" style="color:var(--danger);">
+          + $ <input type="number" id="recargoInput" class="readonly-input" min="0" value="${recargo}" readonly>
+        </span>
+      </div>
+      <div class="total-row" id="envioDiv" style="display:none;">
+        <span class="total-row-label">Envío</span>
+        <span class="total-row-value">
+          $ <input type="number" id="envioInput" class="readonly-input" min="0" value="${envio}" readonly>
+        </span>
+      </div>
+      <div class="total-row grand-total">
+        <span class="total-row-label">Total Final</span>
+        <span class="total-row-value" id="totalFinalDiv" title="Click para copiar resumen">$ ${totalFinal.toLocaleString('es-AR')}</span>
+      </div>
+    `;
+
+    cont.appendChild(totalsSection);
+
+    // Copy total handler
+    setTimeout(() => {
+      const tfDiv = document.getElementById('totalFinalDiv');
+      if (tfDiv) {
+        tfDiv.onclick = function() {
+          const subtotalActual = total;
+          const descuentoActual = descuento;
+          const recargoActual = recargo;
+          const envioActual = envio;
+          const totalFinalActual = totalFinal;
+
+          const pagoRadio = document.querySelector('input[name="tipoPago"]:checked');
+          const medioPago = pagoRadio ? pagoRadio.value : 'No especificado';
+
+          let textoCopiar = `- Subtotal $ ${subtotalActual.toLocaleString('es-AR')}`;
+          if (descuentoActual > 0) textoCopiar += `\n- Descuento $ ${descuentoActual.toLocaleString('es-AR')}`;
+          if (recargoActual > 0) textoCopiar += `\n- Recargo $ ${recargoActual.toLocaleString('es-AR')}`;
+          if (envioActual > 0) textoCopiar += `\n- Envío $ ${envioActual.toLocaleString('es-AR')}`;
+          textoCopiar += `\n- Total $ ${totalFinalActual.toLocaleString('es-AR')}`;
+          textoCopiar += `\n- Medio de Pago: ${medioPago}`;
+
+          navigator.clipboard.writeText(textoCopiar).then(() => {
+            const orig = tfDiv.textContent;
+            tfDiv.textContent = 'Copiado';
+            tfDiv.style.color = 'var(--accent)';
+            setTimeout(() => {
+              tfDiv.textContent = orig;
+              tfDiv.style.color = '';
+            }, 1500);
+          }).catch(err => alert('Error al copiar: ' + err));
+        };
+      }
+    }, 0);
+
+    /* ===== Payment & Delivery Selectors ===== */
+    const selectorsWrap = document.createElement('div');
+
+    // Payment
+    const pagoSection = document.createElement('div');
+    pagoSection.className = 'selector-section';
+    pagoSection.innerHTML = `
+      <div class="selector-label">Medio de pago</div>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="tipoPago" value="Efectivo">
+          <span class="radio-label"><span class="radio-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg></span> Efectivo</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="tipoPago" value="Transferencia">
+          <span class="radio-label"><span class="radio-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg></span> Transferencia (+3%)</span>
+        </label>
+      </div>
+    `;
+    selectorsWrap.appendChild(pagoSection);
+
+    // Delivery
+    const entregaSection = document.createElement('div');
+    entregaSection.className = 'selector-section';
+    entregaSection.innerHTML = `
+      <div class="selector-label">Tipo de entrega</div>
+      <div class="radio-group">
+        <label class="radio-option" style="display:none;">
+          <input type="radio" name="tipoEntrega" value="Retiro en local">
+          <span class="radio-label"><img src="logo.png" alt="Retiro"> Retiro</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="tipoEntrega" value="Motomensajeria">
+          <span class="radio-label"><img src="logo-moto.png" alt="Moto"> Moto</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="tipoEntrega" value="Correo Argentino">
+          <span class="radio-label"><img src="logo-correo.png" alt="Correo Argentino" style="height:22px;"></span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="tipoEntrega" value="Via Cargo">
+          <span class="radio-label"><img src="logo-viacargo.png" alt="Via Cargo" style="height:22px;"></span>
+        </label>
+      </div>
+    `;
+    selectorsWrap.appendChild(entregaSection);
+
+    cont.appendChild(selectorsWrap);
+
+    // Envio visibility logic
+    setTimeout(() => {
+      const entregaRadios = document.getElementsByName('tipoEntrega');
+      const envioDiv = document.getElementById('envioDiv');
+      const envioInput = document.getElementById('envioInput');
+
+      let tipoEntregaSel = '';
+      for (let r of entregaRadios) {
+        if (r.checked) { tipoEntregaSel = r.value; break; }
+      }
+
+      for (let r of entregaRadios) {
+        r.addEventListener('change', () => {
+          if (r.value === 'Correo Argentino' && r.checked) {
+            envioDiv.style.display = 'flex';
+          } else if (r.checked) {
+            envioDiv.style.display = 'none';
+          }
+          actualizarCalculosGlobales();
+        });
+      }
+
+      if (tipoEntregaSel === 'Correo Argentino' || pedidoActual.tipoEntrega === 'Correo Argentino') {
+        envioDiv.style.display = 'flex';
+        if (pedidoActual.pagos && typeof pedidoActual.pagos.envio === 'number') {
+          envioInput.value = pedidoActual.pagos.envio;
+        }
+        for (let r of entregaRadios) {
+          if (r.value === 'Correo Argentino') { r.checked = true; break; }
+        }
+      } else {
+        envioDiv.style.display = 'none';
+        envioInput.value = 0;
+      }
+    }, 0);
+
+    // Input listeners for calculations
+    setTimeout(() => {
+      const porcentajeInput = document.getElementById('porcentajeInput');
+      const descuentoInput = document.getElementById('descuentoInput');
+      const porcentajeRecargoInput = document.getElementById('porcentajeRecargoInput');
+      const recargoInput = document.getElementById('recargoInput');
+      const envioInput = document.getElementById('envioInput');
+
+      function calcularSubtotalActual() {
+        let subtotal = 0;
+        if (pedidoActual && pedidoActual.items) {
+          pedidoActual.items.forEach(it => {
+            const unitPesos = Math.round(it.valorU || 0);
+            subtotal += Math.round(it.cantidad * unitPesos);
+          });
+        }
+        return subtotal;
+      }
+
+      // Transferencia auto 3% recargo + auto-guardar
+      const pagoRadios = document.getElementsByName('tipoPago');
+      pagoRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+          if (this.value === 'Transferencia') {
+            if (porcentajeRecargoInput) {
+              porcentajeRecargoInput.value = '3';
+              actualizarCalculosGlobales();
+              const recargoDiv = porcentajeRecargoInput.closest('.total-row');
+              if (recargoDiv) recargoDiv.style.display = '';
+              // Guardar recargo calculado en Firebase
+              if (pedidoActual && pedidoActual.id) {
+                programarActualizacion(`pedidos/${pedidoActual.id}`, {
+                  'pagos/porcentajeRecargo': parseFloat(porcentajeRecargoInput.value) || 0,
+                  'pagos/recargo': parseFloat(recargoInput.value) || 0
+                });
+              }
+            }
+          } else {
+            if (porcentajeRecargoInput) {
+              porcentajeRecargoInput.value = '0';
+              if (recargoInput) recargoInput.value = '0';
+              actualizarCalculosGlobales();
+              const recargoDiv = porcentajeRecargoInput.closest('.total-row');
+              if (recargoDiv) recargoDiv.style.display = 'none';
+              // Guardar recargo en 0 en Firebase
+              if (pedidoActual && pedidoActual.id) {
+                programarActualizacion(`pedidos/${pedidoActual.id}`, {
+                  'pagos/porcentajeRecargo': 0,
+                  'pagos/recargo': 0
+                });
+              }
+            }
+          }
+        });
+      });
+    }, 0);
+
+    // Set radio selections from saved data
+    setTimeout(() => {
+      const pagoRadios = document.getElementsByName('tipoPago');
+      const pagoValue = pedidoActual.tipoPago || null;
+      for (let r of pagoRadios) {
+        r.checked = (pagoValue !== null && r.value === pagoValue);
+      }
+
+      const entregaRadios = document.getElementsByName('tipoEntrega');
+      const entregaValue = pedidoActual.tipoEntrega || null;
+      for (let r of entregaRadios) {
+        r.checked = (entregaValue !== null && r.value === entregaValue);
+      }
+
+      const porcentajeRecargoInput = document.getElementById('porcentajeRecargoInput');
+      const recargoInput = document.getElementById('recargoInput');
+      if (porcentajeRecargoInput && recargoInput) {
+        if (pedidoActual.pagos && typeof pedidoActual.pagos.porcentajeRecargo === 'number') {
+          porcentajeRecargoInput.value = pedidoActual.pagos.porcentajeRecargo;
+        }
+        if (pedidoActual.pagos && typeof pedidoActual.pagos.recargo === 'number') {
+          recargoInput.value = pedidoActual.pagos.recargo;
+        }
+        if (pagoValue === 'Transferencia' && (!pedidoActual.pagos || typeof pedidoActual.pagos.porcentajeRecargo !== 'number')) {
+          porcentajeRecargoInput.value = '3';
+          actualizarCalculosGlobales();
+        }
+      }
+
+      // Auto-save listeners
+      const pagoRadiosInline = document.getElementsByName('tipoPago');
+      for (let r of pagoRadiosInline) {
+        r.removeEventListener('change', guardarTipoPago);
+        r.addEventListener('change', guardarTipoPago);
+      }
+
+      const entregaRadiosInline = document.getElementsByName('tipoEntrega');
+      for (let r of entregaRadiosInline) {
+        r.removeEventListener('change', guardarTipoEntrega);
+        r.addEventListener('change', guardarTipoEntrega);
+      }
+
+      setTimeout(() => actualizarCalculosGlobales(), 200);
+    }, 0);
+
+    // Hide loading
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
+  }
+
+
+  /* -------- BOTÓN AGREGAR -------- */
+  document.getElementById('agregarItemBtn').onclick = () => {
+    if (pedidoActual.locked) return;
+    window.location.href = `mayorista.html?pedido=${id}`;
+  };
+
+  document.getElementById('cancelarBtn').onclick = async () => {
+    if (pedidoActual.locked || pedidoActual.status === 'CANCELADO') return;
+    if (!confirm("¿Seguro que desea cancelar el pedido? Esta acción es IRREVERSIBLE y el pedido no podrá ser modificado ni reactivado.")) return;
+    const lastModifiedBy = 'usuario';
+    const lastModifiedEmail = '';
+    try {
+      const movimientosSnap = await db.ref('movimientos').orderByChild('pedidoId').equalTo(pedidoActual.id).once('value');
+      const movimientos = movimientosSnap.val();
+
+      if (movimientos) {
+        const updates = {};
+        Object.keys(movimientos).forEach(key => { updates[key] = null; });
+        await db.ref('movimientos').update(updates);
+      }
+
+      await pedidoRef.update({ status: 'CANCELADO', locked: true, lastModifiedBy, lastModifiedEmail, movimientosRegistrados: false });
+
+      alert("Pedido cancelado. Ya no podrá ser modificado. Los movimientos asociados han sido eliminados.");
+    } catch (e) {
+      console.error('Error al cancelar pedido:', e);
+      alert("Error al cancelar o eliminar movimientos");
+    }
+  };
+
+
+  /* === Mapa de imágenes === */
+  const mapImg = {};
+
+  fetch(`https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/values/${GOOGLE_SHEETS_CONFIG.RANGO}?key=${GOOGLE_SHEETS_CONFIG.API_KEY}`)
+    .then(r=>r.json())
+    .then(({values})=>{
+      values.forEach(row=>{
+        const nombre = row[3];
+        const url    = row[1] || '';
+        mapImg[nombre] = url.split(',').map(u=>u.trim()).filter(Boolean);
+      });
+      if (Object.keys(sheetValorMap).length === 0) {
+        cargarDatosSheets();
+      }
+    });
+
+  function abrirLB(nombre){
+    const urls = mapImg[nombre] || [];
+    if (!urls.length){ alert("Imagen no disponible"); return; }
+    document.getElementById('lbImg').src = urls[0];
+    document.getElementById('imgLightbox').style.display = 'flex';
+  }
+
+  function cerrarLB(e){
+    if (e.target === e.currentTarget || e.target.classList.contains('close')){
+      document.getElementById('imgLightbox').style.display = 'none';
+    }
+  }
+
+  /* Modal para editar datos del cliente */
+  let modalEditCliente = document.getElementById('modalEditCliente');
+  if (!modalEditCliente) {
+    modalEditCliente = document.createElement('div');
+    modalEditCliente.id = 'modalEditCliente';
+    modalEditCliente.className = 'modal-overlay';
+    modalEditCliente.innerHTML = `
+      <div class="modal-content">
+        <button id="closeEditCliente" class="modal-close">&times;</button>
+        <h3>Editar datos del cliente</h3>
+        <input id="editNombre" type="text" placeholder="Nombre y Apellido" class="modal-input">
+        <input id="editDireccion" type="text" placeholder="Dirección Completa" class="modal-input">
+        <input id="editLocalidad" type="text" placeholder="Localidad" class="modal-input">
+        <select id="editProvincia" class="modal-input">
+          <option value="">Seleccione Provincia</option>
+          <option value="CABA">CABA</option>
+          <option value="Gran Buenos Aires">Gran Buenos Aires</option>
+          <option value="Buenos Aires">Buenos Aires</option>
+          <option value="Catamarca">Catamarca</option>
+          <option value="Chaco">Chaco</option>
+          <option value="Chubut">Chubut</option>
+          <option value="Córdoba">Córdoba</option>
+          <option value="Corrientes">Corrientes</option>
+          <option value="Entre Ríos">Entre Ríos</option>
+          <option value="Formosa">Formosa</option>
+          <option value="Jujuy">Jujuy</option>
+          <option value="La Pampa">La Pampa</option>
+          <option value="La Rioja">La Rioja</option>
+          <option value="Mendoza">Mendoza</option>
+          <option value="Misiones">Misiones</option>
+          <option value="Neuquén">Neuquén</option>
+          <option value="Río Negro">Río Negro</option>
+          <option value="Salta">Salta</option>
+          <option value="San Juan">San Juan</option>
+          <option value="San Luis">San Luis</option>
+          <option value="Santa Cruz">Santa Cruz</option>
+          <option value="Santa Fe">Santa Fe</option>
+          <option value="Santiago del Estero">Santiago del Estero</option>
+          <option value="Tierra del Fuego">Tierra del Fuego</option>
+          <option value="Tucumán">Tucumán</option>
+        </select>
+        <input id="editDni" type="text" placeholder="DNI" class="modal-input">
+        <input id="editTelefono" type="text" placeholder="Teléfono (opcional)" class="modal-input">
+        <input id="editEmail" type="email" placeholder="Email" class="modal-input" readonly>
+        <button id="guardarEditCliente" class="modal-save-btn">Guardar</button>
+      </div>
+    `;
+    document.body.appendChild(modalEditCliente);
+  }
+
+  const editarBtn = document.getElementById('editarClienteBtn');
+  editarBtn.onclick = () => {
+    if (pedidoActual.locked) return;
+    document.getElementById('editNombre').value = pedidoActual.cliente?.nombre || '';
+    document.getElementById('editLocalidad').value = pedidoActual.cliente?.localidad || '';
+    document.getElementById('editDireccion').value = pedidoActual.cliente?.direccion || '';
+    document.getElementById('editProvincia').value = pedidoActual.cliente?.provincia || '';
+    document.getElementById('editDni').value = pedidoActual.cliente?.dni || '';
+    document.getElementById('editTelefono').value = pedidoActual.cliente?.telefono || '';
+    document.getElementById('editEmail').value = pedidoActual.cliente?.email || '';
+    modalEditCliente.style.display = 'flex';
+  };
+  document.getElementById('closeEditCliente').onclick = () => {
+    modalEditCliente.style.display = 'none';
+  };
+
+  const guardarEditBtn = document.getElementById('guardarEditCliente');
+  guardarEditBtn.onclick = () => {
+    const nuevoNombre = document.getElementById('editNombre').value.trim();
+    const nuevaLocalidad = document.getElementById('editLocalidad').value.trim();
+    const nuevaDireccion = document.getElementById('editDireccion').value.trim();
+    const nuevaProvincia = document.getElementById('editProvincia').value;
+    const nuevoDni = document.getElementById('editDni').value.trim();
+    const nuevoTelefono = document.getElementById('editTelefono').value.trim();
+    const email = document.getElementById('editEmail').value.trim();
+    if (!nuevoNombre || !email) {
+      alert('Los campos Nombre y Email son obligatorios.');
+      return;
+    }
+    pedidoRef.update({
+      'cliente/nombre': nuevoNombre,
+      'cliente/localidad': nuevaLocalidad,
+      'cliente/direccion': nuevaDireccion,
+      'cliente/provincia': nuevaProvincia,
+      'cliente/dni': nuevoDni,
+      'cliente/telefono': nuevoTelefono,
+      'cliente/email': email
+    }).then(() => {
+      if (email) {
+        db.ref('clientes').orderByChild('email').equalTo(email).once('value')
+          .then(snap => {
+            const updates = {};
+            if (snap.exists()) {
+              Object.keys(snap.val()).forEach(key => {
+                updates[key + '/nombre'] = nuevoNombre;
+                updates[key + '/localidad'] = nuevaLocalidad;
+                updates[key + '/direccion'] = nuevaDireccion;
+                updates[key + '/provincia'] = nuevaProvincia;
+                updates[key + '/dni'] = nuevoDni;
+                updates[key + '/telefono'] = nuevoTelefono;
+              });
+            } else {
+              const nuevoCliente = {
+                nombre: nuevoNombre,
+                localidad: nuevaLocalidad,
+                direccion: nuevaDireccion,
+                provincia: nuevaProvincia,
+                dni: nuevoDni,
+                telefono: nuevoTelefono,
+                email: email
+              };
+              const nuevoKey = db.ref('clientes').push().key;
+              updates[nuevoKey] = nuevoCliente;
+            }
+            return db.ref('clientes').update(updates);
+          })
+          .then(() => {
+            alert('Datos del cliente actualizados');
+            modalEditCliente.style.display = 'none';
+          });
+      } else {
+        alert('Datos del cliente actualizados');
+        modalEditCliente.style.display = 'none';
+      }
+    });
+  };
+
+  modalEditCliente.addEventListener('mousedown', function(e) {
+    if (e.target === modalEditCliente) {
+      modalEditCliente.style.display = 'none';
+    }
+  });
+
+</script>
+
+</body>
+</html>
