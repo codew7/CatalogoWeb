@@ -304,102 +304,229 @@
 
         .categories-grid {
             display: grid;
-            gap: 1rem;
-            max-height: 500px;
-            overflow-y: auto;
-            padding: 0.5rem;
-        }
-
-        .categories-grid::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .categories-grid::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-
-        .categories-grid::-webkit-scrollbar-thumb {
-            background: #4CAF50;
-            border-radius: 4px;
+            gap: 0.6rem;
+            max-height: none;
+            overflow-y: visible;
+            padding: 0;
         }
 
         .category-item {
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            padding: 1.2rem;
-            transition: all 0.3s ease;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 0.9rem 1rem;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
 
-        .category-item:hover {
-            border-color: #4CAF50;
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.1);
+        .category-item:active {
+            transform: scale(0.99);
         }
 
         .category-item.active {
-            border-color: #4CAF50;
-            background: #f1f8f4;
-        }
-
-        .category-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.8rem;
+            border-left-color: #4CAF50;
+            background: #f7fdf7;
         }
 
         .category-name {
             font-weight: 600;
             color: #333;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            font-size: 0.92rem;
+            flex: 1;
+            min-width: 0;
+            line-height: 1.3;
         }
 
-        .category-code {
-            background: #4CAF50;
-            color: white;
-            padding: 0.3rem 0.7rem;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
+        .category-name span {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .category-input-group {
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-        }
-
-        .category-checkbox {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            accent-color: #4CAF50;
+            gap: 0.3rem;
+            flex-shrink: 0;
         }
 
         .category-percentage {
-            flex: 1;
-            padding: 0.7rem;
+            width: 70px;
+            padding: 0.5rem 0.4rem;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: #fafafa;
+            -moz-appearance: textfield;
+        }
+
+        .category-percentage::-webkit-outer-spin-button,
+        .category-percentage::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
 
         .category-percentage:focus {
             outline: none;
             border-color: #4CAF50;
+            background: white;
             box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
         }
 
-        .category-percentage:disabled {
-            background: #f5f5f5;
-            cursor: not-allowed;
-            opacity: 0.6;
+        .percentage-symbol {
+            font-weight: 600;
+            color: #888;
+            font-size: 0.95rem;
+        }
+
+        /* Style Selection */
+        .style-section {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+        }
+
+        .style-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .style-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            text-align: center;
+        }
+
+        .style-card:hover {
+            border-color: #4CAF50;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+
+        .style-card.selected {
+            border-color: #4CAF50;
+            background: #f0faf0;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+        }
+
+        .style-check {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 1.2rem;
+            color: #ccc;
+            transition: color 0.3s ease;
+        }
+
+        .style-card.selected .style-check {
+            color: #4CAF50;
+        }
+
+        .style-preview {
+            width: 100%;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 0.6rem;
+            position: relative;
+        }
+
+        .style-preview .sp-header {
+            height: 25px;
+            width: 100%;
+        }
+
+        .style-preview .sp-body {
+            display: flex;
+            gap: 6px;
+            padding: 6px;
+            height: calc(100% - 25px);
+        }
+
+        .style-preview .sp-card {
+            flex: 1;
+            border-radius: 4px;
+        }
+
+        /* Preview 1 - Clásico */
+        .style-preview-1 { background: #f5f5f5; }
+        .style-preview-1 .sp-header { background: linear-gradient(270deg, #44484c, #b50b9e, #44484c); }
+        .style-preview-1 .sp-card { background: #fff; border: 1px solid #ddd; }
+
+        /* Preview 2 - Rosado Suave */
+        .style-preview-2 { background: #fdf2f8; }
+        .style-preview-2 .sp-header { background: linear-gradient(270deg, #9d174d, #ec4899, #9d174d); }
+        .style-preview-2 .sp-card { background: #fff; border: 1px solid #f9a8d4; }
+
+        /* Preview 3 - Azul Profesional */
+        .style-preview-3 { background: #eef2f7; }
+        .style-preview-3 .sp-header { background: linear-gradient(270deg, #1e3a5f, #4a90d9, #1e3a5f); }
+        .style-preview-3 .sp-card { background: #fff; border: 1px solid #c8d8e8; }
+
+        /* Preview 4 - Verde Natural */
+        .style-preview-4 { background: #f0f4e8; }
+        .style-preview-4 .sp-header { background: linear-gradient(270deg, #2d5016, #6b8f3c, #2d5016); }
+        .style-preview-4 .sp-card { background: #fff; border: 1px solid #c5d4a8; }
+
+        /* Preview 5 - Cálido */
+        .style-preview-5 { background: #fdf6ee; }
+        .style-preview-5 .sp-header { background: linear-gradient(270deg, #8b4513, #d2691e, #8b4513); }
+        .style-preview-5 .sp-card { background: #fff8f0; border: 1px solid #e0c9a6; }
+
+        /* Preview 6 - Nocturno */
+        .style-preview-6 { background: #0d0d1a; }
+        .style-preview-6 .sp-header { background: linear-gradient(270deg, #1a0a2e, #8b5cf6, #1a0a2e); }
+        .style-preview-6 .sp-card { background: #1a1a2e; border: 1px solid #2d2b55; }
+
+        .style-label {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .style-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #333;
+        }
+
+        .style-desc {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        @media (max-width: 480px) {
+            .style-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.6rem;
+            }
+            .style-preview {
+                height: 60px;
+            }
+            .style-name {
+                font-size: 0.85rem;
+            }
+            .style-desc {
+                font-size: 0.72rem;
+            }
         }
 
         .loading-categories {
@@ -564,6 +691,57 @@
             transform: translateY(-2px);
         }
 
+        .url-warning {
+            background: #fff8e1;
+            border-left: 4px solid #ffa000;
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: #8d6e00;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .url-warning i {
+            color: #ffa000;
+            margin-right: 0.3rem;
+        }
+
+        .preview-btn, .back-edit-btn {
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .preview-btn {
+            background: linear-gradient(135deg, #9C27B0 0%, #BA68C8 100%);
+            color: white;
+        }
+
+        .preview-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(156, 39, 176, 0.3);
+        }
+
+        .back-edit-btn {
+            background: linear-gradient(135deg, #607D8B 0%, #90A4AE 100%);
+            color: white;
+        }
+
+        .back-edit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(96, 125, 139, 0.3);
+        }
+
         /* Info Cards */
         .info-section {
             max-width: 700px;
@@ -702,10 +880,14 @@
                 font-size: 1.1rem;
             }
 
-            .category-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
+            .category-name {
+                font-size: 0.88rem;
+            }
+
+            .category-percentage {
+                width: 64px;
+                padding: 0.45rem 0.3rem;
+                font-size: 0.95rem;
             }
 
             .generate-btn {
@@ -742,7 +924,29 @@
 
         @media (max-width: 480px) {
             .form-container {
-                padding: 1.5rem;
+                padding: 1.2rem;
+                margin: 1.5rem 0.5rem;
+            }
+
+            .categories-section {
+                padding-top: 1.2rem;
+            }
+
+            .category-item {
+                padding: 0.75rem 0.8rem;
+                gap: 0.6rem;
+                border-radius: 8px;
+            }
+
+            .category-name {
+                font-size: 0.85rem;
+            }
+
+            .category-percentage {
+                width: 60px;
+                padding: 0.4rem 0.25rem;
+                font-size: 0.9rem;
+                border-radius: 6px;
             }
 
             .result-container {
@@ -766,9 +970,230 @@
         }
     </style>
     <script type="module" src="personalizacion.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.style-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.style-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    this.querySelector('input[type="radio"]').checked = true;
+                });
+            });
+        });
+    </script>
+    <style>
+        /* Welcome Popup */
+        .welcome-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+            padding: 1rem;
+            backdrop-filter: blur(4px);
+            animation: fadeInOverlay 0.3s ease;
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .welcome-popup {
+            background: white;
+            border-radius: 20px;
+            max-width: 520px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+            animation: popIn 0.35s ease;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.92) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .welcome-header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            padding: 1.8rem 2rem 1.5rem;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+            color: white;
+        }
+
+        .welcome-header .version-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 0.8rem;
+        }
+
+        .welcome-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 0.3rem;
+        }
+
+        .welcome-header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .welcome-body {
+            padding: 1.8rem 2rem;
+        }
+
+        .welcome-body p {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #555;
+            margin: 0 0 1rem;
+        }
+
+        .welcome-body strong {
+            color: #333;
+        }
+
+        .welcome-note {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            font-size: 0.88rem;
+            color: #2e7d32;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .welcome-note i {
+            margin-right: 0.3rem;
+        }
+
+        .welcome-video-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #FF0000 0%, #cc0000 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            transition: all 0.3s ease;
+            margin-bottom: 0.8rem;
+        }
+
+        .welcome-video-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 0, 0.25);
+        }
+
+        .welcome-video-container {
+            display: none;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            background: #000;
+        }
+
+        .welcome-video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .welcome-close-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .welcome-close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        @media (max-width: 480px) {
+            .welcome-popup {
+                border-radius: 16px;
+            }
+            .welcome-header {
+                padding: 1.4rem 1.2rem 1.2rem;
+                border-radius: 16px 16px 0 0;
+            }
+            .welcome-header h2 {
+                font-size: 1.25rem;
+            }
+            .welcome-body {
+                padding: 1.3rem 1.2rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
+
+    <!-- Welcome Popup -->
+    <div id="welcomeOverlay" class="welcome-overlay" style="display: none;">
+        <div class="welcome-popup">
+            <div class="welcome-header">
+                <div class="version-badge">VERSIÓN 2.0</div>
+                <h2>Bienvenido al Catálogo Personalizado</h2>
+                <p>Distribuidora HomePoint</p>
+            </div>
+            <div class="welcome-body">
+                <p>
+                    Con esta herramienta podés crear <strong>tu propio catálogo</strong> basado en los productos de Distribuidora HomePoint, personalizado con tus datos y márgenes de ganancia.
+                </p>
+                <p>
+                    Los márgenes se asignan por grupo de productos según una escala de valores. Una vez generado, compartí el enlace con tus clientes para que vean los productos y precios, y luego realizá tu pedido a la distribuidora.
+                </p>
+                <div class="welcome-note">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Importante:</strong> Este catálogo es una herramienta de consulta y venta. No se trata de un sistema de dropshipping ni de compra directa.
+                </div>
+
+                <button class="welcome-video-btn" id="welcomeVideoBtn">
+                    <i class="fab fa-youtube"></i>
+                    Ver Video Explicativo
+                </button>
+
+                <div class="welcome-video-container" id="welcomeVideoContainer">
+                    <iframe id="welcomeVideoIframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+
+                <button class="welcome-close-btn" id="welcomeCloseBtn">
+                    <i class="fas fa-check-circle"></i>
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5P63433D"
@@ -798,60 +1223,58 @@
         <div class="form-container">
             <h2 class="form-title">🎯 Configuración Personalizada</h2>
             <p class="form-description">
-                Completa el nombre del catálogo y selecciona las categorías con sus respectivos porcentajes de ganancia.
+                Completa el nombre del catálogo y selecciona los grupos con sus respectivos porcentajes de ganancia.
             </p>
 
             <form id="customizationForm">
-                <div class="form-group">
-                    <label for="catalogName">
-                        <i class="fas fa-tag"></i> Nombre del Catálogo
-                    </label>
-                    <input 
-                        type="text" 
-                        id="catalogName" 
-                        name="catalogName" 
-                        placeholder="Ej: Mi Negocio, Distribuidora ABC, etc."
-                        maxlength="50"
-                        required
-                    >
-                    <div class="form-help">
-                        📝 Este nombre aparecerá como título en el catálogo
-                    </div>
-                </div>
-
-                <!-- Client Information Section -->
+                <!-- Datos del Revendedor -->
                 <div class="client-info-section">
                     <h3 class="section-subtitle">
-                        <i class="fas fa-user-circle"></i> Información del Cliente
+                        <i class="fas fa-user-circle"></i> Datos del Revendedor
                     </h3>
-                    <p class="info-notice">
-                        <i class="fas fa-info-circle"></i> 
-                        <strong>Nota:</strong> Estos datos son de uso interno exclusivo de HomePoint para el registro y gestión de catálogos personalizados. 
-                        No serán visibles en su catálogo público ni compartidos con terceros.
-                    </p>
+
+                    <div class="form-group">
+                        <label for="catalogName">
+                            <i class="fas fa-tag"></i> Nombre del Catálogo
+                        </label>
+                        <input
+                            type="text"
+                            id="catalogName"
+                            name="catalogName"
+                            placeholder="Ej: Mi Negocio, Distribuidora ABC, etc."
+                            maxlength="50"
+                            required
+                        >
+                        <div class="form-help">
+                            Este nombre aparecerá como título visible en tu catálogo.
+                        </div>
+                    </div>
 
                     <div class="form-group">
                         <label for="clientName">
                             <i class="fas fa-user"></i> Nombre Completo
                         </label>
-                        <input 
-                            type="text" 
-                            id="clientName" 
-                            name="clientName" 
+                        <input
+                            type="text"
+                            id="clientName"
+                            name="clientName"
                             placeholder="Ej: Juan Pérez"
                             maxlength="100"
                             required
                         >
+                        <div class="form-help">
+                            Dato interno de la distribuidora para identificar al revendedor. No será visible para el comprador.
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="clientPhone">
                             <i class="fas fa-phone"></i> Teléfono de Contacto
                         </label>
-                        <input 
-                            type="tel" 
-                            id="clientPhone" 
-                            name="clientPhone" 
+                        <input
+                            type="tel"
+                            id="clientPhone"
+                            name="clientPhone"
                             placeholder="Ej: 5491112345678"
                             maxlength="20"
                             pattern="[0-9]*"
@@ -859,7 +1282,111 @@
                             required
                         >
                         <div class="form-help">
+                            Tus clientes podrán contactarte por WhatsApp desde el catálogo a través de este número.
                         </div>
+                    </div>
+                </div>
+
+                <!-- Style Selection Section -->
+                <div class="style-section">
+                    <h3 class="section-subtitle">
+                        <i class="fas fa-palette"></i> Estilo Visual del Catálogo
+                    </h3>
+                    <p class="info-notice">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Elegí el estilo visual</strong> que tendrá tu catálogo. Podés ver una vista previa de cada uno antes de decidir.
+                    </p>
+                    <div class="style-grid">
+                        <label class="style-card selected" data-style="1">
+                            <input type="radio" name="catalogStyle" value="1" checked hidden>
+                            <div class="style-preview style-preview-1">
+                                <div class="sp-header"></div>
+                                <div class="sp-body">
+                                    <div class="sp-card"></div>
+                                    <div class="sp-card"></div>
+                                </div>
+                            </div>
+                            <div class="style-label">
+                                <span class="style-name">Clásico</span>
+                                <span class="style-desc">Gris y magenta</span>
+                            </div>
+                            <div class="style-check"><i class="fas fa-check-circle"></i></div>
+                        </label>
+                        <label class="style-card" data-style="2">
+                            <input type="radio" name="catalogStyle" value="2" hidden>
+                            <div class="style-preview style-preview-2">
+                                <div class="sp-header"></div>
+                                <div class="sp-body">
+                                    <div class="sp-card"></div>
+                                    <div class="sp-card"></div>
+                                </div>
+                            </div>
+                            <div class="style-label">
+                                <span class="style-name">Rosado</span>
+                                <span class="style-desc">Suave y femenino</span>
+                            </div>
+                            <div class="style-check"><i class="fas fa-check-circle"></i></div>
+                        </label>
+                        <label class="style-card" data-style="3">
+                            <input type="radio" name="catalogStyle" value="3" hidden>
+                            <div class="style-preview style-preview-3">
+                                <div class="sp-header"></div>
+                                <div class="sp-body">
+                                    <div class="sp-card"></div>
+                                    <div class="sp-card"></div>
+                                </div>
+                            </div>
+                            <div class="style-label">
+                                <span class="style-name">Profesional</span>
+                                <span class="style-desc">Azul corporativo</span>
+                            </div>
+                            <div class="style-check"><i class="fas fa-check-circle"></i></div>
+                        </label>
+                        <label class="style-card" data-style="4">
+                            <input type="radio" name="catalogStyle" value="4" hidden>
+                            <div class="style-preview style-preview-4">
+                                <div class="sp-header"></div>
+                                <div class="sp-body">
+                                    <div class="sp-card"></div>
+                                    <div class="sp-card"></div>
+                                </div>
+                            </div>
+                            <div class="style-label">
+                                <span class="style-name">Natural</span>
+                                <span class="style-desc">Verde terroso</span>
+                            </div>
+                            <div class="style-check"><i class="fas fa-check-circle"></i></div>
+                        </label>
+                        <label class="style-card" data-style="5">
+                            <input type="radio" name="catalogStyle" value="5" hidden>
+                            <div class="style-preview style-preview-5">
+                                <div class="sp-header"></div>
+                                <div class="sp-body">
+                                    <div class="sp-card"></div>
+                                    <div class="sp-card"></div>
+                                </div>
+                            </div>
+                            <div class="style-label">
+                                <span class="style-name">Cálido</span>
+                                <span class="style-desc">Terracota y crema</span>
+                            </div>
+                            <div class="style-check"><i class="fas fa-check-circle"></i></div>
+                        </label>
+                        <label class="style-card" data-style="6">
+                            <input type="radio" name="catalogStyle" value="6" hidden>
+                            <div class="style-preview style-preview-6">
+                                <div class="sp-header"></div>
+                                <div class="sp-body">
+                                    <div class="sp-card"></div>
+                                    <div class="sp-card"></div>
+                                </div>
+                            </div>
+                            <div class="style-label">
+                                <span class="style-name">Nocturno</span>
+                                <span class="style-desc">Violeta y neón</span>
+                            </div>
+                            <div class="style-check"><i class="fas fa-check-circle"></i></div>
+                        </label>
                     </div>
                 </div>
 
@@ -867,15 +1394,14 @@
                 <div class="categories-section">
                     <div class="categories-header">
                         <h3 class="categories-title">
-                            <i class="fas fa-layer-group"></i> Categorías y Porcentajes
+                            <i class="fas fa-layer-group"></i> Grupos y Porcentajes
                         </h3>
                     </div>
 
                     <div class="categories-info">
                         <strong>ℹ️ Instrucciones:</strong><br>
-                        • Marca las categorías que deseas incluir en el catálogo<br>
-                        • Asigna un porcentaje de ganancia a cada categoría seleccionada (0-100%)<br>
-                        • Las categorías no seleccionadas no aparecerán en el catálogo
+                        • Cada grupo ya tiene un porcentaje sugerido. Si estás de acuerdo, no es necesario modificarlo<br>
+                        • Si preferís un porcentaje distinto, simplemente escribí el valor que desees (entre 0 y 999)
                     </div>
 
                     <div id="categoriesContainer">
@@ -898,10 +1424,26 @@
             <h3 class="result-title">
                 <i class="fas fa-check-circle"></i> ¡Enlace Generado!
             </h3>
-            
+
             <div id="urlDisplay" class="url-display"></div>
-            
+
+            <p class="url-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                Copiá y guardá este enlace. Es la única forma de acceder a tu catálogo y compartirlo.
+            </p>
+
             <div class="action-buttons">
+                <button class="preview-btn" onclick="previewCatalog()">
+                    <i class="fas fa-eye"></i>
+                    Vista Previa
+                </button>
+                <button class="back-edit-btn" onclick="backToEdit()">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver a Editar
+                </button>
+            </div>
+
+            <div class="action-buttons" style="margin-top: 1rem;">
                 <button class="copy-btn" onclick="copyUrl()">
                     <i class="fas fa-copy"></i>
                     Copiar Enlace
@@ -958,8 +1500,8 @@
             
             <div class="info-card">
                 <i class="fas fa-layer-group"></i>
-                <h3>Categorías Personalizadas</h3>
-                <p>Selecciona solo las categorías que deseas mostrar y asigna un porcentaje de ganancia diferente a cada una.</p>
+                <h3>Grupos Personalizados</h3>
+                <p>Selecciona solo los grupos que deseas mostrar y asigna un porcentaje de ganancia diferente a cada uno.</p>
             </div>
 
             <div class="info-card">
