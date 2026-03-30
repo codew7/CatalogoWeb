@@ -1,1 +1,443 @@
-let _0x284119=_0x1b21;!function($,x){let e=_0x1b21,t=$();for(;;)try{let a=-parseInt(e(508))/1*(parseInt(e(555))/2)+-parseInt(e(588))/3*(-parseInt(e(516))/4)+parseInt(e(620))/5+-parseInt(e(564))/6+parseInt(e(553))/7+parseInt(e(521))/8+-parseInt(e(488))/9*(parseInt(e(529))/10);if(401016===a)break;t.push(t.shift())}catch(o){t.push(t.shift())}}(_0x141e,401016);import{initializeApp as $}from"https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";import{getDatabase as x,ref as e,push as t,set as a}from"https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";function _0x141e(){let $=["previewCatalog","body","catch","display","charCodeAt","Enter","value","submit","click","createElement","flex","⚠️ Por favor, completa el nombre del cat\xe1logo","smooth","✅ Datos guardados en Firebase correctamente","18Lccqri","toISOString","cat-","categoriesContainer","resultContainer",'\n                <div class="loading-categories">\n                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #ff9800; margin-bottom: 1rem;"></i>\n                    <p>Error al cargar los grupos</p>\n                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">',"active","then","Error al decodificar formato binario:","removeChild","clientPhone","target","push","⚠️ Por favor, ingresa una URL v\xe1lida","writeText",'\n        <div class="loading-categories">\n            <div class="loading-spinner"></div>\n            <p>Cargando grupos...</p>\n        </div>\n    ',"existingUrl","notification",".form-container","percent-","42667fRjpDv","toggleEditSection","editContent","backToEdit","✅ Configuraci\xf3n cargada exitosamente!\n\nNombre: ","querySelector","has","block","1143356AfMaIR","appendChild","?n=","catalogName","scrollIntoView","1518760diSvrU","AIzaSyD9h4SH9laGhvh-NRhDjYgbCThVEbM8HTo","RANGO","Ej: 30",'input[name="catalogStyle"]:checked',"_blank","placeholder","percentage","1526360vQTgww","\n        </div>\n    ","Grupos!A2:D","error","textarea","replace","/values/","10QcnEi_INRU6Fn0UbdluXQC5KrU3JptMx5Y2ODF8OPg",'">\n                    <div class="category-name">\n                        <span>',"⚠️ No se pudieron cargar los grupos de la URL. Verifica que los c\xf3digos sean correctos.","copyUrl","welcomeOverlay","No se encontraron datos en la hoja.","forEach","show","https://registrocatalogopersonalizado-default-rtdb.firebaseio.com","\nTel\xe9fono: ","size","open","⚠️ Por favor, completa tu nombre completo","input","substring",'"\n                            placeholder="',"remove","5608652JQuBvW",".form-container:first-of-type","16ETdwZM","execCommand","registrocatalogopersonalizado.firebaseapp.com","⚠️ Error al decodificar la configuraci\xf3n. URL inv\xe1lida o corrupta.",".style-card","search","center","length","which","3510228ECnpZa","preventDefault","focus","visitCatalog",'"\n                            min="0"\n                            max="999"\n                            step="1"\n                        >\n                        <span class="percentage-symbol">%</span>\n                    </div>\n                </div>\n            ','\n            <div class="no-categories">\n                <i class="fas fa-inbox" style="font-size: 2rem; color: #999; margin-bottom: 1rem;"></i>\n                <p>No se encontraron grupos disponibles</p>\n            </div>\n        ',"?autoplay=1","getElementById","test","SPREADSHEET_ID","name","normalize","includes","trim","</p>\n                </div>\n            ","Error al cargar los grupos:",'input[name="catalogStyle"][value="',"782674065763","DOMContentLoaded",'</span>\n                    </div>\n                    <div class="category-input-group">\n                        <input\n                            type="number"\n                            class="category-percentage"\n                            id="percent-',"AIzaSyDwiZWDc66tv4usDIA-IreiJMLFuk0236Q","style","toLowerCase","add","6ltwABV","addEventListener","&t=","welcomeVideoContainer","VIDEO_ID_AQUI",'" debe estar entre 0 y 999',"customizationForm","⚠️ La URL no contiene configuraci\xf3n de grupos v\xe1lida","statusText","closest","https://www.youtube.com/embed/","log","⏳ Esperando a que se carguen los grupos. Por favor, intenta de nuevo en unos segundos.","fromCharCode","⚠️ Por favor, completa tu tel\xe9fono","NFD","\nGrupos: ","clearForm","keypress","innerHTML","clientName","scrollToForm","get","&v=2&c=","querySelectorAll","catalogos","textContent","json","none","checked","code","classList","349515XiMvaN","❌ Error al guardar en Firebase:","values"];return(_0x141e=function(){return $})()}let firebaseConfig={apiKey:_0x284119(584),authDomain:_0x284119(557),databaseURL:_0x284119(544),projectId:"registrocatalogopersonalizado",storageBucket:"registrocatalogopersonalizado.firebasestorage.app",messagingSenderId:_0x284119(581),appId:"1:782674065763:web:7f1112d846bbf98ca9bb56"},app=$(firebaseConfig),database=x(app),G_S_CONFIG={API_KEY:_0x284119(522),SPREADSHEET_ID:_0x284119(536),RANGO:_0x284119(531)},generatedUrl="",allCategories=[];function normalizeCode($){let x=_0x284119;return $[x(586)]()[x(575)](x(603))[x(534)](/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"-")[x(534)](/-+/g,"-")[x(534)](/^-|-$/g,"").substring(0,20)}function setupPhoneValidation(){let $=_0x284119,x=document[$(571)]($(498));x&&(x[$(589)]("input",function(){let x=$;this[x(480)]=this[x(480)][x(534)](/[^0-9]/g,"")}),x[$(589)]($(606),function(x){let e=$;/[0-9]/[e(572)](String[e(601)](x[e(563)]))||x[e(565)]()}))}let WELCOME_VIDEO_ID=_0x284119(592);function showWelcomePopup(){let $=_0x284119,x=document.getElementById($(540));x&&(x[$(585)][$(477)]=$(484),document[$(571)]("welcomeVideoBtn")[$(589)]($(482),function(){let x=$,e=document[x(571)](x(591)),t=document[x(571)]("welcomeVideoIframe");("none"===e[x(585)].display||""===e[x(585)][x(477)])&&(t.src=x(598)+WELCOME_VIDEO_ID+x(570),e.style.display=x(515),this[x(585)][x(477)]=x(616))}),document[$(571)]("welcomeCloseBtn")[$(589)]($(482),function(){let e=$,t=document[e(571)]("welcomeVideoIframe");t.src="",x.style[e(477)]=e(616)}))}function showNotification(){let $=_0x284119,x=document[$(571)]($(505));x[$(619)][$(587)]("show"),setTimeout(()=>x[$(619)][$(552)]($(543)),3e3)}function encodeCategoriesBinary($){let x=_0x284119,e="";return $[x(542)]($=>{let t=x,a=$.code;e+=String[t(601)](a[t(562)]);for(let o=0;o<a[t(562)];o++)e+=a[o];e+=String[t(601)]($.percentage>>8&255),e+=String.fromCharCode(255&$[t(528)])}),btoa(e)}function decodeCategoriesBinary($){let x=_0x284119,e=new Map;try{let t=atob($),a=0;for(;a<t[x(562)];){let o=t.charCodeAt(a);a++;let r="";for(let n=0;n<o;n++)r+=t[a],a++;let l=t[x(478)](a);a++;let i=t[x(478)](a);a++,e.set(r,l<<8|i)}}catch(_){console.error(x(496),_)}return e}function loadCategories(){let $=_0x284119,x=document[$(571)]($(491));x[$(607)]=$(503);let e="https://sheets.googleapis.com/v4/spreadsheets/"+G_S_CONFIG[$(573)]+$(535)+G_S_CONFIG[$(523)]+"?key="+G_S_CONFIG.API_KEY;fetch(e)[$(495)](x=>{let e=$;if(!x.ok)throw Error("Error al acceder a la API: "+x[e(596)]);return x[e(615)]()}).then(x=>{let e=$,t=x[e(473)];if(!t||0===t.length)throw Error(e(541));let a=new Set,o=[];if(t[e(542)]($=>{let x=e,t=$[0]?$[0][x(577)]():"",r=$[2]?$[2][x(577)]():"",n=$[3]?$[3].trim():"";if(!t)return;let l=/^[\x20-\x7E]+$/[x(572)](r),i=r&&l?r:normalizeCode(t);a[x(514)](i)||(a[x(587)](i),o[x(500)]({code:i,name:t,placeholder:n}))}),0===o[e(562)])throw Error("No se encontraron grupos v\xe1lidos en la hoja.");allCategories=o,renderCategories()})[$(476)](e=>{let t=$;console[t(532)](t(579),e),x[t(607)]=t(493)+e.message+t(578)})}function _0x1b21($,x){$-=472;let e=_0x141e();return e[$]}function renderCategories(){let $=_0x284119,x=document[$(571)]("categoriesContainer");if(0===allCategories[$(562)]){x[$(607)]=$(569);return}x[$(607)]='\n        <div class="categories-grid">\n            '+allCategories.map(x=>'\n                <div class="category-item" id="cat-'+x.code+$(537)+x.name+$(583)+x[$(618)]+$(551)+(x[$(527)]||$(524))+$(568)).join("")+$(530),allCategories[$(542)](x=>{let e=$,t=document[e(571)](e(507)+x[e(618)]),a=document.getElementById(e(490)+x[e(618)]);t&&a&&t[e(589)](e(549),function(){let $=e;""!==this[$(480)]?a.classList[$(587)]($(494)):a[$(619)][$(552)]("active")})})}function loadFromUrl(){let $=_0x284119,x=document[$(571)]($(504)).value[$(577)]();if(!x){alert($(501));return}try{let e=new URL(x),t=new URLSearchParams(e[$(560)]),a=t[$(610)]("n");if(!a){alert("⚠️ La URL no contiene un nombre de cat\xe1logo v\xe1lido");return}document[$(571)]($(519)).value=decodeURIComponent(a);let o=t[$(610)]("t");o&&(document[$(571)]("clientPhone")[$(480)]=o);let r=t[$(610)]("s");if(r&&["1","2","3","4","5","6"][$(576)](r)){let n=document[$(513)]($(580)+r+'"]');n&&(n[$(617)]=!0,document[$(612)]($(559))[$(542)](x=>x[$(619)].remove("selected")),n[$(597)]($(559))[$(619)][$(587)]("selected"))}let l=t.get("c");if(!l){alert($(595));return}let i=decodeCategoriesBinary(l);if(0===i[$(546)]){alert($(558));return}if(0===allCategories.length){alert($(600));return}allCategories[$(542)](x=>{let e=$,t=document.getElementById(e(507)+x[e(618)]),a=document[e(571)](e(490)+x.code);t&&(t.value=""),a&&a[e(619)][e(552)](e(494))});let _=0;if(i.forEach((x,e)=>{let t=$,a=document[t(571)](t(507)+e),o=document.getElementById(t(490)+e);a&&(a[t(480)]=x,o&&o[t(619)][t(587)](t(494)),_++)}),_>0){let s=$(512)+decodeURIComponent(a);o&&(s+=$(545)+o),s+=$(604)+_,alert(s),document.getElementById($(504))[$(480)]="",scrollToForm()}else alert($(538))}catch(c){console[$(532)]("Error al parsear la URL:",c),alert("⚠️ La URL ingresada no es v\xe1lida. Por favor, verifica e intenta nuevamente.")}}function scrollToForm(){let $=_0x284119,x=document[$(513)]($(554));x&&x[$(520)]({behavior:$(486),block:"start"})}function toggleEditSection(){let $=_0x284119,x=document[$(571)]($(510)),e=document.getElementById("toggleIcon");x[$(585)][$(477)]===$(616)||""===x.style.display?(x[$(585)][$(477)]=$(515),e.classList[$(587)]("rotate")):(x.style[$(477)]=$(616),e[$(619)][$(552)]("rotate"))}function clearForm(){let $=_0x284119;document[$(571)]($(519))[$(480)]="",allCategories[$(542)](x=>{let e=$,t=document[e(571)]("percent-"+x[e(618)]),a=document[e(571)](e(490)+x[e(618)]);t&&(t[e(480)]=""),a&&a[e(619)][e(552)](e(494))}),document[$(571)]($(492))[$(585)][$(477)]=$(616),document[$(571)]($(519))[$(566)]()}async function saveToFirebase($){let x=_0x284119;try{let o=e(database,x(613)),r=t(o);return await a(r,$),console[x(599)](x(487)),!0}catch(n){return console.error(x(472),n),alert("⚠️ Hubo un error al guardar la informaci\xf3n. El cat\xe1logo se generar\xe1 de todas formas."),!1}}function copyUrl(){let $=_0x284119;generatedUrl&&navigator.clipboard[$(502)](generatedUrl)[$(495)](function(){showNotification()}).catch(function(){let x=$,e=document[x(483)](x(533));e[x(480)]=generatedUrl,document.body[x(517)](e),e.select(),document[x(556)]("copy"),document[x(475)][x(497)](e),showNotification()})}function visitCatalog(){let $=_0x284119;generatedUrl&&window[$(547)](generatedUrl,$(526))}function previewCatalog(){let $=_0x284119;if(generatedUrl)try{let x=new URL(generatedUrl),e="preview.html"+x[$(560)];window[$(547)](e,"_blank")}catch(t){window[$(547)](generatedUrl,"_blank")}}function backToEdit(){let $=_0x284119;document.getElementById("resultContainer")[$(585)].display=$(616),document[$(513)]($(506)).scrollIntoView({behavior:"smooth",block:"start"})}window[_0x284119(589)](_0x284119(582),function(){let $=_0x284119;document[$(571)]($(505))[$(619)].remove($(543)),loadCategories(),setupPhoneValidation(),showWelcomePopup()}),window.loadFromUrl=loadFromUrl,window[_0x284119(609)]=scrollToForm,window[_0x284119(509)]=toggleEditSection,window[_0x284119(605)]=clearForm,window[_0x284119(539)]=copyUrl,window[_0x284119(567)]=visitCatalog,window[_0x284119(474)]=previewCatalog,window[_0x284119(511)]=backToEdit,document[_0x284119(571)](_0x284119(594)).addEventListener(_0x284119(481),async function($){let x=_0x284119;$[x(565)]();let e=document[x(571)]("catalogName")[x(480)].trim(),t=document.getElementById(x(608))[x(480)][x(577)](),a=document[x(571)](x(498))[x(480)][x(577)]();if(!e){alert(x(485));return}if(!t){alert(x(548));return}if(!a){alert(x(602));return}let o=[],r=!1;for(let n of allCategories){let l=document[x(571)](x(507)+n[x(618)]);if(!l)continue;let i=l[x(480)][x(577)]();""===i&&(i=l[x(527)]||"0");let _=parseInt(i);if(isNaN(_)||_<0||_>999){alert('⚠️ El porcentaje de "'+n[x(574)]+x(593)),l[x(566)](),r=!0;break}o[x(500)]({code:n[x(618)],percentage:_})}if(r)return;let s=encodeCategoriesBinary(o),c=encodeURIComponent(e),d=document[x(513)](x(525)),f=d?d.value:"1";generatedUrl="https://catalogo.dev.ar/"+x(518)+c+x(590)+a+"&s="+f+x(611)+s;let g={catalogName:e,clientName:t,clientPhone:a,url:generatedUrl,createdAt:new Date()[x(489)]()};await saveToFirebase(g),document.getElementById("urlDisplay")[x(614)]=generatedUrl,document[x(571)](x(492)).style[x(477)]=x(515),document.getElementById(x(492))[x(520)]({behavior:x(486),block:x(561)})}),document[_0x284119(571)](_0x284119(519)).addEventListener(_0x284119(549),function(){let $=_0x284119;this[$(480)].length>50&&(this[$(480)]=this.value[$(550)](0,50))}),document.getElementById(_0x284119(504))[_0x284119(589)]("keypress",function($){let x=_0x284119;$.key===x(479)&&($[x(565)](),loadFromUrl())}),document[_0x284119(589)]("input",function($){let x=_0x284119;if($.target.classList.contains("category-percentage")){$.target.value[x(562)]>3&&($[x(499)][x(480)]=$[x(499)][x(480)].substring(0,3));let e=parseInt($.target[x(480)]);!isNaN(e)&&(e<0?$[x(499)].value=0:e>999&&($.target[x(480)]=999))}});
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDwiZWDc66tv4usDIA-IreiJMLFuk0236Q",
+    authDomain: "registrocatalogopersonalizado.firebaseapp.com",
+    databaseURL: "https://registrocatalogopersonalizado-default-rtdb.firebaseio.com",
+    projectId: "registrocatalogopersonalizado",
+    storageBucket: "registrocatalogopersonalizado.firebasestorage.app",
+    messagingSenderId: "782674065763",
+    appId: "1:782674065763:web:7f1112d846bbf98ca9bb56"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+const G_S_CONFIG = {
+    API_KEY: "AIzaSyD9h4SH9laGhvh-NRhDjYgbCThVEbM8HTo",
+    SPREADSHEET_ID: "10QcnEi_INRU6Fn0UbdluXQC5KrU3JptMx5Y2ODF8OPg",
+    RANGO: "Grupos!A2:D"
+};
+
+let generatedUrl = "";
+let allCategories = [];
+
+// Convierte un nombre a código ASCII-safe para uso en encoding binario (btoa)
+function normalizeCode(name) {
+    return name.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "")
+        .substring(0, 20);
+}
+
+function setupPhoneValidation() {
+    const phoneInput = document.getElementById("clientPhone");
+    if (!phoneInput) return;
+    phoneInput.addEventListener("input", function () {
+        this.value = this.value.replace(/[^0-9]/g, "");
+    });
+    phoneInput.addEventListener("keypress", function (e) {
+        if (!/[0-9]/.test(String.fromCharCode(e.which))) e.preventDefault();
+    });
+}
+
+// Placeholder: reemplazar con el ID real del video de YouTube
+const WELCOME_VIDEO_ID = "VIDEO_ID_AQUI";
+
+window.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("notification").classList.remove("show");
+    loadCategories();
+    setupPhoneValidation();
+    showWelcomePopup();
+});
+
+function showWelcomePopup() {
+    const overlay = document.getElementById("welcomeOverlay");
+    if (!overlay) return;
+    overlay.style.display = "flex";
+
+    document.getElementById("welcomeVideoBtn").addEventListener("click", function () {
+        const container = document.getElementById("welcomeVideoContainer");
+        const iframe = document.getElementById("welcomeVideoIframe");
+        if (container.style.display === "none" || container.style.display === "") {
+            iframe.src = "https://www.youtube.com/embed/" + WELCOME_VIDEO_ID + "?autoplay=1";
+            container.style.display = "block";
+            this.style.display = "none";
+        }
+    });
+
+    document.getElementById("welcomeCloseBtn").addEventListener("click", function () {
+        const iframe = document.getElementById("welcomeVideoIframe");
+        iframe.src = "";
+        overlay.style.display = "none";
+    });
+}
+
+function showNotification() {
+    const el = document.getElementById("notification");
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 3000);
+}
+
+function encodeCategoriesBinary(categories) {
+    let str = "";
+    categories.forEach(cat => {
+        const code = cat.code;
+        str += String.fromCharCode(code.length);
+        for (let i = 0; i < code.length; i++) str += code[i];
+        // 2 bytes para porcentaje (soporta 0-999)
+        str += String.fromCharCode((cat.percentage >> 8) & 0xFF);
+        str += String.fromCharCode(cat.percentage & 0xFF);
+    });
+    return btoa(str);
+}
+
+function decodeCategoriesBinary(encoded) {
+    const map = new Map();
+    try {
+        const str = atob(encoded);
+        let i = 0;
+        while (i < str.length) {
+            const len = str.charCodeAt(i); i++;
+            let code = "";
+            for (let j = 0; j < len; j++) { code += str[i]; i++; }
+            // 2 bytes para porcentaje
+            const hi = str.charCodeAt(i); i++;
+            const lo = str.charCodeAt(i); i++;
+            map.set(code, (hi << 8) | lo);
+        }
+    } catch (err) {
+        console.error("Error al decodificar formato binario:", err);
+    }
+    return map;
+}
+
+function loadCategories() {
+    const container = document.getElementById("categoriesContainer");
+    container.innerHTML = `
+        <div class="loading-categories">
+            <div class="loading-spinner"></div>
+            <p>Cargando grupos...</p>
+        </div>
+    `;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${G_S_CONFIG.SPREADSHEET_ID}/values/${G_S_CONFIG.RANGO}?key=${G_S_CONFIG.API_KEY}`;
+    fetch(url)
+        .then(res => {
+            if (!res.ok) throw new Error("Error al acceder a la API: " + res.statusText);
+            return res.json();
+        })
+        .then(data => {
+            const rows = data.values;
+            if (!rows || rows.length === 0) throw new Error("No se encontraron datos en la hoja.");
+            const seen = new Set();
+            const groups = [];
+            rows.forEach(row => {
+                const name = row[0] ? row[0].trim() : "";         // Columna A: nombre del grupo
+                const codeFromSheet = row[2] ? row[2].trim() : ""; // Columna C: código
+                const placeholder = row[3] ? row[3].trim() : "";   // Columna D: placeholder
+
+                if (!name) return;
+
+                // Usar columna C como código si existe y es ASCII-safe, sino derivar del nombre
+                const isAsciisafe = /^[\x20-\x7E]+$/.test(codeFromSheet);
+                const code = (codeFromSheet && isAsciisafe) ? codeFromSheet : normalizeCode(name);
+
+                if (!seen.has(code)) {
+                    seen.add(code);
+                    groups.push({ code, name, placeholder });
+                }
+            });
+            if (groups.length === 0) throw new Error("No se encontraron grupos válidos en la hoja.");
+            allCategories = groups; // Mantener el orden original de la hoja
+            renderCategories();
+        })
+        .catch(err => {
+            console.error("Error al cargar los grupos:", err);
+            container.innerHTML = `
+                <div class="loading-categories">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #ff9800; margin-bottom: 1rem;"></i>
+                    <p>Error al cargar los grupos</p>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">${err.message}</p>
+                </div>
+            `;
+        });
+}
+
+function renderCategories() {
+    const container = document.getElementById("categoriesContainer");
+    if (allCategories.length === 0) {
+        container.innerHTML = `
+            <div class="no-categories">
+                <i class="fas fa-inbox" style="font-size: 2rem; color: #999; margin-bottom: 1rem;"></i>
+                <p>No se encontraron grupos disponibles</p>
+            </div>
+        `;
+        return;
+    }
+    container.innerHTML = `
+        <div class="categories-grid">
+            ${allCategories.map(cat => `
+                <div class="category-item" id="cat-${cat.code}">
+                    <div class="category-name">
+                        <span>${cat.name}</span>
+                    </div>
+                    <div class="category-input-group">
+                        <input
+                            type="number"
+                            class="category-percentage"
+                            id="percent-${cat.code}"
+                            placeholder="${cat.placeholder || 'Ej: 30'}"
+                            min="0"
+                            max="999"
+                            step="1"
+                        >
+                        <span class="percentage-symbol">%</span>
+                    </div>
+                </div>
+            `).join("")}
+        </div>
+    `;
+
+    // Resaltar tarjeta cuando se ingresa un valor
+    allCategories.forEach(cat => {
+        const input = document.getElementById("percent-" + cat.code);
+        const item = document.getElementById("cat-" + cat.code);
+        if (input && item) {
+            input.addEventListener("input", function () {
+                if (this.value !== "") {
+                    item.classList.add("active");
+                } else {
+                    item.classList.remove("active");
+                }
+            });
+        }
+    });
+}
+
+function loadFromUrl() {
+    const url = document.getElementById("existingUrl").value.trim();
+    if (!url) { alert("⚠️ Por favor, ingresa una URL válida"); return; }
+    try {
+        const parsed = new URL(url);
+        const params = new URLSearchParams(parsed.search);
+        const name = params.get("n");
+        if (!name) { alert("⚠️ La URL no contiene un nombre de catálogo válido"); return; }
+        document.getElementById("catalogName").value = decodeURIComponent(name);
+
+        const phone = params.get("t");
+        if (phone) { document.getElementById("clientPhone").value = phone; }
+
+        const style = params.get("s");
+        if (style && ["1","2","3","4","5","6"].includes(style)) {
+            const radio = document.querySelector(`input[name="catalogStyle"][value="${style}"]`);
+            if (radio) {
+                radio.checked = true;
+                document.querySelectorAll('.style-card').forEach(c => c.classList.remove('selected'));
+                radio.closest('.style-card').classList.add('selected');
+            }
+        }
+
+        const c = params.get("c");
+        if (!c) { alert("⚠️ La URL no contiene configuración de grupos válida"); return; }
+        const decoded = decodeCategoriesBinary(c);
+        if (decoded.size === 0) { alert("⚠️ Error al decodificar la configuración. URL inválida o corrupta."); return; }
+        if (allCategories.length === 0) { alert("⏳ Esperando a que se carguen los grupos. Por favor, intenta de nuevo en unos segundos."); return; }
+
+        // Limpiar todos los inputs
+        allCategories.forEach(cat => {
+            const pct = document.getElementById("percent-" + cat.code);
+            const item = document.getElementById("cat-" + cat.code);
+            if (pct) { pct.value = ""; }
+            if (item) { item.classList.remove("active"); }
+        });
+
+        // Cargar valores decodificados
+        let loaded = 0;
+        decoded.forEach((pct, code) => {
+            const pctInput = document.getElementById("percent-" + code);
+            const item = document.getElementById("cat-" + code);
+            if (pctInput) {
+                pctInput.value = pct;
+                if (item) item.classList.add("active");
+                loaded++;
+            }
+        });
+
+        if (loaded > 0) {
+            let msg = `✅ Configuración cargada exitosamente!\n\nNombre: ${decodeURIComponent(name)}`;
+            if (phone) msg += `\nTeléfono: ${phone}`;
+            msg += `\nGrupos: ${loaded}`;
+            alert(msg);
+            document.getElementById("existingUrl").value = "";
+            scrollToForm();
+        } else {
+            alert("⚠️ No se pudieron cargar los grupos de la URL. Verifica que los códigos sean correctos.");
+        }
+    } catch (err) {
+        console.error("Error al parsear la URL:", err);
+        alert("⚠️ La URL ingresada no es válida. Por favor, verifica e intenta nuevamente.");
+    }
+}
+
+function scrollToForm() {
+    const form = document.querySelector(".form-container:first-of-type");
+    if (form) form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function toggleEditSection() {
+    const content = document.getElementById("editContent");
+    const icon = document.getElementById("toggleIcon");
+    if (content.style.display === "none" || content.style.display === "") {
+        content.style.display = "block";
+        icon.classList.add("rotate");
+    } else {
+        content.style.display = "none";
+        icon.classList.remove("rotate");
+    }
+}
+
+function clearForm() {
+    document.getElementById("catalogName").value = "";
+    allCategories.forEach(cat => {
+        const pct = document.getElementById("percent-" + cat.code);
+        const item = document.getElementById("cat-" + cat.code);
+        if (pct) { pct.value = ""; }
+        if (item) { item.classList.remove("active"); }
+    });
+    document.getElementById("resultContainer").style.display = "none";
+    document.getElementById("catalogName").focus();
+}
+
+async function saveToFirebase(data) {
+    try {
+        const dbRef = ref(database, "catalogos");
+        const newRef = push(dbRef);
+        await set(newRef, data);
+        console.log("✅ Datos guardados en Firebase correctamente");
+        return true;
+    } catch (err) {
+        console.error("❌ Error al guardar en Firebase:", err);
+        alert("⚠️ Hubo un error al guardar la información. El catálogo se generará de todas formas.");
+        return false;
+    }
+}
+
+function copyUrl() {
+    if (!generatedUrl) return;
+    navigator.clipboard.writeText(generatedUrl).then(function () {
+        showNotification();
+    }).catch(function () {
+        const ta = document.createElement("textarea");
+        ta.value = generatedUrl;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        showNotification();
+    });
+}
+
+function visitCatalog() {
+    if (generatedUrl) window.open(generatedUrl, "_blank");
+}
+
+function previewCatalog() {
+    if (!generatedUrl) return;
+    try {
+        const parsed = new URL(generatedUrl);
+        const previewUrl = "https://catalogo.dev.ar/preview.html" + parsed.search;
+        window.open(previewUrl, "_blank");
+    } catch (e) {
+        window.open(generatedUrl, "_blank");
+    }
+}
+
+function backToEdit() {
+    document.getElementById("resultContainer").style.display = "none";
+    document.querySelector(".form-container").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+window.loadFromUrl = loadFromUrl;
+window.scrollToForm = scrollToForm;
+window.toggleEditSection = toggleEditSection;
+window.clearForm = clearForm;
+window.copyUrl = copyUrl;
+window.visitCatalog = visitCatalog;
+window.previewCatalog = previewCatalog;
+window.backToEdit = backToEdit;
+
+document.getElementById("customizationForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const catalogName = document.getElementById("catalogName").value.trim();
+    const clientName = document.getElementById("clientName").value.trim();
+    const clientPhone = document.getElementById("clientPhone").value.trim();
+
+    if (!catalogName) { alert("⚠️ Por favor, completa el nombre del catálogo"); return; }
+    if (!clientName) { alert("⚠️ Por favor, completa tu nombre completo"); return; }
+    if (!clientPhone) { alert("⚠️ Por favor, completa tu teléfono"); return; }
+
+    const selected = [];
+    let validationError = false;
+
+    for (const cat of allCategories) {
+        const pct = document.getElementById("percent-" + cat.code);
+        if (!pct) continue;
+
+        // Si el campo está vacío, usar el valor del placeholder como porcentaje por defecto
+        let rawValue = pct.value.trim();
+        if (rawValue === "") {
+            rawValue = pct.placeholder || "0";
+        }
+
+        const val = parseInt(rawValue);
+        if (isNaN(val) || val < 0 || val > 999) {
+            alert(`⚠️ El porcentaje de "${cat.name}" debe estar entre 0 y 999`);
+            pct.focus();
+            validationError = true;
+            break;
+        }
+        selected.push({ code: cat.code, percentage: val });
+    }
+
+    if (validationError) return;
+
+    const encoded = encodeCategoriesBinary(selected);
+    const base = "https://catalogo.dev.ar/";
+    const nameParam = encodeURIComponent(catalogName);
+    const selectedStyle = document.querySelector('input[name="catalogStyle"]:checked');
+    const styleValue = selectedStyle ? selectedStyle.value : "1";
+    generatedUrl = `${base}?n=${nameParam}&t=${clientPhone}&s=${styleValue}&v=2&c=${encoded}`;
+
+    const data = {
+        catalogName,
+        clientName,
+        clientPhone,
+        url: generatedUrl,
+        createdAt: new Date().toISOString()
+    };
+
+    await saveToFirebase(data);
+    document.getElementById("urlDisplay").textContent = generatedUrl;
+    document.getElementById("resultContainer").style.display = "block";
+    document.getElementById("resultContainer").scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+document.getElementById("catalogName").addEventListener("input", function () {
+    if (this.value.length > 50) this.value = this.value.substring(0, 50);
+});
+
+document.getElementById("existingUrl").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); loadFromUrl(); }
+});
+
+document.addEventListener("input", function (e) {
+    if (e.target.classList.contains("category-percentage")) {
+        if (e.target.value.length > 3) e.target.value = e.target.value.substring(0, 3);
+        const val = parseInt(e.target.value);
+        if (!isNaN(val)) {
+            if (val < 0) e.target.value = 0;
+            else if (val > 999) e.target.value = 999;
+        }
+    }
+});
