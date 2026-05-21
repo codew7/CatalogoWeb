@@ -32,6 +32,14 @@
     display: none !important;
 } */
 
+.header-content-mobile {
+    display: none;
+}
+
+.header-content-desktop {
+    display: none;
+}
+
 @media (max-width: 600px) {
     .header-content-mobile {
         position: absolute;
@@ -681,6 +689,17 @@
             from {
                 opacity: 0;
                 transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(15px);
             }
             to {
                 opacity: 1;
@@ -2447,9 +2466,26 @@
             <div class="mayorista-text">Distribuidora Mayorista</div>
         </div>
         <div style="display: flex; width: 100%; justify-content: center; align-items: center; margin-top: 10px; position: relative; gap: 10px;">
-            <a onclick="window.open(WHATSAPP_URL, '_blank')" class="whatsapp-link" target="_blank">
-                <img src="whatsapp.png" alt="WhatsApp" class="whatsapp-link" width="50" height="50" style="position: fixed; bottom: 30px; right: 20px; z-index: 1000; cursor: pointer; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1)';" onmouseout="this.style.transform='scale(1)';">
-            </a>
+            <!-- Botón flotante WhatsApp con submenú -->
+            <div id="whatsappFloatMenu" style="position: fixed; bottom: 30px; right: 20px; z-index: 1100; display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+                <!-- Opciones desplegables -->
+                <div id="whatsappOptions" style="display: none; flex-direction: column; align-items: flex-end; gap: 8px; animation: slideInRight 0.2s ease;">
+                    <div onclick="window.open(WHATSAPP_URL, '_blank'); cerrarMenuWsp();" style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: white; border-radius: 25px; padding: 10px 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: all 0.2s ease; white-space: nowrap;" onmouseover="this.style.transform='scale(1.04)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.15)';">
+                        <span style="font-size: 0.9em; font-weight: 600; color: #333;">Showroom</span>
+                        <div style="width: 36px; height: 36px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fas fa-store" style="color: white; font-size: 16px;"></i>
+                        </div>
+                    </div>
+                    <div onclick="window.open('https://api.whatsapp.com/send/?phone=5491176460030', '_blank'); cerrarMenuWsp();" style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: white; border-radius: 25px; padding: 10px 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: all 0.2s ease; white-space: nowrap;" onmouseover="this.style.transform='scale(1.04)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.15)';">
+                        <span style="font-size: 0.9em; font-weight: 600; color: #333;">Envíos</span>
+                        <div style="width: 36px; height: 36px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fas fa-truck" style="color: white; font-size: 16px;"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- Botón principal -->
+                <img src="whatsapp.png" alt="WhatsApp" id="whatsappFloatBtn" onclick="toggleMenuWsp(event)" width="50" height="50" style="cursor: pointer; transition: transform 0.3s; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));" onmouseover="this.style.transform='scale(1.1)';" onmouseout="this.style.transform='scale(1)';">
+            </div>
         </div>
     </div>
 </header>
@@ -3590,6 +3626,26 @@ document.addEventListener('keydown', function(e) {
 let cartExpanded = false;
 
 // Función para alternar entre expandir/minimizar el carrito
+function toggleMenuWsp(event) {
+    event.stopPropagation();
+    const options = document.getElementById('whatsappOptions');
+    const abierto = options.style.display === 'flex';
+    options.style.display = abierto ? 'none' : 'flex';
+    options.style.flexDirection = 'column';
+    options.style.alignItems = 'flex-end';
+}
+
+function cerrarMenuWsp() {
+    document.getElementById('whatsappOptions').style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('whatsappFloatMenu');
+    if (menu && !menu.contains(e.target)) {
+        cerrarMenuWsp();
+    }
+});
+
 function toggleCart() {
     const cartContainer = document.getElementById('cartContainer');
     const cartFloatBtn = document.getElementById('cartFloatBtn');
