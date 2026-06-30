@@ -23,6 +23,16 @@
   <script>
     let pedidoActual = null;
     let sheetValorMap = {};
+    // Indica si Firebase ya tenía registrados los campos de descuento al cargar el pedido.
+    // Si es true, se muestran esos valores y NO se aplica el descuento automático del 10%.
+    let descuentoFirebaseRegistrado = false;
+
+    function calcularDescuentoRegistrado(pedido) {
+      // Un valor de 0 (o ausente) cuenta como "no registrado".
+      return !!(pedido && pedido.pagos &&
+        ((typeof pedido.pagos.porcentajeDescuento === 'number' && pedido.pagos.porcentajeDescuento > 0) ||
+         (typeof pedido.pagos.descuento === 'number' && pedido.pagos.descuento > 0)));
+    }
   </script>
 
   <style>
@@ -1364,6 +1374,7 @@
   async function cargarPedidoInicial() {
     const snap = await pedidoRef.once('value');
     pedidoActual = snap.val();
+    descuentoFirebaseRegistrado = calcularDescuentoRegistrado(pedidoActual);
 
     if (!pedidoActual){
       const loadingOverlay = document.getElementById('loadingOverlay');
@@ -1403,6 +1414,7 @@
 
       if (cambiosRelevantes) {
         pedidoActual = pedidoNuevo;
+        descuentoFirebaseRegistrado = calcularDescuentoRegistrado(pedidoNuevo);
         procesarPedidoCargado();
       }
 
@@ -1648,10 +1660,12 @@
 
   function actualizarCalculosGlobales() {
     let subtotal = 0;
+    let totalUnidades = 0;
     if (pedidoActual && pedidoActual.items) {
       pedidoActual.items.forEach(it => {
         const unitPesos = Math.round(it.valorU || 0);
         subtotal += Math.round(it.cantidad * unitPesos);
+        totalUnidades += (parseFloat(it.cantidad) || 0);
       });
     }
 
@@ -1668,11 +1682,32 @@
     const totalFinalDiv = document.getElementById('totalFinalDiv');
 
     if (porcentajeInput && descuentoInput && porcentajeRecargoInput && recargoInput && envioInput && totalFinalDiv) {
-      const porcentaje = parseFloat(porcentajeInput.value) || 0;
+      let porcentaje = parseFloat(porcentajeInput.value) || 0;
       const descuento = parseFloat(descuentoInput.value) || 0;
       const porcentajeRecargo = parseFloat(porcentajeRecargoInput.value) || 0;
       const recargo = parseFloat(recargoInput.value) || 0;
       const envio = parseFloat(envioInput.value) || 0;
+
+      // Descuento automático del 10%: subtotal > $100.000 y 5 o más unidades en total.
+      // Solo se aplica si Firebase NO tiene valores de descuento registrados previamente.
+      const UMBRAL_DESCUENTO = 100000;
+      const UMBRAL_UNIDADES = 5;
+      if (!descuentoFirebaseRegistrado) {
+        const cumpleDescuento = subtotal > UMBRAL_DESCUENTO && totalUnidades >= UMBRAL_UNIDADES;
+        const descuentoRow = porcentajeInput.closest('.total-row');
+        if (cumpleDescuento && porcentaje < 10) {
+          porcentaje = 10;
+          if (porcentajeInput.value != 10) porcentajeInput.value = 10;
+          // Hacer visible la fila de descuento si estaba oculta
+          if (descuentoRow) descuentoRow.style.display = '';
+        } else if (!cumpleDescuento && porcentaje === 10) {
+          // Quitar el descuento automático al instante si ya no cumple la condición
+          porcentaje = 0;
+          porcentajeInput.value = 0;
+          descuentoInput.value = 0;
+          if (descuentoRow) descuentoRow.style.display = 'none';
+        }
+      }
 
       const descuentoCalculado = Math.round(subtotal * porcentaje / 100);
       if (descuentoInput.value != descuentoCalculado) {
@@ -1736,6 +1771,7 @@
     itemsList.className = 'items-list';
 
     let total = 0;
+    let totalUnidades = 0;
     const bloqueado = pedidoActual.status === 'CANCELADO' || pedidoActual.status === 'DESPACHADO/ENTREGADO';
     const bloqueadoCompleto = bloqueado || pedidoActual.locked;
 
@@ -1743,6 +1779,7 @@
       const unitPesos = Math.round(it.valorU || 0);
       const subtotal = Math.round(it.cantidad * unitPesos);
       total += subtotal;
+      totalUnidades += (parseFloat(it.cantidad) || 0);
 
       const card = document.createElement('div');
       card.className = 'item-card';
@@ -1901,6 +1938,23 @@
     recargo = recargo || 0;
     porcentajeRecargo = porcentajeRecargo || 0;
     envio = envio || 0;
+
+    // Descuento automático del 10%: subtotal > $100.000 y 5 o más unidades en total.
+    // Solo se aplica si Firebase NO tiene valores de descuento registrados previamente;
+    // si los tiene, se muestran tal cual están en la base de datos.
+    const UMBRAL_DESCUENTO = 100000;
+    const UMBRAL_UNIDADES = 5;
+    if (!descuentoFirebaseRegistrado) {
+      const cumpleDescuento = total > UMBRAL_DESCUENTO && totalUnidades >= UMBRAL_UNIDADES;
+      if (cumpleDescuento && porcentaje < 10) {
+        porcentaje = 10;
+        descuento = Math.round(total * porcentaje / 100);
+      } else if (!cumpleDescuento && porcentaje === 10) {
+        // Quitar el descuento automático si ya no cumple la condición
+        porcentaje = 0;
+        descuento = 0;
+      }
+    }
 
     let totalFinal = total - descuento + recargo + envio;
     if (totalFinal < 0) totalFinal = 0;

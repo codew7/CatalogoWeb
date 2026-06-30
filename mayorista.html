@@ -849,6 +849,60 @@
             text-shadow: 0 1px 2px rgba(76, 175, 80, 0.1);
         }
 
+        .cart-discount {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #fff6e9 0%, #ffeccf 100%);
+            border-top: 1px dashed #f0c98a;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .cart-discount-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #b9772a;
+            letter-spacing: 0.3px;
+        }
+
+        .cart-discount-label i {
+            color: #f0a23a;
+        }
+
+        .cart-discount-amount {
+            font-size: 1em;
+            font-weight: 700;
+            color: #e07b1a;
+        }
+
+        .cart-discount-note {
+            margin: 0;
+            padding: 0 16px 8px;
+            background: linear-gradient(135deg, #fff6e9 0%, #ffeccf 100%);
+            font-size: 0.7em;
+            font-style: italic;
+            color: #b08a5a;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .cart-total-wrap {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .cart-total-original {
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #999;
+            text-decoration: line-through;
+        }
+
         @media (max-width: 600px) {
             .cart-total {
                 padding: 10px 14px;
@@ -1219,6 +1273,47 @@
         .total-row strong {
             color: #4CAF50;
             font-size: 1.3em;
+        }
+
+        .total-discount-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff6e9 0%, #ffeccf 100%);
+            border-radius: 8px;
+            border: 1px dashed #f0c98a;
+            font-size: 1.05em;
+            color: #b9772a;
+        }
+
+        .total-discount-row span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .total-discount-row i {
+            color: #f0a23a;
+        }
+
+        .total-discount-row strong {
+            color: #e07b1a;
+        }
+
+        .total-row-amount {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .total-original {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: #999;
+            text-decoration: line-through;
         }
 
         .btn-secondary {
@@ -2317,7 +2412,7 @@
                         <div class="faq-answer">
                             Sí, enviamos a todo el país por medio de fletes o encomiendas a través de <strong>Expreso Viacargo y Correo Argentino</strong>. 
                             <br>El costo de las encomiendas es determinado por estas empresas, y varía según el peso y tamaño de la caja.
-                            <br><strong>Los envíos cuentan con un mínimo de compra de $50.000 para fletes y $90.000 para encomiendas.</strong>
+                            <br><strong>Los envíos cuentan con un mínimo de compra de $50.000 para fletes cercanos y $100.000 para encomiendas.</strong>
                         </div>
                     </div>
 
@@ -2792,9 +2887,17 @@
     <div class="cart-container" id="cartContainer">
         <h3>Solicitud</h3>
         <ul id="cart-list"></ul>
+        <div class="cart-discount" id="cartDiscount" style="display:none;">
+            <span class="cart-discount-label"><i class="fas fa-tags"></i>Descuento (10%)</span>
+            <span class="cart-discount-amount" id="cartDiscountAmount">-$0</span>
+        </div>
+        <p class="cart-discount-note" id="cartDiscountNote" style="display:none;">No acumulable con otros descuentos o vouchers de compra</p>
         <div class="cart-total" id="cartTotal">
             <span class="cart-total-label"><i class="fas fa-receipt"></i>Total</span>
-            <span class="cart-total-amount" id="cartTotalAmount">$0</span>
+            <span class="cart-total-wrap">
+                <span class="cart-total-original" id="cartTotalOriginal"></span>
+                <span class="cart-total-amount" id="cartTotalAmount">$0</span>
+            </span>
         </div>
         <div class="cart-buttons-container">
             <button onclick="enviarPedido()" class="whatsapp-link">
@@ -2952,9 +3055,16 @@
                     </h3>
                     <div id="pedidoDetalle" class="pedido-items"></div>
                     <div class="total-section">
+                        <div class="total-discount-row" id="totalDescuentoRow" style="display:none;">
+                            <span><i class="fas fa-tags"></i> Descuento (10%):</span>
+                            <strong id="totalDescuento">-$0</strong>
+                        </div>
                         <div class="total-row">
                             <span>Total del Pedido:</span>
-                            <strong id="totalPedido">$0</strong>
+                            <span class="total-row-amount">
+                                <span class="total-original" id="totalPedidoOriginal"></span>
+                                <strong id="totalPedido">$0</strong>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -3357,7 +3467,8 @@ function mostrarModalConfirmacion() {
     const pedidoDetalle = document.getElementById('pedidoDetalle');
     let detalleHTML = '';
     let total = 0;
-    
+    let totalUnidades = 0;
+
     // Función para formatear números sin decimales y con separador de miles
     function formatearPrecio(numero) {
         return Math.round(numero).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -3367,7 +3478,8 @@ function mostrarModalConfirmacion() {
         const precioUnitario = parseFloat(item.precio.replace(/[^0-9.-]+/g, ''));
         const subtotal = precioUnitario * item.cantidad;
         total += subtotal;
-        
+        totalUnidades += (parseFloat(item.cantidad) || 0);
+
         detalleHTML += `
             <div class="pedido-item">
                 <div class="item-info">
@@ -3384,8 +3496,31 @@ function mostrarModalConfirmacion() {
     });
     
     pedidoDetalle.innerHTML = detalleHTML;
-    document.getElementById('totalPedido').textContent = `$${formatearPrecio(total)}`;
-    
+
+    // Aplicar descuento del 10%: total > $100.000 y 5 o más unidades en total
+    const UMBRAL_DESCUENTO = 100000;
+    const UMBRAL_UNIDADES = 5;
+    const PORCENTAJE_DESCUENTO = 0.10;
+    const aplicaDescuento = total > UMBRAL_DESCUENTO && totalUnidades >= UMBRAL_UNIDADES;
+    const montoDescuento = aplicaDescuento ? total * PORCENTAJE_DESCUENTO : 0;
+    const totalFinal = total - montoDescuento;
+
+    const totalDescuentoRow = document.getElementById('totalDescuentoRow');
+    const totalDescuentoEl = document.getElementById('totalDescuento');
+    const totalPedidoOriginal = document.getElementById('totalPedidoOriginal');
+    if (totalDescuentoRow && totalDescuentoEl && totalPedidoOriginal) {
+        if (aplicaDescuento) {
+            totalDescuentoRow.style.display = 'flex';
+            totalDescuentoEl.textContent = `-$${formatearPrecio(montoDescuento)}`;
+            totalPedidoOriginal.textContent = `$${formatearPrecio(total)}`;
+        } else {
+            totalDescuentoRow.style.display = 'none';
+            totalPedidoOriginal.textContent = '';
+        }
+    }
+
+    document.getElementById('totalPedido').textContent = `$${formatearPrecio(totalFinal)}`;
+
     // Mostrar el modal de confirmación
     confirmacionModal.style.display = 'flex';
 }
