@@ -1307,8 +1307,10 @@
   function autoGuardarItems() {
     if (!pedidoActual || !pedidoActual.items) return;
 
-    const tipoPago = document.querySelector('input[name="tipoPago"]:checked')?.value || '';
-    const tipoEntrega = document.querySelector('input[name="tipoEntrega"]:checked')?.value || '';
+    // Respaldo con el valor en memoria: tras renderItems() los radios se reconstruyen
+    // sin marcar por un instante, por lo que leer solo el DOM guardaría '' y borraría la selección.
+    const tipoPago = document.querySelector('input[name="tipoPago"]:checked')?.value || pedidoActual.tipoPago || '';
+    const tipoEntrega = document.querySelector('input[name="tipoEntrega"]:checked')?.value || pedidoActual.tipoEntrega || '';
     let entrega = '';
     if (tipoEntrega && tipoEntrega !== 'Retiro en local') {
       entrega = 'Envios';
@@ -1328,6 +1330,8 @@
   function guardarTipoPago() {
     const tipoPago = document.querySelector('input[name="tipoPago"]:checked');
     if (tipoPago && pedidoActual && pedidoActual.id) {
+      // Mantener sincronizado el valor en memoria para que renderItems() lo restaure correctamente.
+      pedidoActual.tipoPago = tipoPago.value;
       programarActualizacion(
         `pedidos/${pedidoActual.id}`,
         { tipoPago: tipoPago.value }
@@ -1343,6 +1347,9 @@
         entrega = 'Envios';
       }
 
+      // Mantener sincronizado el valor en memoria para que renderItems() lo restaure correctamente.
+      pedidoActual.tipoEntrega = tipoEntrega.value;
+      pedidoActual.entrega = entrega;
       programarActualizacion(
         `pedidos/${pedidoActual.id}`,
         { tipoEntrega: tipoEntrega.value, entrega: entrega }
