@@ -251,26 +251,35 @@ if (modoEdicion) {
     localStorage.removeItem(TIPO_ENTREGA_STORAGE_KEY);
     
     const aviso = document.createElement('div');
-    aviso.textContent = `⚙️ Estás agregando artículos al pedido #${pedidoEditId}`;
     aviso.id = 'aviso-edicion-pedido';
-    aviso.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      z-index: 3001;
-      background: #fff7c2;
-      padding: 10px 0;
-      text-align: center;
-      font-weight: bold;
-      font-size: 1.1em;
-      box-shadow: 0 2px 8px #0002;
-      border-bottom: 2px solid #ffe066;
+    aviso.innerHTML = `
+        <span class="aviso-edicion-texto">
+            <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+            <span>Estás editando un pedido: los artículos que agregues se sumarán al pedido original.</span>
+        </span>
+        <button type="button" class="aviso-edicion-btn" id="avisoEdicionEnviarBtn">
+            <i class="fas fa-check-circle" aria-hidden="true"></i>
+            <span>Guardar cambios</span>
+        </button>
     `;
     document.body.appendChild(aviso);
-    // Agregar margen superior al body para que no tape el header
-    document.body.style.marginTop = '54px';
-    
+
+    // Mismo camino que el botón "Enviar Pedido" del carrito: enviarPedido()
+    // detecta modoEdicion y va directo a enviarPedidoFinal().
+    document.getElementById('avisoEdicionEnviarBtn').addEventListener('click', enviarPedido);
+
+    // El alto real del aviso mueve tanto el margen superior del body como el
+    // punto donde se detiene el header sticky en escritorio (--aviso-edicion-alto,
+    // sección 4.1 del CSS). Se mide en vez de fijarlo a mano porque el botón
+    // puede pasar a una segunda línea en pantallas angostas.
+    function ajustarAltoAvisoEdicion() {
+        const alto = aviso.offsetHeight;
+        document.documentElement.style.setProperty('--aviso-edicion-alto', alto + 'px');
+        document.body.style.marginTop = alto + 'px';
+    }
+    ajustarAltoAvisoEdicion();
+    window.addEventListener('resize', ajustarAltoAvisoEdicion);
+
     // Cargar los datos del pedido existente
     db.ref('pedidos/' + pedidoEditId).once('value')
         .then(snapshot => {

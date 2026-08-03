@@ -113,8 +113,8 @@
            ocultan la barra de direcciones, y es lo que hace que una barra fija
            aparezca cortada o desplazada. --tabbar-hueco es el alto real que
            ocupa (incluye el área segura de iOS) y lo reutilizan el
-           padding-bottom del body, el panel del carrito y el botón de WhatsApp
-           para no quedar tapados ni pisarla. */
+           padding-bottom del body y el panel del carrito para no quedar
+           tapados ni pisarla. */
         --tabbar-alto:60px;
         --tabbar-hueco:calc(var(--tabbar-alto) + env(safe-area-inset-bottom, 0px));
         --tabbar-z:1900;
@@ -424,6 +424,72 @@
     }
 
     .hamburger-dropdown-item span { font-size: .9rem; font-weight: 600; }
+
+    /* ---------- 4.1 · AVISO DE MODO EDICIÓN ----------
+       catalogo.js la inyecta al detectar ?pedido= en la URL (viene del enlace de
+       "Editar pedido" en pedidos.html). Fondo en --verde-600, el mismo verde de
+       acción de "Agregar"/"Enviar Pedido": no es la paleta ámbar de advertencia
+       (esto no es un error, es un modo de trabajo normal) pero sí necesita
+       destacar más que las superficies oscuras neutras del resto del sitio para
+       que el cliente note enseguida que está editando un pedido. --verde-600 no
+       se redefine en modo oscuro (ver tokens, sección 1), así que funciona igual
+       en los dos temas sin reglas aparte.
+       El alto real se mide por JS (variable --aviso-edicion-alto) porque el
+       botón puede envolver a una segunda línea según el ancho; de esa medida
+       dependen tanto el margin-top del body como el "top" del header sticky en
+       escritorio (ver sección 22), así que nunca hay que fijar un alto a mano
+       acá ni en la media query. */
+    #aviso-edicion-pedido {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 3001;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 12px 20px;
+        background: var(--verde-600);
+        box-shadow: var(--sombra-2);
+    }
+
+    .aviso-edicion-texto {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--ui);
+        font-size: .86rem;
+        font-weight: 600;
+        line-height: 1.4;
+        color: rgba(255,255,255,.92);
+    }
+
+    .aviso-edicion-texto i { color: rgba(255,255,255,.8); font-size: 1em; }
+
+    .aviso-edicion-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex: none;
+        height: 36px;
+        padding: 0 18px;
+        background: #fff;
+        color: var(--verde-800);
+        border: none;
+        border-radius: var(--radio-full);
+        font-family: var(--ui);
+        font-size: .82rem;
+        font-weight: 700;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background var(--t), transform var(--t);
+    }
+
+    .aviso-edicion-btn:hover { background: var(--verde-050); }
+    .aviso-edicion-btn:active { transform: translateY(1px); }
+    .aviso-edicion-btn i { font-size: .92em; }
 
     /* ---------- 5 · CARRUSELES ---------- */
     .carousel {
@@ -936,29 +1002,42 @@
         color: var(--verde-800);
     }
 
-    /* Ícono de información */
+    /* Ícono de información · se apoya sobre la foto del producto, que puede ser
+       clara, oscura o con mucho detalle. Antes era gris sobre blanco y se
+       perdía: ahora el glifo va en verde de marca, el borde acompaña y una
+       sombra corta lo despega del fondo. Sigue siendo una pastilla chica y
+       translúcida, no un botón: el peso visual de la tarjeta lo tiene "Agregar". */
     .info-icon {
         position: absolute;
         top: 10px;
         right: 10px;
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         background: rgba(255,255,255,.94);
-        border: 1px solid var(--borde);
+        border: 1px solid var(--verde-100);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        color: var(--tinta-600);
-        font-size: 12px;
+        color: var(--verde-700);
+        font-size: 13px;
         font-weight: 700;
-        transition: background var(--t), color var(--t), transform var(--t);
+        box-shadow: 0 2px 8px -2px rgba(17,24,39,.22);
+        transition: background var(--t), color var(--t), border-color var(--t),
+                    box-shadow var(--t), transform var(--t);
         z-index: 10;
         backdrop-filter: blur(4px);
     }
 
-    .info-icon:hover { background: var(--verde-600); color: #fff; }
+    .info-icon:hover {
+        background: var(--verde-600);
+        border-color: var(--verde-600);
+        color: #fff;
+        transform: scale(1.06);
+        box-shadow: 0 6px 14px -6px var(--verde-800);
+    }
+
     .info-icon:active { transform: scale(.94); }
 
     /* Fila de acción · el JS anima display/opacity/transform de estos nodos */
@@ -2543,38 +2622,64 @@
     .media-modal-body.map-modal { padding-bottom: 72%; }
     .media-modal-body iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 
-    /* ---------- 17 · WHATSAPP FLOTANTE ---------- */
-    /* Sube por encima de la barra de navegación inferior. En escritorio la barra
-       es una píldora centrada y no llega hasta acá, pero se corrige en todos los
-       anchos: entre 900 y 1100px las dos piezas quedan a tiro. */
-    #whatsappFloatMenu {
-        position: fixed;
-        bottom: calc(var(--tabbar-hueco) + 16px);
-        right: 22px;
-        z-index: 1100;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 10px;
+    /* ---------- 17 · CONTACTO POR WHATSAPP (EN EL HEADER) ----------
+       Vive dentro de .header-actions, a la izquierda del selector de tema, en vez
+       de flotar sobre el contenido: contactar es una acción global como las
+       otras y le corresponde el mismo lugar. Reusa la caja de .hamburger-button
+       (mismo alto, mismo radio, mismo hover) y sólo cambia el color, así se
+       distingue como acción de contacto sin salirse del sistema. */
+    .wsp-menu { position: relative; flex: none; }
+
+    .wsp-button {
+        background: var(--verde-050);
+        border-color: var(--verde-100);
+        color: var(--verde-700);
+        font-size: 20px;
     }
 
+    .wsp-button:hover,
+    .wsp-button[aria-expanded="true"] {
+        background: var(--verde-600);
+        border-color: var(--verde-600);
+        color: #fff;
+        box-shadow: 0 8px 18px -10px var(--verde-800);
+    }
+
+    /* Se despliega desde el header igual que .hamburger-dropdown. El corrimiento
+       lo calcula la variable a partir de las dos piezas que tiene a la derecha
+       (tema y hamburguesa) más los gaps de .header-actions: así el borde derecho
+       del panel queda alineado con el del menú hamburguesa en vez de cortado al
+       medio del header. */
     #whatsappOptions {
-        display: none;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 8px;
-        animation: slideInRight .22s ease;
+        --wsp-corrimiento: calc(2 * 46px + 2 * 10px);
+        position: absolute;
+        top: calc(100% + 12px);
+        right: calc(-1 * var(--wsp-corrimiento));
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: opacity var(--t), transform var(--t), visibility var(--t);
+        z-index: 1200;
+    }
+
+    #whatsappOptions.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
     }
 
     /* Mismo lenguaje que .hamburger-dropdown: una sola tarjeta blanca con ítems,
-       en vez de píldoras sueltas con círculos verde WhatsApp. */
+       en vez de píldoras sueltas con círculos verde WhatsApp. El max-width es el
+       que evita que en pantallas angostas el panel se salga por la izquierda,
+       porque queda anclado por su borde derecho. */
     .wsp-panel {
         background: var(--superficie);
         border: 1px solid var(--borde);
         border-radius: var(--radio-md);
         box-shadow: var(--sombra-3);
         padding: 6px;
-        min-width: 244px;
+        width: 264px;
+        max-width: calc(100vw - 28px);
     }
 
     .wsp-panel-titulo {
@@ -2625,14 +2730,6 @@
 
     .wsp-option-texto strong { font-size: .85rem; font-weight: 700; color: var(--tinta-900); }
     .wsp-option-texto small { font-size: .72rem; color: var(--tinta-400); }
-
-    #whatsappFloatBtn {
-        cursor: pointer;
-        transition: transform var(--t);
-        filter: drop-shadow(0 6px 14px rgba(17,24,39,.28));
-    }
-
-    #whatsappFloatBtn:hover { transform: scale(1.08); }
 
     /* ---------- 18 · PIE ---------- */
     .site-footer {
@@ -3195,10 +3292,6 @@
         .tabbar { display: none; }
         body { padding-bottom: 0; }
 
-        /* WhatsApp vuelve a su posición original, ya que no hay nada fijo abajo
-           con lo que pueda chocar */
-        #whatsappFloatMenu { bottom: 28px; }
-
         .header-nav { display: flex; align-items: center; gap: 2px; }
         .header-divisor { display: block; }
 
@@ -3219,9 +3312,12 @@
         .brand img { width: 226px; }
         .brand-tag { font-size: .68rem; letter-spacing: .15em; }
 
-        /* En modo edición hay un aviso fijo arriba (lo inyecta mayorista.js con
-           position:fixed y top:0). El header se corre para no quedar debajo. */
-        body:has(#aviso-edicion-pedido) .site-header { top: 54px; }
+        /* En modo edición hay un aviso fijo arriba (lo inyecta catalogo.js con
+           position:fixed y top:0). El header se corre para no quedar debajo.
+           --aviso-edicion-alto la fija el propio JS con el alto real medido
+           (ver sección 4.1): el aviso puede pasar a dos líneas según el ancho,
+           así que un valor fijo acá se desincroniza en cuanto eso ocurre. */
+        body:has(#aviso-edicion-pedido) .site-header { top: var(--aviso-edicion-alto, 54px); }
 
         /* Los paneles cuelgan del header, cerca de los botones que los abren, en
            lugar de subir desde abajo. Entran con slideDown por el mismo motivo.
@@ -3338,8 +3434,8 @@
         body { font-size: 15px; }
 
         /* Un poco más baja en móvil, donde el alto de pantalla es el recurso
-           escaso. Al ir por el token, el padding del body, el panel del carrito
-           y el botón de WhatsApp se reacomodan solos. */
+           escaso. Al ir por el token, el padding del body y el panel del carrito
+           se reacomodan solos. */
         :root { --tabbar-alto: 56px; }
 
         .contenedor,
@@ -3418,8 +3514,6 @@
         #cart-list { padding: 10px; }
         .cart-total-amount { font-size: 1.18rem; }
 
-        #whatsappFloatMenu { right: 16px; }
-
         .total-row { padding: 15px; font-size: .72rem; }
         .total-row strong { font-size: 1.28rem; }
 
@@ -3436,7 +3530,20 @@
         .cart-buttons-container button span { display: none; }
         .cart-buttons-container button i { font-size: 1.1em; }
         .card > img { height: 112px; }
-        .brand img { width: 170px; }
+
+        /* La bajada del logo tiene que entrar en una línea al lado de tres
+           botones: si se parte en dos, el header crece y se ve desprolijo. */
+        .brand img { width: 152px; }
+        .brand-tag { font-size: .56rem; letter-spacing: .1em; white-space: nowrap; padding-left: 4px; }
+
+        /* Tres botones (WhatsApp, tema y hamburguesa) más el logo no entran a
+           46px en pantallas de 360px: se achican junto con el gap. El panel de
+           WhatsApp cuelga de ellos, así que su corrimiento sigue las medidas
+           nuevas. */
+        .header-actions { gap: 8px; }
+        .hamburger-button { width: 42px; height: 42px; font-size: 16px; }
+        .wsp-button { font-size: 18px; }
+        #whatsappOptions { --wsp-corrimiento: calc(2 * 42px + 2 * 8px); }
 
         /* Cuatro ítems entran cómodos incluso acá (unos 85px cada uno): la
            etiqueta se achica en lugar de desaparecer, que sería peor de usar. */
@@ -3465,7 +3572,12 @@
 
     [data-theme="dark"] .switch-track { background: #34373c; }
 
-    [data-theme="dark"] .info-icon { background: rgba(23,25,28,.85); }
+    /* Sobre fondo oscuro el borde verde claro del tema no llega a leerse: se
+       usa un verde apagado, que separa la pastilla de la foto sin brillar. */
+    [data-theme="dark"] .info-icon {
+        background: rgba(23,25,28,.85);
+        border-color: #2f5d43;
+    }
 
     /* El halo del contador se escribió con el ámbar del modo claro; sobre fondo
        oscuro se repone con el ámbar que usa este tema (--ambar: #e0973a). */
@@ -3714,6 +3826,37 @@
 
             <span class="header-divisor" aria-hidden="true"></span>
 
+            <!-- Contacto por WhatsApp · antes era un botón flotante sobre el
+                 contenido; ahora acompaña al resto de las acciones globales y su
+                 menú baja del header como el de la hamburguesa. -->
+            <div class="wsp-menu" id="wspMenu">
+                <button type="button" id="whatsappFloatBtn" class="hamburger-button wsp-button"
+                        onclick="toggleMenuWsp(event)" aria-label="Contactar por WhatsApp"
+                        title="Contactar por WhatsApp" aria-haspopup="true" aria-expanded="false">
+                    <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                </button>
+
+                <div id="whatsappOptions">
+                    <div class="wsp-panel">
+                        <span class="wsp-panel-titulo">¿Con quién querés hablar?</span>
+                        <div class="wsp-option" role="button" tabindex="0" onclick="window.open(WHATSAPP_URL, '_blank'); cerrarMenuWsp();">
+                            <i class="fas fa-store" aria-hidden="true"></i>
+                            <span class="wsp-option-texto">
+                                <strong>Showroom</strong>
+                                <small>Consultas y visitas</small>
+                            </span>
+                        </div>
+                        <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491176460030', '_blank'); cerrarMenuWsp();">
+                            <i class="fas fa-truck" aria-hidden="true"></i>
+                            <span class="wsp-option-texto">
+                                <strong>Envíos</strong>
+                                <small>Despachos a todo el país</small>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <button id="themeToggleBtn" class="hamburger-button" aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro">
                 <i class="fas fa-moon" aria-hidden="true"></i>
             </button>
@@ -3736,30 +3879,6 @@
         </div>
     </div>
 </header>
-
-<!-- Botón flotante de WhatsApp con submenú -->
-<div id="whatsappFloatMenu">
-    <div id="whatsappOptions">
-        <div class="wsp-panel">
-            <span class="wsp-panel-titulo">¿Con quién querés hablar?</span>
-            <div class="wsp-option" role="button" tabindex="0" onclick="window.open(WHATSAPP_URL, '_blank'); cerrarMenuWsp();">
-                <i class="fas fa-store" aria-hidden="true"></i>
-                <span class="wsp-option-texto">
-                    <strong>Showroom</strong>
-                    <small>Consultas y visitas</small>
-                </span>
-            </div>
-            <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491176460030', '_blank'); cerrarMenuWsp();">
-                <i class="fas fa-truck" aria-hidden="true"></i>
-                <span class="wsp-option-texto">
-                    <strong>Envíos</strong>
-                    <small>Despachos a todo el país</small>
-                </span>
-            </div>
-        </div>
-    </div>
-    <img src="whatsapp.png" alt="Contactar por WhatsApp" id="whatsappFloatBtn" onclick="toggleMenuWsp(event)" width="49" height="49">
-</div>
 
 <!-- Modal para buscar último pedido -->
 <div id="ultimoPedidoModal" class="modal">
@@ -5232,25 +5351,53 @@ document.addEventListener('keydown', function(e) {
 // Variables globales para el carrito
 let cartExpanded = false;
 
-// Función para alternar entre expandir/minimizar el carrito
+// === MENÚ DE CONTACTO POR WHATSAPP (HEADER) ===
+// Abre y cierra por clase, no por style.display: la clase es la que dispara la
+// transición de opacidad/desplazamiento del panel (ver sección 17 del CSS).
 function toggleMenuWsp(event) {
     event.stopPropagation();
     const options = document.getElementById('whatsappOptions');
-    const abierto = options.style.display === 'flex';
-    options.style.display = abierto ? 'none' : 'flex';
-    options.style.flexDirection = 'column';
-    options.style.alignItems = 'flex-end';
+    const abierto = options.classList.toggle('active');
+    document.getElementById('whatsappFloatBtn').setAttribute('aria-expanded', abierto ? 'true' : 'false');
+
+    // El menú hamburguesa está pegado al lado y ambos cuelgan del header: dos
+    // paneles abiertos a la vez se superponen, así que sólo queda uno.
+    if (abierto) {
+        const hamburguesa = document.getElementById('hamburgerDropdown');
+        if (hamburguesa) hamburguesa.classList.remove('active');
+    }
 }
 
 function cerrarMenuWsp() {
-    document.getElementById('whatsappOptions').style.display = 'none';
+    document.getElementById('whatsappOptions').classList.remove('active');
+    document.getElementById('whatsappFloatBtn').setAttribute('aria-expanded', 'false');
 }
 
 document.addEventListener('click', function(e) {
-    const menu = document.getElementById('whatsappFloatMenu');
+    const menu = document.getElementById('wspMenu');
     if (menu && !menu.contains(e.target)) {
         cerrarMenuWsp();
     }
+});
+
+// El toggle del hamburguesa (catalogo.js) frena la propagación, así que el
+// click externo de arriba no llega: se cierra desde acá el caso inverso.
+const btnHamburguesaHeader = document.getElementById('hamburgerBtn');
+if (btnHamburguesaHeader) btnHamburguesaHeader.addEventListener('click', cerrarMenuWsp);
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') cerrarMenuWsp();
+});
+
+// Las opciones son divs con role="button": el teclado tiene que poder activarlas
+// igual que el mouse.
+document.querySelectorAll('.wsp-option').forEach(opcion => {
+    opcion.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            opcion.click();
+        }
+    });
 });
 
 // Deja iluminado el botón "Carrito" mientras el panel está abierto, tanto en el

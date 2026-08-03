@@ -1305,35 +1305,60 @@
         flex-wrap: wrap;
     }
 
-    /* ---------- 15 · WHATSAPP FLOTANTE ----------
-       Mismo componente que en el catálogo, para que el botón de ayuda esté
-       siempre en el mismo lugar de la pantalla en las dos páginas. */
-    #whatsappFloatMenu {
-        position: fixed;
-        bottom: 28px;
-        right: 22px;
-        z-index: 1100;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 10px;
+    /* ---------- 15 · CONTACTO POR WHATSAPP (EN EL HEADER) ----------
+       Mismo componente que en el catálogo, para que la acción de contacto esté
+       siempre en el mismo lugar en las dos páginas: dentro de .header-actions, a
+       la izquierda del selector de tema. Reusa la caja de .hamburger-button y
+       sólo cambia el color. */
+    .wsp-menu { position: relative; flex: none; }
+
+    .wsp-button {
+        background: var(--verde-050);
+        border-color: var(--verde-100);
+        color: var(--verde-700);
+        font-size: 20px;
     }
 
+    .wsp-button:hover,
+    .wsp-button[aria-expanded="true"] {
+        background: var(--verde-600);
+        border-color: var(--verde-600);
+        color: #fff;
+        box-shadow: 0 8px 18px -10px var(--verde-800);
+    }
+
+    /* Se despliega desde el header igual que .hamburger-dropdown. El corrimiento
+       alinea el borde derecho del panel con el borde derecho del header: en
+       escritorio sólo tiene al lado el botón de tema (el hamburguesa está oculto
+       hasta 1024px, ver responsive). */
     #whatsappOptions {
-        display: none;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 8px;
-        animation: slideInRight .22s ease;
+        --wsp-corrimiento: calc(46px + 10px);
+        position: absolute;
+        top: calc(100% + 12px);
+        right: calc(-1 * var(--wsp-corrimiento));
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: opacity var(--t), transform var(--t), visibility var(--t);
+        z-index: 1200;
     }
 
+    #whatsappOptions.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    /* El max-width es el que evita que en pantallas angostas el panel se salga
+       por la izquierda, porque queda anclado por su borde derecho. */
     .wsp-panel {
         background: var(--superficie);
         border: 1px solid var(--borde);
         border-radius: var(--radio-md);
         box-shadow: var(--sombra-3);
         padding: 6px;
-        min-width: 244px;
+        width: 264px;
+        max-width: calc(100vw - 28px);
     }
 
     .wsp-panel-titulo {
@@ -1379,14 +1404,6 @@
     .wsp-option-texto strong { font-size: .85rem; font-weight: 700; color: var(--tinta-900); }
     .wsp-option-texto small { font-size: .72rem; color: var(--tinta-400); }
 
-    #whatsappFloatBtn {
-        cursor: pointer;
-        transition: transform var(--t);
-        filter: drop-shadow(0 6px 14px rgba(17,24,39,.28));
-    }
-
-    #whatsappFloatBtn:hover { transform: scale(1.08); }
-
     /* ---------- 16 · RESPONSIVE ---------- */
     @media (max-width: 1180px) {
         .valores-grid,
@@ -1397,6 +1414,11 @@
     @media (max-width: 1024px) {
         .site-nav { display: none; }
         .hamburger-menu { display: block; }
+
+        /* Aparece el hamburguesa a la derecha del selector de tema: el panel de
+           WhatsApp se corre lo que ocupan los dos. */
+        #whatsappOptions { --wsp-corrimiento: calc(2 * 46px + 2 * 10px); }
+
         .accesos { grid-template-columns: 1fr; }
         .contacto-grid { grid-template-columns: 1fr; }
         .canal-card { grid-template-columns: 1fr; gap: 26px; }
@@ -1468,14 +1490,20 @@
 
         .site-footer { padding: 26px 20px 22px; border-radius: var(--radio-md); }
         .footer-legal { flex-direction: column; gap: 6px; }
-
-        #whatsappFloatMenu { bottom: 20px; right: 16px; }
     }
 
     @media (max-width: 400px) {
         .brand img { width: 150px; }
         .brand-tag { font-size: .56rem; }
         .hero h1 { font-size: 2.05rem; }
+
+        /* Con el CTA del catálogo y tres cuadrados a la derecha no queda aire en
+           360px: los botones y el gap se achican, y el panel de WhatsApp sigue
+           las medidas nuevas. */
+        .header-actions { gap: 8px; }
+        .hamburger-button { width: 42px; height: 42px; font-size: 16px; }
+        .wsp-button { font-size: 18px; }
+        #whatsappOptions { --wsp-corrimiento: calc(2 * 42px + 2 * 8px); }
     }
 
     /* ---------- 17 · MOVIMIENTO REDUCIDO ---------- */
@@ -1549,6 +1577,37 @@
                     <i class="fas fa-shopping-cart" aria-hidden="true"></i>
                     <span>Ver catálogo</span>
                 </a>
+
+                <!-- Contacto por WhatsApp · antes era un botón flotante sobre el
+                     contenido; ahora acompaña al resto de las acciones globales
+                     y su menú baja del header como el de la hamburguesa. -->
+                <div class="wsp-menu" id="wspMenu">
+                    <button type="button" id="whatsappFloatBtn" class="hamburger-button wsp-button"
+                            onclick="toggleMenuWsp(event)" aria-label="Contactar por WhatsApp"
+                            title="Contactar por WhatsApp" aria-haspopup="true" aria-expanded="false">
+                        <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                    </button>
+
+                    <div id="whatsappOptions">
+                        <div class="wsp-panel">
+                            <span class="wsp-panel-titulo">¿Con quién querés hablar?</span>
+                            <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491121891006', '_blank'); cerrarMenuWsp();">
+                                <i class="fas fa-store" aria-hidden="true"></i>
+                                <span class="wsp-option-texto">
+                                    <strong>Showroom</strong>
+                                    <small>Consultas y visitas</small>
+                                </span>
+                            </div>
+                            <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491176460030', '_blank'); cerrarMenuWsp();">
+                                <i class="fas fa-truck" aria-hidden="true"></i>
+                                <span class="wsp-option-texto">
+                                    <strong>Envíos</strong>
+                                    <small>Despachos a todo el país</small>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <button id="themeToggleBtn" class="hamburger-button" aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro">
                     <i class="fas fa-moon" aria-hidden="true"></i>
@@ -1925,30 +1984,6 @@
         </div>
     </footer>
 
-    <!-- Botón flotante de WhatsApp con submenú · igual que en el catálogo -->
-    <div id="whatsappFloatMenu">
-        <div id="whatsappOptions">
-            <div class="wsp-panel">
-                <span class="wsp-panel-titulo">¿Con quién querés hablar?</span>
-                <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491121891006', '_blank'); cerrarMenuWsp();">
-                    <i class="fas fa-store" aria-hidden="true"></i>
-                    <span class="wsp-option-texto">
-                        <strong>Showroom</strong>
-                        <small>Consultas y visitas</small>
-                    </span>
-                </div>
-                <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491176460030', '_blank'); cerrarMenuWsp();">
-                    <i class="fas fa-truck" aria-hidden="true"></i>
-                    <span class="wsp-option-texto">
-                        <strong>Envíos</strong>
-                        <small>Despachos a todo el país</small>
-                    </span>
-                </div>
-            </div>
-        </div>
-        <img src="whatsapp.png" alt="Contactar por WhatsApp" id="whatsappFloatBtn" onclick="toggleMenuWsp(event)" width="49" height="49">
-    </div>
-
     <!-- Script de reseñas -->
     <script type="module" src="rws.js"></script>
 
@@ -2061,25 +2096,54 @@
             });
         })();
 
-        // === Menú flotante de WhatsApp ===
+        // === Menú de contacto por WhatsApp (header) ===
+        // Abre y cierra por clase, no por style.display: la clase es la que
+        // dispara la transición del panel (ver sección 15 del CSS).
         function toggleMenuWsp(event) {
             event.stopPropagation();
             const options = document.getElementById('whatsappOptions');
-            const abierto = options.style.display === 'flex';
-            options.style.display = abierto ? 'none' : 'flex';
-            options.style.flexDirection = 'column';
-            options.style.alignItems = 'flex-end';
+            const abierto = options.classList.toggle('active');
+            document.getElementById('whatsappFloatBtn').setAttribute('aria-expanded', abierto ? 'true' : 'false');
+
+            // Los dos paneles cuelgan del header y se superponen: queda uno solo.
+            if (abierto) {
+                const hamburguesa = document.getElementById('hamburgerDropdown');
+                const btnHamburguesa = document.getElementById('hamburgerBtn');
+                if (hamburguesa) hamburguesa.classList.remove('active');
+                if (btnHamburguesa) btnHamburguesa.setAttribute('aria-expanded', 'false');
+            }
         }
 
         function cerrarMenuWsp() {
-            document.getElementById('whatsappOptions').style.display = 'none';
+            document.getElementById('whatsappOptions').classList.remove('active');
+            document.getElementById('whatsappFloatBtn').setAttribute('aria-expanded', 'false');
         }
 
         document.addEventListener('click', function (e) {
-            const menu = document.getElementById('whatsappFloatMenu');
+            const menu = document.getElementById('wspMenu');
             if (menu && !menu.contains(e.target)) {
                 cerrarMenuWsp();
             }
+        });
+
+        // El toggle del hamburguesa frena la propagación, así que el click
+        // externo de arriba no llega: se cierra desde acá el caso inverso.
+        const btnHamburguesaHeader = document.getElementById('hamburgerBtn');
+        if (btnHamburguesaHeader) btnHamburguesaHeader.addEventListener('click', cerrarMenuWsp);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') cerrarMenuWsp();
+        });
+
+        // Las opciones son divs con role="button": el teclado tiene que poder
+        // activarlas igual que el mouse.
+        document.querySelectorAll('.wsp-option').forEach(function (opcion) {
+            opcion.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    opcion.click();
+                }
+            });
         });
 
         // === Reseñas ===

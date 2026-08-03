@@ -784,15 +784,7 @@
       font-weight: 800;
       letter-spacing: -.02em;
       color: #fff;
-      cursor: pointer;
-      transition: opacity var(--t);
     }
-
-    .total-row.grand-total .total-row-value:hover { opacity: .82; }
-
-    /* .copied-feedback pinta con var(--accent), que sobre la barra oscura queda
-       ilegible: acá se repone con un verde claro. */
-    .total-row.grand-total .total-row-value.copied-feedback { color: #9fdcb4 !important; }
 
     /* Campos de porcentaje e importe: los sigue leyendo y escribiendo el script
        (.value), así que siguen siendo <input readonly>, pero se leen como texto. */
@@ -2519,45 +2511,11 @@
       </div>
       <div class="total-row grand-total">
         <span class="total-row-label"><i class="fas fa-receipt" aria-hidden="true"></i> Total final</span>
-        <span class="total-row-value" id="totalFinalDiv" title="Click para copiar el resumen">$ ${totalFinal.toLocaleString('es-AR')}</span>
+        <span class="total-row-value" id="totalFinalDiv">$ ${totalFinal.toLocaleString('es-AR')}</span>
       </div>
     `;
 
     cont.appendChild(totalsSection);
-
-    // Copy total handler
-    setTimeout(() => {
-      const tfDiv = document.getElementById('totalFinalDiv');
-      if (tfDiv) {
-        tfDiv.onclick = function() {
-          const subtotalActual = total;
-          const descuentoActual = descuento;
-          const recargoActual = recargo;
-          const envioActual = envio;
-          const totalFinalActual = totalFinal;
-
-          const pagoRadio = document.querySelector('input[name="tipoPago"]:checked');
-          const medioPago = pagoRadio ? pagoRadio.value : 'No especificado';
-
-          let textoCopiar = `- Subtotal $ ${subtotalActual.toLocaleString('es-AR')}`;
-          if (descuentoActual > 0) textoCopiar += `\n- Descuento $ ${descuentoActual.toLocaleString('es-AR')}`;
-          if (recargoActual > 0) textoCopiar += `\n- Recargo $ ${recargoActual.toLocaleString('es-AR')}`;
-          if (envioActual > 0) textoCopiar += `\n- Envío $ ${envioActual.toLocaleString('es-AR')}`;
-          textoCopiar += `\n- Total $ ${totalFinalActual.toLocaleString('es-AR')}`;
-          textoCopiar += `\n- Medio de Pago: ${medioPago}`;
-
-          navigator.clipboard.writeText(textoCopiar).then(() => {
-            const orig = tfDiv.textContent;
-            tfDiv.textContent = 'Copiado';
-            tfDiv.classList.add('copied-feedback');
-            setTimeout(() => {
-              tfDiv.textContent = orig;
-              tfDiv.classList.remove('copied-feedback');
-            }, 1500);
-          }).catch(err => alert('Error al copiar: ' + err));
-        };
-      }
-    }, 0);
 
     /* ===== Payment & Delivery Selectors ===== */
     const selectorsWrap = document.createElement('div');
