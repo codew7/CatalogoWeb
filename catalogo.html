@@ -3709,7 +3709,7 @@
                                 <div class="faq-map-wrapper">
                                     <iframe
                                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3287.6582398598877!2d-58.5471906!3d-34.5298700!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb7e9e3e3e3e3%3A0x3e3e3e3e3e3e3e3e!2sVélez%20Sarsfield%204127%2C%20Munro%2C%20Vicente%20López%2C%20Provincia%20de%20Buenos%20Aires!5e0!3m2!1ses-419!2sar!4v1700000000000!5m2!1ses-419!2sar"
-                                        title="Mapa de la ubicación del showroom"
+                                        title="Mapa de la ubicación"
                                         allowfullscreen=""
                                         loading="lazy"
                                         referrerpolicy="no-referrer-when-downgrade">
@@ -3764,7 +3764,7 @@
     <div id="mapModal" class="media-modal">
         <div class="media-modal-content">
             <div class="media-modal-header">
-                <h3 class="media-modal-title">Ubicación del Showroom</h3>
+                <h3 class="media-modal-title">Ubicación del Local</h3>
                 <button class="media-modal-close" aria-label="Cerrar mapa" onclick="closeMediaModal('mapModal')">
                     <i class="fas fa-times"></i>
                 </button>
@@ -3772,7 +3772,7 @@
             <div class="media-modal-body map-modal">
                 <iframe
                     src="https://maps.app.goo.gl/L7QhZ11dmPc7LjWn7"
-                    title="Mapa ampliado del showroom"
+                    title="Mapa ampliado"
                     allowfullscreen=""
                     loading="lazy"
                     referrerpolicy="no-referrer-when-downgrade">
@@ -3842,15 +3842,15 @@
                         <div class="wsp-option" role="button" tabindex="0" onclick="window.open(WHATSAPP_URL, '_blank'); cerrarMenuWsp();">
                             <i class="fas fa-store" aria-hidden="true"></i>
                             <span class="wsp-option-texto">
-                                <strong>Showroom</strong>
-                                <small>Consultas y visitas</small>
+                                <strong>Atención al público</strong>
+                                <small>Consultas y retiros</small>
                             </span>
                         </div>
                         <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491176460030', '_blank'); cerrarMenuWsp();">
                             <i class="fas fa-truck" aria-hidden="true"></i>
                             <span class="wsp-option-texto">
-                                <strong>Envíos</strong>
-                                <small>Despachos a todo el país</small>
+                                <strong>Envíos & despachos</strong>
+                                <small>Información y pedidos</small>
                             </span>
                         </div>
                     </div>
@@ -4402,7 +4402,7 @@
             <div class="footer-marca">
                 <img src="logo.png" alt="HomePoint" class="logo-light">
                 <img src="logoblanco.png" alt="HomePoint" class="logo-dark">
-                <p>Distribuidora mayorista de artículos para el hogar. Showroom en Munro y envíos a todo el país.</p>
+                <p>Distribuidora mayorista de artículos para el hogar y uso personal, con envíos a todo el país.</p>
             </div>
 
             <div>
@@ -4956,7 +4956,7 @@ function pintarResumenTipoEntrega() {
 
     const datos = {
         envio:  { icono: 'fa-truck', titulo: 'Envío a domicilio', sub: 'Coordinamos el despacho con los datos que cargaste.' },
-        retiro: { icono: 'fa-store', titulo: 'Retiro en el showroom', sub: 'Un representante te va a contactar por WhatsApp.' }
+        retiro: { icono: 'fa-store', titulo: 'Retiro en el local', sub: 'Un representante te va a contactar por WhatsApp.' }
     }[tipoEntrega];
 
     seccion.style.display = '';

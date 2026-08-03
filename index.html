@@ -297,24 +297,6 @@
 
     .header-actions { display: flex; align-items: center; gap: 10px; flex: none; }
 
-    .header-cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 9px;
-        height: 46px;
-        padding: 0 20px;
-        background: var(--verde-600);
-        color: #fff;
-        border-radius: var(--radio-sm);
-        font-size: .86rem;
-        font-weight: 700;
-        white-space: nowrap;
-        transition: background var(--t), transform var(--t);
-    }
-
-    .header-cta:hover { background: var(--verde-700); color: #fff; transform: translateY(-1px); }
-    .header-cta i { font-size: .85em; }
-
     /* Botón cuadrado del header (tema y hamburguesa) */
     .hamburger-menu { position: relative; flex: none; }
 
@@ -1428,8 +1410,6 @@
         .site-header-inner { min-height: 76px; padding: 14px 0; }
         .brand img { width: 210px; }
         .brand-tag { font-size: .66rem; letter-spacing: .14em; }
-        .header-cta span { display: none; }
-        .header-cta { padding: 0 16px; }
 
         .hero { padding: 72px 0 82px; }
         .hero-sub { font-size: 1rem; }
@@ -1573,11 +1553,6 @@
             </nav>
 
             <div class="header-actions">
-                <a class="header-cta" href="catalogo.html">
-                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
-                    <span>Ver catálogo</span>
-                </a>
-
                 <!-- Contacto por WhatsApp · antes era un botón flotante sobre el
                      contenido; ahora acompaña al resto de las acciones globales
                      y su menú baja del header como el de la hamburguesa. -->
