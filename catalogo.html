@@ -243,6 +243,7 @@
     @keyframes spin     { to { transform: rotate(360deg); } }
     @keyframes pulse    { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
     @keyframes pulse-badge { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+    @keyframes badge-pop { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
     @keyframes wave     { 0%,100% { transform: rotate(0); } 25% { transform: rotate(16deg); } 75% { transform: rotate(-16deg); } }
 
     /* ---------- 4 · ENCABEZADO ---------- */
@@ -1297,27 +1298,34 @@
         animation: pulse-badge 2.4s infinite;
     }
 
-    /* Se apoya justo arriba de la barra inferior (su z-index es mayor, así que
-       el panel se dibuja por encima sin tapar los botones de navegación). */
+    /* El carrito usa el mismo lenguaje que los paneles de Categorías y Pedidos
+       (sección 21): hoja apoyada en el borde inferior en móvil y desplegable
+       colgado del header en escritorio, con el velo compartido #sheetBackdrop.
+       Por eso comparte su z-index (por encima del velo, que vale --sheet-z) y
+       su geometría; lo que cambia acá abajo es sólo el contenido.
+       El display:flex de .active es estructural: reparte el panel en encabezado
+       fijo · lista con scroll · pie fijo. No volver a display:block. */
     .cart-container {
         position: fixed;
-        bottom: calc(var(--tabbar-hueco) + 12px);
-        left: 22px;
+        left: 0;
+        right: 0;
+        bottom: 0;
         background: var(--superficie);
         padding: 0;
         border: 1px solid var(--borde);
-        border-radius: var(--radio-lg);
+        border-bottom: none;
+        border-radius: var(--radio-lg) var(--radio-lg) 0 0;
         box-shadow: var(--sombra-3);
-        min-width: 340px;
-        max-width: 380px;
-        z-index: 2001;
+        max-height: min(72vh, 560px);
+        z-index: calc(var(--sheet-z) + 1);
         display: none;
+        flex-direction: column;
         overflow: hidden;
     }
 
     .cart-container.active {
-        display: block;
-        animation: slideInLeft .26s ease-out;
+        display: flex;
+        animation: slideInUp .26s ease-out;
     }
 
     .cart-container h3 {
@@ -1329,8 +1337,10 @@
         text-align: left;
         margin: 0;
         padding: 16px 20px;
+        flex: none;
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 10px;
     }
 
@@ -1342,11 +1352,40 @@
         color: rgba(255,255,255,.62);
     }
 
+    /* El título queda en el medio: el ::before del h3 lo precede y el botón de
+       cierre lo empuja contra la izquierda (justify-content: space-between). */
+    .cart-container h3 span { margin-right: auto; }
+
+    /* Mismo gesto de cierre que .sheet-close, con la paleta de .modal-close
+       porque acá el fondo es oscuro */
+    .cart-close {
+        width: 34px;
+        height: 34px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,.14);
+        border: none;
+        border-radius: 50%;
+        color: #fff;
+        font-size: .95rem;
+        cursor: pointer;
+        padding: 0;
+        transition: background var(--t);
+    }
+
+    .cart-close:hover { background: rgba(255,255,255,.3); }
+
+    /* El scroll vive acá dentro: el encabezado y el pie quedan fijos, igual que
+       en .sheet-body. El min-height:0 es lo que permite que un hijo flexible
+       encoja por debajo de su contenido y realmente scrollee. */
     #cart-list {
         list-style: none;
         padding: 12px;
         margin: 0;
-        max-height: 272px;
+        flex: 1 1 auto;
+        min-height: 0;
         overflow-y: auto;
         background: var(--superficie);
     }
@@ -1414,6 +1453,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex: none;
         gap: 10px;
         padding: 10px 16px;
         background: var(--superficie-2);
@@ -1461,6 +1501,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex: none;
         padding: 10px 16px;
         background: var(--ambar-050);
         border-top: 1px dashed #f0c98a;
@@ -1487,6 +1528,7 @@
 
     .cart-discount-note {
         margin: 0;
+        flex: none;
         padding: 0 16px 9px;
         background: var(--ambar-050);
         font-size: .66rem;
@@ -1499,6 +1541,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex: none;
         padding: 15px 18px;
         background: var(--verde-900);
         border-top: none;
@@ -1535,16 +1578,23 @@
         font-variant-numeric: tabular-nums;
     }
 
+    /* El padding inferior cubre el área segura de iOS: el panel llega hasta el
+       borde de la pantalla, igual que .sheet-body */
     .cart-buttons-container {
-        padding: 12px;
+        padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
         background: var(--superficie);
         display: flex;
+        flex: none;
         flex-direction: row;
         gap: 8px;
         border-top: 1px solid var(--borde);
     }
 
-    .cart-container button {
+    /* Sólo los dos botones del pie. Antes esto colgaba de .cart-container y
+       arrastraba una cadena de :not() para esquivar los otros botones del panel
+       (eliminar ítem, cambiar entrega, cerrar); acotarlo al pie los excluye a
+       todos sin excepciones. */
+    .cart-buttons-container button {
         flex: 1;
         padding: 12px 14px;
         font-family: var(--ui);
@@ -1561,16 +1611,16 @@
         gap: 7px;
     }
 
-    .cart-container button.whatsapp-link { background: var(--verde-600); }
-    .cart-container button.whatsapp-link:hover { background: var(--verde-700); }
+    .cart-buttons-container button.whatsapp-link { background: var(--verde-600); }
+    .cart-buttons-container button.whatsapp-link:hover { background: var(--verde-700); }
 
-    .cart-container button:not(.whatsapp-link):not(.cart-item-delete):not(.cart-entrega-cambiar) {
+    .cart-buttons-container button:not(.whatsapp-link) {
         background: var(--superficie-2);
         color: var(--tinta-600);
         border: 1px solid var(--borde-fuerte);
     }
 
-    .cart-container button:not(.whatsapp-link):not(.cart-item-delete):not(.cart-entrega-cambiar):hover {
+    .cart-buttons-container button:not(.whatsapp-link):hover {
         background: var(--rojo-050);
         border-color: #eab7b1;
         color: var(--rojo);
@@ -1742,6 +1792,40 @@
 
     .modal-content input::placeholder { color: var(--tinta-400); }
 
+    /* Ayuda y error de validación bajo un campo del modal.
+       El error se muestra quitándole el atributo hidden desde el JS; lleva
+       role="alert" para que el lector de pantalla lo anuncie al aparecer. */
+    .form-hint {
+        display: block;
+        margin-top: 6px;
+        font-size: .76rem;
+        line-height: 1.4;
+        color: var(--tinta-400);
+    }
+
+    .form-error {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin: 6px 0 0;
+        font-size: .78rem;
+        font-weight: 600;
+        line-height: 1.4;
+        color: var(--rojo);
+    }
+
+    .form-error[hidden] { display: none; }
+
+    .form-error i { font-size: .9em; flex: none; }
+
+    /* El campo inválido se marca en rojo aunque tenga el foco puesto, por eso
+       las dos reglas: si no, el :focus de arriba le devolvería el borde verde. */
+    .modal-content input.is-invalid,
+    .modal-content input.is-invalid:focus {
+        border-color: var(--rojo);
+        box-shadow: 0 0 0 3px rgba(180,35,24,.14);
+    }
+
     .modal-content button#continuarBtn,
     .modal-content button#retiroContinuarBtn {
         width: 100%;
@@ -1793,6 +1877,56 @@
     }
 
     .modal-body .info-text.initial i { color: var(--tinta-400); }
+
+    /* Aviso de monto mínimo · el modal lo arma mostrarModalMontoMinimo()
+       (catalogo.js) reutilizando .modal / .modal-header / .btn-primary. Estas
+       clases existen para que ese HTML no vuelva a llevar estilos inline: sin
+       tokens, el modal quedaba fuera del sistema y no acompañaba al modo oscuro.
+       La paleta ámbar es la misma que usan el descuento del carrito y la fila de
+       descuento del checkout, que son los otros dos avisos monetarios. */
+    .minimo-destacado {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 20px;
+        background: var(--ambar-050);
+        border: 1px solid var(--ambar);
+        border-radius: var(--radio-md);
+    }
+
+    .minimo-destacado > i {
+        font-size: 1.6em;
+        color: var(--ambar);
+        flex: none;
+    }
+
+    .minimo-texto { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+
+    .minimo-label {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--ambar-700);
+    }
+
+    .minimo-monto {
+        font-size: 1.6rem;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -.02em;
+        color: var(--ambar-700);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .minimo-nota {
+        margin: 16px 0 0;
+        font-size: .88rem;
+        line-height: 1.55;
+        color: var(--tinta-600);
+    }
+
+    .minimo-nota strong { color: var(--tinta-900); font-weight: 700; }
 
     /* Confirmación del pedido */
     .confirmacion-section {
@@ -1847,7 +1981,7 @@
         background: var(--superficie);
         border: 1px solid var(--borde-fuerte);
         border-radius: var(--radio-md);
-        padding: 24px 14px;
+        padding: 20px 14px;
         text-align: center;
         cursor: pointer;
         transition: border-color var(--t), background var(--t), transform var(--t);
@@ -1875,6 +2009,27 @@
         font-size: .95rem;
         display: block;
     }
+
+    /* Una línea de contexto bajo cada opción, en el mismo tono secundario que
+       .entrega-resumen-sub (el resumen que aparece después, ya elegida la
+       opción): dice qué implica cada camino sin competir con el título.
+       No necesita alto reservado para igualar las tarjetas: son celdas de un
+       grid y el stretch las deja del mismo alto aunque una envuelva. */
+    /* --tinta-600 y no --tinta-400: a .76rem el gris más claro queda por debajo
+       del contraste mínimo sobre blanco. La jerarquía frente al título la marcan
+       igual el tamaño y el peso. */
+    .entrega-card .entrega-sub {
+        display: block;
+        margin-top: 5px;
+        font-size: .76rem;
+        font-weight: 500;
+        line-height: 1.3;
+        color: var(--tinta-600);
+        transition: color var(--t);
+    }
+
+    .entrega-card:hover .entrega-sub,
+    .entrega-card.selected .entrega-sub { color: var(--tinta-700); }
 
     .entrega-card.selected {
         border-color: var(--verde-600);
@@ -2698,8 +2853,9 @@
          ancho, ni siquiera con etiquetas largas.
        · Siempre visible, sin ocultarse al scrollear: un auto-hide atado al
          scroll es justamente lo que deja la barra a medio camino.
-       · z-index escalonado: barra (1900) < panel del carrito (2001) < paneles
-         inferiores (2500) < modales del checkout (3000). */
+       · z-index escalonado: barra (1900) < velo compartido (2500) < paneles
+         inferiores y carrito (2501) < modales del checkout (3000). El carrito
+         comparte capa con los paneles porque comparte el velo (sección 12). */
     .tabbar {
         position: fixed;
         left: 0;
@@ -2785,6 +2941,11 @@
         line-height: 1;
         font-variant-numeric: tabular-nums;
     }
+
+    /* Latido breve cada vez que cambia la cantidad: es lo que hace que el
+       agregado se note sin dejar un elemento animado en bucle. Lo dispara
+       actualizarCarrito() (catalogo.js) sólo cuando el número cambia. */
+    .nav-badge.is-pop { animation: badge-pop .42s cubic-bezier(.34,1.56,.64,1); }
 
     /* Aviso sin número: solo señala que hay un pedido guardado en este navegador */
     .nav-punto {
@@ -3034,9 +3195,8 @@
         .tabbar { display: none; }
         body { padding-bottom: 0; }
 
-        /* El carrito y WhatsApp vuelven a sus posiciones originales, ya que no
-           hay nada fijo abajo con lo que puedan chocar */
-        .cart-container { bottom: 22px; }
+        /* WhatsApp vuelve a su posición original, ya que no hay nada fijo abajo
+           con lo que pueda chocar */
         #whatsappFloatMenu { bottom: 28px; }
 
         .header-nav { display: flex; align-items: center; gap: 2px; }
@@ -3068,12 +3228,17 @@
            No se usa translate para posicionarlos: la animación ocupa transform
            (ver el comentario del centrado más arriba). */
         /* El tope exacto lo pone abrirSheet() con el alto real del header; este
-           valor es solo el punto de partida antes de que el JS lo ajuste. */
+           valor es solo el punto de partida antes de que el JS lo ajuste.
+           El right no es un margen suelto: reproduce el margen lateral del
+           contenedor del header —min(100% - 40px, var(--ancho))— para que el
+           panel cuelgue alineado con el botón que lo abre y no pegado al borde
+           de la ventana en un monitor ancho. Como el elemento es fixed, el 100%
+           es el viewport, así que la cuenta da el mismo margen que arriba. */
         .sheet {
             top: 92px;
             bottom: auto;
             left: auto;
-            right: 20px;
+            right: max(20px, calc((100% - var(--ancho)) / 2));
             width: min(400px, calc(100% - 40px));
             max-height: min(70vh, 520px);
             border: 1px solid var(--borde);
@@ -3083,12 +3248,52 @@
         .sheet.active { animation: slideDown .24s ease-out; }
         .sheet-body { padding-bottom: 16px; }
 
+        /* El carrito se despliega igual que los paneles: mismo anclaje, mismo
+           ancho y la misma entrada. El tope lo ajusta toggleCart() con el alto
+           real del header, como hace abrirSheet() con los paneles. */
+        .cart-container {
+            top: 92px;
+            bottom: auto;
+            left: auto;
+            right: max(20px, calc((100% - var(--ancho)) / 2));
+            width: min(400px, calc(100% - 40px));
+            max-height: min(70vh, 560px);
+            border: 1px solid var(--borde);
+            border-radius: var(--radio-lg);
+        }
+
+        .cart-container.active { animation: slideDown .24s ease-out; }
+        .cart-buttons-container { padding-bottom: 12px; }
+
         /* El aviso del carrito vacío aparece junto al botón que lo provocó */
         .tabbar-aviso {
             bottom: auto;
             left: auto;
-            right: 20px;
+            right: max(20px, calc((100% - var(--ancho)) / 2));
             margin-inline: 0;
+        }
+
+        /* Contador de artículos · en escritorio el globo de 18px de la barra
+           inferior pasa desapercibido entre los ítems del header, así que acá
+           crece, marca más la cifra y suma un halo que lo despega del fondo
+           blanco. El anillo (border) y sus variantes de hover/activo siguen
+           definidos en la sección 21.
+           Se ancla por la derecha (y no por la izquierda como en móvil) para que
+           al pasar de una a dos o tres cifras crezca hacia adentro del ícono en
+           vez de invadir la etiqueta "Carrito", que queda a 9px. El min-width
+           del contenedor reserva el lugar del globo ya ensanchado; va sólo en el
+           ítem del carrito porque el punto de Pedidos sigue con la medida
+           anterior. */
+        .header-nav-item[data-accion="carrito"] .header-nav-icono { min-width: 34px; }
+
+        .header-nav-item .nav-badge {
+            top: -8px;
+            left: auto;
+            right: -4px;
+            min-width: 21px;
+            height: 21px;
+            font-size: .7rem;
+            box-shadow: 0 2px 8px -2px rgba(176,106,18,.55);
         }
 
         /* Acá los paneles se comportan como el desplegable del hamburguesa, y un
@@ -3209,17 +3414,8 @@
         .cart-float-btn { bottom: 20px; left: 16px; width: 54px; height: 54px; }
         .cart-float-btn i { font-size: 19px; }
 
-        .cart-container {
-            bottom: calc(var(--tabbar-hueco) + 10px);
-            left: 12px;
-            right: 12px;
-            min-width: 0;
-            max-width: none;
-            border-radius: var(--radio-md);
-        }
-
         .cart-container h3 { font-size: .96rem; padding: 14px 16px; }
-        #cart-list { padding: 10px; max-height: 210px; }
+        #cart-list { padding: 10px; }
         .cart-total-amount { font-size: 1.18rem; }
 
         #whatsappFloatMenu { right: 16px; }
@@ -3237,9 +3433,8 @@
     }
 
     @media (max-width: 400px) {
-        .cart-container { bottom: calc(var(--tabbar-hueco) + 8px); left: 8px; right: 8px; }
-        .cart-container button span { display: none; }
-        .cart-container button i { font-size: 1.1em; }
+        .cart-buttons-container button span { display: none; }
+        .cart-buttons-container button i { font-size: 1.1em; }
         .card > img { height: 112px; }
         .brand img { width: 170px; }
 
@@ -3271,6 +3466,14 @@
     [data-theme="dark"] .switch-track { background: #34373c; }
 
     [data-theme="dark"] .info-icon { background: rgba(23,25,28,.85); }
+
+    /* El halo del contador se escribió con el ámbar del modo claro; sobre fondo
+       oscuro se repone con el ámbar que usa este tema (--ambar: #e0973a). */
+    @media (min-width: 901px) {
+        [data-theme="dark"] .header-nav-item .nav-badge {
+            box-shadow: 0 2px 10px -2px rgba(224,151,58,.5);
+        }
+    }
 
     [data-theme="dark"] .user-type-btn:hover { background: rgba(255,255,255,.06); }
 
@@ -3786,7 +3989,12 @@
 
     <!-- Contenedor del carrito de compras (expandido) -->
     <div class="cart-container" id="cartContainer">
-        <h3>Tu solicitud</h3>
+        <h3>
+            <span>Tu solicitud</span>
+            <button type="button" class="cart-close" onclick="toggleCart()" aria-label="Cerrar carrito">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </h3>
         <ul id="cart-list"></ul>
         <div class="cart-entrega" id="cartEntrega" style="display:none;">
             <span class="cart-entrega-label">
@@ -3837,10 +4045,12 @@
                     <div class="entrega-card" data-tipo="envio" role="button" tabindex="0">
                         <i class="fas fa-truck"></i>
                         <span class="entrega-titulo">Envío</span>
+                        <span class="entrega-sub">Despachamos a todo el país</span>
                     </div>
                     <div class="entrega-card" data-tipo="retiro" role="button" tabindex="0">
                         <i class="fas fa-store"></i>
                         <span class="entrega-titulo">Retiro</span>
+                        <span class="entrega-sub">Retirá en Munro, Zona Norte</span>
                     </div>
                 </div>
             </div>
@@ -3861,7 +4071,7 @@
             <div class="modal-body">
                 <div class="info-text">
                     <i class="fab fa-whatsapp"></i>
-                    <span>Un representante se va a comunicar con vos por WhatsApp para cerrar el pedido. Esperá a que te contactemos antes de acercarte a retirar.</span>
+                    <span>Un representante se pondrá en contacto por WhatsApp para finalizar el pedido. Esperá a que te contactemos antes de acercarte a retirar.</span>
                 </div>
 
                 <div class="form-group">
@@ -3871,7 +4081,11 @@
 
                 <div class="form-group">
                     <label for="retiroTelefonoInput">Teléfono</label>
-                    <input id="retiroTelefonoInput" type="tel" placeholder="Ingresá tu teléfono" required>
+                    <input id="retiroTelefonoInput" type="tel" inputmode="tel" autocomplete="tel"
+                           placeholder="Ej: 11 2345 6789" maxlength="20" required
+                           aria-describedby="retiroTelefonoAyuda">
+                    <small id="retiroTelefonoAyuda" class="form-hint">Código de área + número, sin el 0 ni el 15.</small>
+                    <p id="retiroTelefonoError" class="form-error" role="alert" hidden></p>
                 </div>
             </div>
 
@@ -3934,18 +4148,18 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="direccionInput">Dirección <span class="optional">(opcional, para envíos)</span></label>
+                        <label for="direccionInput">Dirección</label>
                         <input id="direccionInput" type="text" placeholder="Calle y número">
                     </div>
 
                     <div class="form-group">
-                        <label for="localidadInput">Localidad <span class="optional">(opcional, para envíos)</span></label>
-                        <input id="localidadInput" type="text" placeholder="Tu localidad">
+                        <label for="localidadInput">Localidad</label>
+                        <input id="localidadInput" type="text" placeholder="Tu localidad" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="provinciaInput">Provincia <span class="optional">(opcional, para envíos)</span></label>
-                        <select id="provinciaInput">
+                        <label for="provinciaInput">Provincia</label>
+                        <select id="provinciaInput" required>
                             <option value="">Selecciona tu provincia</option>
                             <option value="CABA">CABA</option>
                             <option value="Gran Buenos Aires">Gran Buenos Aires</option>
@@ -3976,8 +4190,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="dniNuevoInput">DNI <span class="optional">(opcional, para envíos)</span></label>
-                        <input id="dniNuevoInput" type="tel" placeholder="Número de documento">
+                        <label for="dniNuevoInput">DNI / CUIT</label>
+                        <input id="dniNuevoInput" type="tel" placeholder="Número de documento o CUIT" required>
                     </div>
                 </div>
 
@@ -4298,12 +4512,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 const nombre = document.getElementById('nombreInput').value.trim();
                 const email = document.getElementById('emailInput').value.trim().toLowerCase();
                 const telefono = document.getElementById('telefonoInput').value.trim();
-                
-                if (!nombre || !email || !telefono) {
-                    alert('Por favor completa los campos obligatorios: Nombre, Email y Teléfono');
+                const localidad = document.getElementById('localidadInput').value.trim();
+                const provincia = document.getElementById('provinciaInput').value;
+                const dni = document.getElementById('dniNuevoInput').value.trim();
+
+                // Todo es obligatorio salvo la dirección. El modal no es un
+                // <form>, así que el required del HTML nunca se comprueba solo:
+                // esta es la única barrera real.
+                const faltantes = [];
+                if (!nombre)    faltantes.push('Nombre y Apellido');
+                if (!email)     faltantes.push('Email');
+                if (!telefono)  faltantes.push('Teléfono');
+                if (!localidad) faltantes.push('Localidad');
+                if (!provincia) faltantes.push('Provincia');
+                if (!dni)       faltantes.push('DNI');
+
+                if (faltantes.length) {
+                    alert('Por favor completá los siguientes campos: ' + faltantes.join(', ') + '.');
                     return;
                 }
-                
+
                 // Primero verificar si el email ya existe en la base de datos
                 db.ref('clientes').orderByChild('email').equalTo(email).limitToFirst(1).once('value')
                     .then(snap => {
@@ -4326,9 +4554,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 email: email,
                                 telefono: telefono,
                                 direccion: document.getElementById('direccionInput').value.trim(),
-                                localidad: document.getElementById('localidadInput').value.trim(),
-                                provincia: document.getElementById('provinciaInput').value,
-                                dni: document.getElementById('dniNuevoInput').value.trim(),
+                                localidad: localidad,
+                                provincia: provincia,
+                                dni: dni,
                                 tipoCliente: 'mayorista'
                             };
                             
@@ -4465,9 +4693,17 @@ function continuarConRetiro() {
     const modal = document.getElementById('retiroDatosModal');
     if (!modal) return;
 
-    // Arrancar siempre con los campos vacíos
+    // Arrancar siempre con los campos vacíos y sin el error de la vez anterior
     document.getElementById('retiroNombreInput').value = '';
-    document.getElementById('retiroTelefonoInput').value = '';
+    const telInput = document.getElementById('retiroTelefonoInput');
+    telInput.value = '';
+    telInput.classList.remove('is-invalid');
+    telInput.removeAttribute('aria-invalid');
+    const telError = document.getElementById('retiroTelefonoError');
+    if (telError) {
+        telError.hidden = true;
+        telError.textContent = '';
+    }
     modal.style.display = 'flex';
 }
 
@@ -4676,16 +4912,98 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target === retiroDatosModal) cerrarRetiroDatosModal();
     });
 
-    document.getElementById('retiroContinuarBtn').addEventListener('click', function() {
-        const nombre = document.getElementById('retiroNombreInput').value.trim();
-        const telefono = document.getElementById('retiroTelefonoInput').value.trim();
+    // --- Validación del teléfono de retiro ---------------------------------
+    // El pedido se cierra por WhatsApp: si el número no sirve, el pedido se
+    // pierde. Por eso el campo se valida acá y no sólo con el required del HTML
+    // (el modal no es un <form>, así que el navegador nunca lo comprueba solo).
+    const retiroTelefonoInput = document.getElementById('retiroTelefonoInput');
+    const retiroTelefonoError = document.getElementById('retiroTelefonoError');
 
-        if (!nombre || !telefono) {
-            alert('Por favor completá tu nombre y tu teléfono para continuar.');
+    // Deja los 10 dígitos nacionales (código de área + abonado) tolerando lo que
+    // la gente escribe de verdad: +54 / 0054, el 9 de los móviles, el 0 de larga
+    // distancia y el 15 intercalado después del código de área (2 a 4 dígitos).
+    function normalizarTelefonoAr(valor) {
+        let d = (valor || '').replace(/\D/g, '');
+        if (d.startsWith('0054')) d = d.slice(4);
+        else if (d.startsWith('54')) d = d.slice(2);
+        if (d.length === 11 && d.startsWith('9')) d = d.slice(1);
+        if (d.startsWith('0')) d = d.slice(1);
+        if (d.length === 12) {
+            for (const corte of [2, 3, 4]) {
+                if (d.slice(corte, corte + 2) === '15') {
+                    d = d.slice(0, corte) + d.slice(corte + 2);
+                    break;
+                }
+            }
+        }
+        return d;
+    }
+
+    function validarTelefonoRetiro(valor) {
+        const bruto = (valor || '').trim();
+        if (!bruto) return { ok: false, mensaje: 'Ingresá tu teléfono para que podamos contactarte.' };
+
+        const d = normalizarTelefonoAr(bruto);
+        if (d.length !== 10) {
+            return { ok: false, mensaje: 'El teléfono debe tener 10 dígitos: código de área + número, sin el 0 ni el 15.' };
+        }
+        // Descarta rellenos obvios (0000000000, 1111111111, 1234567890)
+        if (/^(\d)\1{9}$/.test(d) || d === '1234567890') {
+            return { ok: false, mensaje: 'Ese número no parece válido. Revisalo, por favor.' };
+        }
+        return { ok: true, numero: d };
+    }
+
+    function mostrarErrorTelefonoRetiro(mensaje) {
+        retiroTelefonoError.innerHTML = '<i class="fas fa-circle-exclamation"></i>' +
+            '<span>' + mensaje + '</span>';
+        retiroTelefonoError.hidden = false;
+        retiroTelefonoInput.classList.add('is-invalid');
+        retiroTelefonoInput.setAttribute('aria-invalid', 'true');
+    }
+
+    function limpiarErrorTelefonoRetiro() {
+        retiroTelefonoError.hidden = true;
+        retiroTelefonoError.textContent = '';
+        retiroTelefonoInput.classList.remove('is-invalid');
+        retiroTelefonoInput.removeAttribute('aria-invalid');
+    }
+
+    // Mientras escribe sólo se filtran los caracteres imposibles (se permiten
+    // los separadores de uso corriente) y se retira el error: corregir a cada
+    // tecla molesta más de lo que ayuda. El veredicto llega al salir del campo.
+    retiroTelefonoInput.addEventListener('input', function() {
+        const limpio = this.value.replace(/[^\d\s()+-]/g, '');
+        if (limpio !== this.value) this.value = limpio;
+        limpiarErrorTelefonoRetiro();
+    });
+
+    retiroTelefonoInput.addEventListener('blur', function() {
+        if (!this.value.trim()) return;   // vacío se avisa recién al continuar
+        const r = validarTelefonoRetiro(this.value);
+        if (!r.ok) mostrarErrorTelefonoRetiro(r.mensaje);
+    });
+
+    document.getElementById('retiroContinuarBtn').addEventListener('click', function() {
+        const nombreInput = document.getElementById('retiroNombreInput');
+        const nombre = nombreInput.value.trim();
+
+        if (!nombre) {
+            alert('Por favor completá tu nombre para continuar.');
+            nombreInput.focus();
             return;
         }
 
-        datosExtraCliente = { nombre: nombre, telefono: telefono };
+        const tel = validarTelefonoRetiro(retiroTelefonoInput.value);
+        if (!tel.ok) {
+            mostrarErrorTelefonoRetiro(tel.mensaje);
+            retiroTelefonoInput.focus();
+            return;
+        }
+
+        // Se guarda normalizado: es el número que el representante va a marcar.
+        datosExtraCliente = { nombre: nombre, telefono: tel.numero };
+        limpiarErrorTelefonoRetiro();
         retiroDatosModal.style.display = 'none';
         mostrarModalConfirmacion();
     });
@@ -4950,14 +5268,27 @@ window.sincronizarTabCarrito = sincronizarTabCarrito;
 function toggleCart() {
     const cartContainer = document.getElementById('cartContainer');
     const cartFloatBtn = document.getElementById('cartFloatBtn');
+    const backdrop = document.getElementById('sheetBackdrop');
 
     cartExpanded = !cartExpanded;
 
     if (cartExpanded) {
+        // El carrito se despliega igual que los paneles de Categorías y Pedidos:
+        // colgado del header en escritorio (offsetHeaderFijo() devuelve su borde
+        // inferior real, que cambia con el logo, el breakpoint y el aviso del
+        // modo edición) y apoyado abajo en móvil, donde devuelve 0 y el estilo
+        // inline se retira para que mande el bottom:0 del CSS.
+        // La función la expone la IIFE de la barra de navegación, más abajo en
+        // este mismo archivo: de ahí la comprobación con typeof.
+        const tope = typeof window.offsetHeaderFijo === 'function' ? window.offsetHeaderFijo() : 0;
+        cartContainer.style.top = tope ? (tope + 8) + 'px' : '';
+
         cartContainer.classList.add('active');
+        if (backdrop) backdrop.classList.add('active');
         cartFloatBtn.style.display = 'none';
     } else {
         cartContainer.classList.remove('active');
+        if (backdrop) backdrop.classList.remove('active');
         // Solo mostrar el botón si hay items en el carrito
         if (typeof carrito !== 'undefined' && carrito.length > 0) {
             cartFloatBtn.style.display = 'flex';
@@ -5082,19 +5413,24 @@ if (cartContainer) {
     });
 
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') cerrarSheets();
+        if (e.key !== 'Escape') return;
+        cerrarSheets();
+        cerrarCarritoSiEstaAbierto();
     });
 
     // Al cruzar el breakpoint con un panel abierto, el panel cambia de anclaje
     // (colgado del header en escritorio, apoyado abajo en móvil). Se recalcula el
     // tope para que no quede el valor del otro modo: en móvil se retira el estilo
-    // inline y manda el bottom:0 del CSS.
+    // inline y manda el bottom:0 del CSS. El carrito entra en la misma cuenta
+    // porque comparte el anclaje (ver toggleCart()).
     window.addEventListener('resize', function () {
-        const abierto = sheets.find(s => s && s.classList.contains('active'));
-        if (!abierto) return;
+        const carritoPanel = document.getElementById('cartContainer');
+        const abiertos = sheets.concat([carritoPanel])
+            .filter(el => el && el.classList.contains('active'));
+        if (!abiertos.length) return;
 
         const tope = offsetHeaderFijo();
-        abierto.style.top = tope ? (tope + 8) + 'px' : '';
+        abiertos.forEach(el => { el.style.top = tope ? (tope + 8) + 'px' : ''; });
     });
 
     // Aviso breve sobre la barra (se usa para el carrito vacío)

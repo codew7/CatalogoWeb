@@ -1283,8 +1283,12 @@ function actualizarCarrito() {
         if (cartContainer) {
             cartContainer.classList.remove('active');
             if (typeof cartExpanded !== 'undefined') cartExpanded = false;
-            // Este camino no pasa por toggleCart(), así que el resaltado del ítem
-            // "Carrito" de la barra inferior se apaga a mano
+            // Este camino no pasa por toggleCart(), así que hay que apagar a mano
+            // las dos cosas que aquella función deja encendidas: el velo que el
+            // carrito comparte con los paneles (sin esto la pantalla queda
+            // velada en móvil) y el resaltado del ítem "Carrito".
+            const backdrop = document.getElementById('sheetBackdrop');
+            if (backdrop) backdrop.classList.remove('active');
             if (typeof window.sincronizarTabCarrito === 'function') window.sincronizarTabCarrito();
         }
         // Carrito vacío: el próximo artículo vuelve a ser "el primero" y se pregunta de nuevo
@@ -1308,8 +1312,18 @@ function actualizarCarrito() {
     // carrito (el botón flotante quedó oculto). Con el carrito vacío el globo
     // desaparece en lugar de mostrar un 0.
     badgesNav.forEach(badge => {
+        const previo = badge.textContent;
         badge.textContent = totalUnidades;
         badge.style.display = totalUnidades > 0 ? 'flex' : 'none';
+
+        // Latido sólo cuando la cifra cambia: actualizarCarrito() también corre
+        // al filtrar, paginar o cambiar la entrega, y reanimar en cada repintado
+        // dejaría el globo latiendo solo.
+        if (totalUnidades > 0 && String(totalUnidades) !== previo) {
+            badge.classList.remove('is-pop');
+            void badge.offsetWidth;   // fuerza el reflow que reinicia la animación
+            badge.classList.add('is-pop');
+        }
     });
 
     // Renderizar items con botón de eliminar
@@ -1619,7 +1633,11 @@ function calcularTotalCarrito() {
     return calcularResumenCarrito().totalBruto;
 }
 
-// Modal de notificación de monto mínimo de pedido
+// Modal de notificación de monto mínimo de pedido.
+// El HTML no lleva estilos inline: usa las mismas piezas que los modales del
+// documento (.modal-header oscuro, .modal-body, .modal-footer, .btn-primary) y
+// las clases .minimo-* de la sección 13 del CSS, así hereda los tokens y el modo
+// oscuro en lugar de traer su propia paleta.
 function mostrarModalMontoMinimo() {
     // Elimina cualquier modal previo
     let modalExistente = document.getElementById('monto-minimo-modal');
@@ -1632,34 +1650,43 @@ function mostrarModalMontoMinimo() {
     overlay.className = 'modal';
     overlay.style.display = 'flex';
     overlay.innerHTML = `
-        <div class="modal-content" style="max-width:450px;position:relative;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
-                <h2 style='margin:0;'><i class="fas fa-info-circle"></i> Monto Mínimo Requerido</h2>
-                <p style='margin:8px 0 0 0;'>Para procesar tu pedido necesitamos un importe mínimo</p>
+        <div class="modal-content" style="max-width:440px;">
+            <button type="button" id="cerrarMontoMinimoX" class="modal-close" aria-label="Cerrar">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            <div class="modal-header">
+                <h2><i class="fas fa-truck" aria-hidden="true"></i> Monto mínimo para envíos</h2>
+                <p>Tu pedido todavía no alcanza el mínimo para despacharlo</p>
             </div>
-            <div class="modal-body" style="padding:30px; text-align:center;">
-                <div style="background:#fff3e0;border-radius:12px;padding:20px;margin-bottom:20px;">
-                    <i class="fas fa-wallet" style="font-size:3em;color:#ff9800;margin-bottom:15px;"></i>
-                    <p style="margin:0 0 12px 0;color:#333;font-size:1.05em;font-weight:600;">Compra mínima</p>
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;color:#333;font-size:1em;">
-                        <span>Flete</span>
-                        <strong style="color:#ff9800;">$50.000</strong>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid #ffe0b2;color:#333;font-size:1em;">
-                        <span>Encomienda</span>
-                        <strong style="color:#ff9800;">$90.000</strong>
-                    </div>
+            <div class="modal-body">
+                <div class="minimo-destacado">
+                    <i class="fas fa-wallet" aria-hidden="true"></i>
+                    <span class="minimo-texto">
+                        <span class="minimo-label">Compra mínima con envío</span>
+                        <span class="minimo-monto">$50.000</span>
+                    </span>
                 </div>
-                <button id="cerrarMontoMinimoBtn" class="btn-primary" style="width:100%;margin:0;background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);">
-                    <i class="fas fa-check"></i> Entendido
-                </button>
+                <p class="minimo-nota">
+                    Agregá más artículos para alcanzar el mínimo y seguir con tu pedido.
+                    Si preferís retirar en el showroom, <strong>no hay mínimo de compra</strong>.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <div>
+                    <button type="button" id="cerrarMontoMinimoBtn" class="btn-primary">
+                        <i class="fas fa-check" aria-hidden="true"></i> Entendido
+                    </button>
+                </div>
             </div>
         </div>
     `;
     document.body.appendChild(overlay);
 
-    // Botón para cerrar el modal
+    // Botones para cerrar el modal
     document.getElementById('cerrarMontoMinimoBtn').onclick = function() {
+        overlay.remove();
+    };
+    document.getElementById('cerrarMontoMinimoX').onclick = function() {
         overlay.remove();
     };
 
