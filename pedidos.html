@@ -6,10 +6,30 @@
   <meta name="description" content="Detalle de pedido.">
   <title>Pedido | HomePoint</title>
 
+  <!-- Tema inicial · corre antes del primer pintado para que no haya destello
+       de modo claro. Misma regla y misma clave ('theme') que el catálogo: la
+       elección manual guardada manda y, si el usuario nunca tocó el interruptor
+       de catalogo.html, se adopta la preferencia del sistema operativo. Esta
+       pantalla no tiene interruptor propio: hereda lo que ya se eligió. El
+       seguimiento en vivo del sistema está al final del script de la página. -->
+  <script>
+    (function () {
+        var guardado = null;
+        try { guardado = localStorage.getItem('theme'); } catch (e) {}
+        var oscuro = guardado
+            ? guardado === 'dark'
+            : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (oscuro) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    })();
+  </script>
+
   <link rel="icon" href="faviconnegro.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -36,407 +56,491 @@
   </script>
 
   <style>
+    /* ==========================================================================
+       HOMEPOINT · DETALLE DEL PEDIDO
+       Misma paleta y mismos componentes que catalogo.html: el catálogo y esta
+       pantalla son dos pasos del mismo flujo (el catálogo abre pedidos.html?id=…
+       y el botón "Agregar Artículos" vuelve a catalogo.html?pedido=…), así que
+       comparten tokens, tipografía, radios, sombras y superficies.
+       Capas: tokens → base → animaciones → layout → componentes → responsive
+       --------------------------------------------------------------------------
+       NOTA PARA QUIEN EDITE: el script del final construye los ítems, los
+       totales y los selectores con createElement/innerHTML. Los IDs, los
+       name/value de los radios y la clase .total-row son contrato con ese
+       script — ver el comentario de cada bloque antes de renombrar nada.
+       ========================================================================== */
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ---------- 1 · TOKENS ----------
+       Copiados de catalogo.html: el verde queda reservado a acciones y a los
+       importes destacados; el resto de la interfaz es neutra. Las superficies
+       oscuras (encabezados de modales, total final) usan --tinta-900, no verde. */
     :root {
-      --bg: #f0f0f0;
-      --surface: #ffffff;
-      --text-primary: #1a1a1a;
-      --text-secondary: #555;
-      --text-muted: #888;
-      --accent: #4CAF50;
-      --accent-light: #e8f5e9;
-      --accent-hover: #43a047;
-      --accent-dark: #388E3C;
-      --border: #e0e0e0;
-      --border-light: #f0f0f0;
-      --danger: #e53935;
-      --danger-light: #ffebee;
-      --info: #1565c0;
-      --info-light: #e3f2fd;
-      --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
-      --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
-      --shadow-lg: 0 8px 40px rgba(0,0,0,0.15);
-      --radius: 12px;
-      --radius-sm: 8px;
-      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --verde-900:#111827;   /* superficies oscuras: neutro, no verde */
+      --verde-800:#1b5140;   /* importes destacados */
+      --verde-700:#2c5341;   /* hover de acciones y enlaces */
+      --verde-600:#376550;   /* botón primario */
+      --verde-100:#d5e2dc;
+      --verde-050:#eef3f0;
+
+      --navy:#12365c;        /* estado "despachado" */
+      --navy-050:#eaf0f7;
+
+      --ambar:#b06a12;
+      --ambar-700:#8a5210;
+      --ambar-050:#fdf4e7;
+      --ambar-borde:#f0c98a;
+
+      --rojo:#b42318;
+      --rojo-700:#8f1d15;
+      --rojo-050:#fdeceb;
+      --rojo-borde:#f3c9c4;
+
+      --bg:#f8f9fa;
+      --superficie:#ffffff;
+      --superficie-2:#fafafa;
+      --borde:#e8eaed;
+      --borde-fuerte:#dcdfe4;
+
+      --tinta-900:#111827;
+      --tinta-700:#374151;
+      --tinta-600:#4b5563;
+      --tinta-400:#858a94;
+
+      --radio-sm:8px;
+      --radio-md:12px;
+      --radio-lg:16px;
+      --radio-full:999px;
+
+      --sombra-1:0 1px 2px rgba(17,24,39,.04);
+      --sombra-2:0 6px 20px -8px rgba(17,24,39,.14);
+      --sombra-3:0 24px 60px -22px rgba(17,24,39,.34);
+
+      --t:180ms cubic-bezier(.4,0,.2,1);
+      --ancho:780px;         /* el detalle es una sola columna, no la grilla del catálogo */
+
+      --ui:'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+      --display:var(--ui);
+
+      /* Alias de compatibilidad · NO BORRAR.
+         El script escribe estos nombres en estilos inline —
+         style="color:var(--accent)" en la fila de descuento, var(--danger) en
+         la de recargo— y .copied-feedback los usa. Manteniéndolos como alias de
+         los tokens nuevos, el modo oscuro los repinta solo y el JS no se toca. */
+      --accent: var(--verde-700);
+      --accent-light: var(--verde-050);
+      --accent-hover: var(--verde-700);
+      --accent-dark: var(--verde-800);
+      --danger: var(--rojo);
+      --danger-light: var(--rojo-050);
+      --surface: var(--superficie);
+      --border: var(--borde);
+      --border-light: var(--superficie-2);
+      --text-primary: var(--tinta-900);
+      --text-secondary: var(--tinta-600);
+      --text-muted: var(--tinta-400);
+      --radius: var(--radio-md);
+      --radius-sm: var(--radio-sm);
+      --transition: var(--t);
+
+      color-scheme: light;
     }
 
+    /* Modo oscuro: redefine los mismos tokens, así toda la pantalla (que ya está
+       construida sobre var(--…)) se re-pinta sola. Se activa con data-theme="dark"
+       en <html> — lo pone el script del <head> leyendo la misma clave de
+       localStorage que usa el interruptor del catálogo. */
+    :root[data-theme="dark"] {
+      --verde-900:#1a2230;
+      --verde-800:#4fae6c;
+      --verde-700:#5cbf7a;
+      --verde-100:#1c3226;
+      --verde-050:#16241c;
+
+      --navy:#4a9b63;
+      --navy-050:#16241c;
+
+      --ambar:#e0973a;
+      --ambar-700:#f0b45c;
+      --ambar-050:#2b2013;
+      --ambar-borde:#5a4522;
+
+      --rojo:#ef5350;
+      --rojo-700:#ff8a80;
+      --rojo-050:#2a1512;
+      --rojo-borde:#4a2320;
+
+      --bg:#0c0d0f;
+      --superficie:#17181b;
+      --superficie-2:#1e2023;
+      --borde:#2a2c30;
+      --borde-fuerte:#3a3d42;
+
+      --tinta-900:#f4f5f6;
+      --tinta-700:#cdd0d4;
+      --tinta-600:#a3a7ad;
+      --tinta-400:#73767c;
+
+      --sombra-1:0 1px 2px rgba(0,0,0,.4);
+      --sombra-2:0 6px 20px -8px rgba(0,0,0,.55);
+      --sombra-3:0 24px 60px -22px rgba(0,0,0,.7);
+
+      color-scheme: dark;
+    }
+
+    /* ---------- 2 · BASE ---------- */
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--ui);
       background: var(--bg);
-      color: var(--text-primary);
+      color: var(--tinta-900);
       min-height: 100vh;
-      line-height: 1.5;
+      font-size: 16px;
+      line-height: 1.55;
+      letter-spacing: -.005em;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* === LOADING OVERLAY === */
+    img { max-width: 100%; }
+
+    a { color: var(--verde-700); }
+
+    h1, h2, h3, h4 {
+      font-family: var(--display);
+      font-weight: 600;
+      letter-spacing: -.015em;
+      color: var(--tinta-900);
+    }
+
+    ::selection { background: var(--verde-050); color: var(--tinta-900); }
+
+    :focus-visible {
+      outline: 2px solid var(--verde-600);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+    /* Barra de scroll consistente en los paneles con overflow */
+    .modal-content::-webkit-scrollbar { width: 8px; }
+    .modal-content::-webkit-scrollbar-thumb {
+      background: var(--borde-fuerte);
+      border-radius: var(--radio-full);
+    }
+    .modal-content::-webkit-scrollbar-track { background: transparent; }
+
+    /* ---------- 3 · ANIMACIONES ----------
+       Mismos nombres que el catálogo. slideUp/slideDown se referencian desde
+       varios componentes: no renombrar sin buscar los usos. */
+    @keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp  { from { transform: translateY(14px);  opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes slideDown{ from { transform: translateY(-14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes spin     { to { transform: rotate(360deg); } }
+
+    /* ---------- 4 · OVERLAY DE CARGA ---------- */
     #loadingOverlay {
       position: fixed;
       inset: 0;
-      background: #fff;
+      background: var(--bg);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 9999;
-      gap: 16px;
+      padding: 24px;
+      text-align: center;
     }
+
+    #loadingOverlay .loading-logo { width: 180px; margin-bottom: 30px; opacity: .9; }
 
     .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
+      width: 42px;
+      height: 42px;
+      border: 3px solid var(--borde);
+      border-top-color: var(--verde-600);
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+      animation: spin .9s linear infinite;
+      margin-bottom: 22px;
     }
 
     .loading-text {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1.27rem;
-      color: var(--text-primary);
+      font-family: var(--display);
+      font-size: 1.25rem;
+      color: var(--tinta-900);
       font-weight: 600;
+      margin-bottom: 8px;
     }
 
     .loading-subtext {
-      font-size: 0.94rem;
-      color: var(--text-muted);
-      text-align: center;
-      max-width: 260px;
+      font-size: .88rem;
+      color: var(--tinta-600);
+      max-width: 340px;
+      line-height: 1.55;
     }
 
-    /* === MAIN LAYOUT === */
+    /* ---------- 5 · LAYOUT ---------- */
     .page-wrapper {
-      max-width: 680px;
-      margin: 0 auto;
-      padding: 16px;
-      padding-bottom: 40px;
+      width: min(100% - 40px, var(--ancho));
+      margin-inline: auto;
+      padding: 0 0 8px;
     }
 
-    /* === HEADER === */
+    /* ---------- 6 · ENCABEZADO DE PÁGINA ----------
+       Sin barra de navegación: esta pantalla se abre desde un enlace directo y
+       su única salida al catálogo es el isotipo y el botón "Agregar Artículos". */
     .page-header {
       text-align: center;
-      padding: 15px 0 8px;
-      animation: fadeDown 0.5s ease both;
+      padding: 30px 0 22px;
+      animation: slideDown .45s ease both;
     }
 
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-12px); }
-      to { opacity: 1; transform: translateY(0); }
+    .page-brand {
+      display: inline-block;
+      margin-bottom: 20px;
+      line-height: 0;
     }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
+    .page-brand img {
+      width: 176px;
+      max-width: 55vw;
+      height: auto;
+      transition: opacity var(--t);
     }
+
+    .page-brand:hover img { opacity: .78; }
 
     .page-header h1 {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1.92rem;
+      font-family: var(--display);
+      font-size: 1.72rem;
       font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: -0.02em;
-      margin-bottom: 4px;
+      color: var(--tinta-900);
+      letter-spacing: -.025em;
+      margin-bottom: 6px;
     }
 
     #fechaIngreso {
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-
-    /* === STATUS BADGE === */
-    #estado {
-      display: inline-block;
-      padding: 6px 16px;
-      border-radius: 100px;
-      font-size: 0.86rem;
+      font-size: .74rem;
       font-weight: 600;
-      letter-spacing: 0.04em;
+      color: var(--tinta-400);
+      letter-spacing: .09em;
       text-transform: uppercase;
-      margin-top: 12px;
+      font-variant-numeric: tabular-nums;
     }
 
-    .status-abierto { background: var(--accent-light); color: var(--accent-dark); border: 1px solid #c8e6c9; }
-    .status-cerrado { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
-    .status-cancelado { background: var(--danger-light); color: var(--danger); border: 1px solid #ffcdd2; }
-    .status-despachado { background: var(--info-light); color: var(--info); border: 1px solid #bbdefb; }
+    /* ---------- 7 · CHIP DE ESTADO ----------
+       El script asigna estas clases en procesarPedidoCargado(): los nombres
+       status-abierto | cerrado | cancelado | despachado son contrato. */
+    #estado {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 16px;
+      border-radius: var(--radio-full);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-top: 16px;
+    }
 
-    /* === CARDS === */
+    #estado::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      flex: none;
+    }
+
+    #estado:empty { display: none; }
+
+    .status-abierto   { background: var(--verde-050); color: var(--verde-800); border: 1px solid var(--verde-100); }
+    .status-cerrado   { background: var(--ambar-050); color: var(--ambar-700); border: 1px solid var(--ambar-borde); }
+    .status-cancelado { background: var(--rojo-050);  color: var(--rojo);      border: 1px solid var(--rojo-borde); }
+    .status-despachado{ background: var(--navy-050);  color: var(--navy);      border: 1px solid var(--borde-fuerte); }
+
+    /* ---------- 8 · TARJETAS DE SECCIÓN ---------- */
     .card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
-      border: none;
-      margin-bottom: 12px;
+      background: var(--superficie);
+      border: 1px solid var(--borde);
+      border-radius: var(--radio-lg);
+      box-shadow: var(--sombra-1);
+      margin-bottom: 14px;
       overflow: hidden;
-      animation: fadeUp 0.4s ease both;
+      animation: slideUp .4s ease both;
     }
 
-    .card:nth-child(2) { animation-delay: 0.05s; }
-    .card:nth-child(3) { animation-delay: 0.1s; }
-    .card:nth-child(4) { animation-delay: 0.15s; }
+    .card:nth-of-type(2) { animation-delay: .06s; }
+    .card:nth-of-type(3) { animation-delay: .12s; }
 
     .card-header {
-      padding: 14px 18px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1.01rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      border-bottom: 1px solid var(--border);
+      padding: 15px 20px;
+      background: var(--superficie-2);
+      border-bottom: 1px solid var(--borde);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #fafafa;
+      gap: 14px;
     }
 
-    .card-body {
-      padding: 16px 18px;
+    /* Mismo tratamiento que .confirmacion-titulo del catálogo: etiqueta chica en
+       versalitas con el ícono en verde, no un título grande. */
+    .card-titulo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      font-family: var(--ui);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--tinta-400);
     }
 
-    /* === CLIENT INFO === */
+    .card-titulo i { color: var(--verde-600); font-size: 1.15em; }
+
+    .card-body { padding: 18px 20px; }
+
+    /* ---------- 9 · DATOS DEL CLIENTE ---------- */
     .client-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 16px 20px;
     }
 
     .client-field {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
+      min-width: 0;
     }
 
-    .client-field.full-width {
-      grid-column: 1 / -1;
-    }
+    .client-field.full-width { grid-column: 1 / -1; }
 
     .client-label {
-      font-size: 0.77rem;
+      font-size: .66rem;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      font-weight: 500;
+      letter-spacing: .07em;
+      color: var(--tinta-400);
+      font-weight: 700;
     }
 
     .client-value {
-      font-size: 0.99rem;
-      color: var(--text-primary);
-      cursor: pointer;
-      transition: color var(--transition);
+      font-size: .92rem;
+      font-weight: 500;
+      color: var(--tinta-900);
+      transition: color var(--t);
       word-break: break-word;
     }
 
-    .client-value:hover { color: var(--accent); }
+    /* Sólo los campos copiables llevan el cursor de mano: los que no tienen
+       title (provincia, DNI) no reaccionan al clic y no deben sugerir que sí. */
+    .client-value[title] { cursor: pointer; }
+    .client-value[title]:hover { color: var(--verde-700); }
 
     .client-value a {
-      color: var(--accent);
+      color: var(--verde-700);
       text-decoration: none;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .client-value a:hover { text-decoration: underline; }
 
+    /* Botón "Editar" · .btn-ghost del catálogo */
     .btn-edit-client {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      font-size: 0.86rem;
-      font-weight: 500;
-      padding: 5px 14px;
-      border-radius: 100px;
-      cursor: pointer;
-      transition: all var(--transition);
-      font-family: 'DM Sans', sans-serif;
-    }
-
-    .btn-edit-client:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-light);
-    }
-
-    /* === ITEMS TABLE === */
-    .items-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .items-table thead th {
-      font-size: 0.77rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      font-weight: 600;
-      padding: 10px 12px;
-      text-align: left;
-      border-bottom: 2px solid var(--border);
-      background: transparent;
-      white-space: nowrap;
-    }
-
-    .items-table thead th:nth-child(n+2) { text-align: right; }
-
-    .items-table tbody td {
-      padding: 12px;
-      font-size: 0.97rem;
-      border-bottom: 1px solid var(--border-light);
-      vertical-align: middle;
-    }
-
-    .items-table tbody tr:last-child td { border-bottom: none; }
-
-    .items-table tbody td:nth-child(n+2) { text-align: right; }
-
-    .item-name {
-      cursor: pointer;
-      font-weight: 500;
-      color: var(--text-primary);
-      transition: color var(--transition);
-      line-height: 1.3;
-    }
-
-    .item-name:hover { color: var(--accent); }
-
-    .qty-stepper {
       display: inline-flex;
       align-items: center;
-      gap: 0;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      background: var(--surface);
-    }
-
-    .qty-stepper-btn {
-      width: 28px;
-      height: 30px;
-      border: none;
-      background: var(--border-light);
-      color: var(--text-secondary);
-      font-size: 1.1rem;
+      gap: 8px;
+      flex: none;
+      height: 36px;
+      padding: 0 14px;
+      background: var(--superficie);
+      color: var(--tinta-700);
+      border: 1px solid var(--borde-fuerte);
+      border-radius: var(--radio-sm);
+      font-family: var(--ui);
+      font-size: .8rem;
       font-weight: 600;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all var(--transition);
-      padding: 0;
-      min-width: 28px;
-      line-height: 1;
-      font-family: 'DM Sans', sans-serif;
+      white-space: nowrap;
+      transition: background var(--t), border-color var(--t), color var(--t);
     }
 
-    .qty-stepper-btn:hover:not(:disabled) {
-      background: var(--accent-light);
-      color: var(--accent);
+    .btn-edit-client i { font-size: .9em; color: var(--verde-600); transition: color var(--t); }
+
+    .btn-edit-client:hover {
+      background: var(--verde-050);
+      border-color: var(--verde-600);
+      color: var(--verde-800);
     }
 
-    .qty-stepper-btn:active:not(:disabled) {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .qty-stepper-btn:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-
-    .qty-input {
-      width: 36px;
-      text-align: center;
-      font-size: 0.94rem;
-      font-family: 'DM Sans', sans-serif;
-      padding: 4px 0;
-      border: none;
-      border-left: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text-primary);
-      -moz-appearance: textfield;
-      height: 30px;
-    }
-
-    .qty-input::-webkit-outer-spin-button,
-    .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
-    .qty-input:focus {
-      outline: none;
-      background: var(--accent-light);
-    }
-
-    .qty-input:disabled {
-      background: var(--border-light);
-      color: var(--text-muted);
-      cursor: not-allowed;
-    }
-
-    .item-price { color: var(--text-secondary); white-space: nowrap; }
-    .item-subtotal { font-weight: 600; color: var(--text-primary); white-space: nowrap; }
-
-    /* === ITEM CARDS === */
+    /* ---------- 10 · TARJETAS DE ARTÍCULO ----------
+       Lenguaje de .pedido-item del catálogo (superficie-2 + borde 1px que se
+       tiñe de verde al pasar) con la miniatura y el selector de cantidad que
+       esta pantalla necesita. Las clases las escribe renderItems(). */
     .items-list {
-      padding: 10px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
 
     .item-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+      background: var(--superficie-2);
+      border: 1px solid var(--borde);
+      border-radius: var(--radio-md);
       padding: 12px;
-      transition: box-shadow var(--transition);
+      transition: border-color var(--t), box-shadow var(--t);
+    }
+
+    .item-card:hover {
+      border-color: var(--verde-100);
+      box-shadow: var(--sombra-1);
     }
 
     .item-card-main {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       align-items: stretch;
     }
 
-    .item-thumb-wrap {
-      width: 68px;
-      height: 68px;
-      border-radius: 8px;
-      overflow: hidden;
+    .item-thumb-wrap,
+    .item-thumb-placeholder {
+      width: 70px;
+      height: 70px;
       flex-shrink: 0;
-      background: #f5f5f5;
-      cursor: pointer;
+      align-self: center;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid var(--border-light);
-      align-self: center;
+      background: var(--superficie);
+      border: 1px solid var(--borde);
+      border-radius: var(--radio-sm);
+      overflow: hidden;
+      cursor: zoom-in;
+      transition: border-color var(--t);
     }
+
+    .item-card:hover .item-thumb-wrap,
+    .item-card:hover .item-thumb-placeholder { border-color: var(--borde-fuerte); }
 
     .item-thumb {
       width: 100%;
       height: 100%;
       object-fit: contain;
+      padding: 5px;
     }
 
     .item-thumb-placeholder {
-      width: 68px;
-      height: 68px;
-      border-radius: 8px;
-      background: var(--border-light);
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-      cursor: pointer;
-      border: 1px solid var(--border);
-      align-self: center;
+      color: var(--tinta-400);
+      font-size: 22px;
     }
 
     .item-card-content {
@@ -445,171 +549,308 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 8px;
+      gap: 10px;
     }
 
     .item-name-row {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 6px;
+      gap: 8px;
     }
+
+    .item-name {
+      font-size: .88rem;
+      font-weight: 700;
+      line-height: 1.35;
+      color: var(--tinta-900);
+      cursor: pointer;
+      transition: color var(--t);
+    }
+
+    .item-name:hover { color: var(--verde-700); }
 
     .item-card-bottom {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 10px;
     }
 
     .item-price-wrap {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
+      min-width: 0;
     }
 
     .item-price-big {
-      font-size: 1.13rem;
-      font-weight: 700;
-      color: var(--text-primary);
+      font-size: 1.12rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: var(--tinta-900);
+      font-variant-numeric: tabular-nums;
     }
 
     .item-subtotal-small {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .qty-stepper-large .qty-stepper-btn {
-      width: 38px;
-      height: 38px;
-      font-size: 1.3rem;
-      min-width: 38px;
-    }
-
-    .qty-stepper-large .qty-input {
-      width: 46px;
-      height: 38px;
-      font-size: 1rem;
+      font-size: .74rem;
       font-weight: 600;
+      color: var(--tinta-400);
+      font-variant-numeric: tabular-nums;
     }
 
-    .btn-delete-item {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
+    /* Selector de cantidad · mismo componente que la tarjeta del catálogo.
+       renderItems() le pone las clases .qty-stepper y .qty-stepper-large juntas. */
+    .qty-stepper {
+      display: inline-flex;
+      align-items: center;
+      flex: none;
+      gap: 2px;
+      padding: 3px;
+      background: var(--superficie);
+      border: 1px solid var(--borde-fuerte);
+      border-radius: var(--radio-sm);
+      transition: border-color var(--t);
+    }
+
+    .qty-stepper-btn {
+      width: 34px;
+      height: 34px;
+      min-width: 34px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--verde-050);
+      color: var(--verde-800);
+      border: none;
+      border-radius: 6px;
+      font-family: var(--ui);
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      transition: background var(--t), color var(--t);
+    }
+
+    .qty-stepper-btn:hover:not(:disabled) { background: var(--verde-600); color: #fff; }
+    .qty-stepper-btn:active:not(:disabled) { transform: scale(.94); }
+
+    .qty-stepper-btn:disabled {
+      background: var(--superficie-2);
+      color: var(--tinta-400);
+      cursor: not-allowed;
+    }
+
+    .qty-input {
+      width: 42px;
+      height: 34px;
+      padding: 0;
       border: none;
       background: transparent;
-      color: var(--text-muted);
-      font-size: 0.94rem;
-      cursor: pointer;
+      font-family: var(--ui);
+      font-size: .98rem;
+      font-weight: 800;
+      color: var(--tinta-900);
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .qty-input:focus { outline: none; }
+
+    .qty-input:disabled { color: var(--tinta-400); cursor: not-allowed; }
+
+    .btn-delete-item {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      flex: none;
+      padding: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: all var(--transition);
-      padding: 0;
-      min-width: 28px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      color: var(--tinta-400);
+      font-size: .88rem;
+      cursor: pointer;
+      transition: background var(--t), color var(--t);
     }
 
-    .btn-delete-item:hover {
-      background: var(--danger-light);
-      color: var(--danger);
+    .btn-delete-item:hover:not(:disabled) { background: var(--rojo-050); color: var(--rojo); }
+
+    .btn-delete-item:disabled { color: var(--borde-fuerte); cursor: not-allowed; }
+
+    /* Pedido sin artículos */
+    .items-vacio {
+      padding: 34px 20px;
+      text-align: center;
+      color: var(--tinta-400);
     }
 
-    .btn-delete-item:disabled { opacity: 0.3; cursor: not-allowed; }
+    .items-vacio i { font-size: 26px; display: block; margin-bottom: 12px; opacity: .7; }
+    .items-vacio p { font-size: .88rem; }
 
-    /* === TOTALS === */
+    /* ---------- 11 · TOTALES ----------
+       OJO: .total-row es contrato con el script.
+       · actualizarCalculosGlobales() busca la fila del descuento con
+         porcentajeInput.closest('.total-row') y la muestra con display=''.
+       · La fila de envío se muestra con style.display='flex'.
+       Por eso .total-row tiene que existir y ser flex. */
     .totals-section {
-      padding: 16px 18px;
-      border-top: 2px solid var(--border);
+      padding: 4px 18px 18px;
+      border-top: 1px solid var(--borde);
     }
 
     .total-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 0;
-      font-size: 0.97rem;
+      gap: 14px;
+      padding: 11px 2px;
+      font-size: .92rem;
     }
 
-    .total-row-label { color: var(--text-secondary); }
+    .total-row-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--tinta-600);
+    }
 
-    .total-row-value { font-weight: 500; text-align: right; }
+    .total-row-value {
+      font-weight: 700;
+      text-align: right;
+      color: var(--tinta-900);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
 
+    /* Descuento y recargo: bloques destacados, con el mismo tratamiento punteado
+       que .total-discount-row del catálogo. El color del valor lo escribe el
+       script inline con var(--accent) / var(--danger) (ver alias en TOKENS). */
+    .total-row-descuento,
+    .total-row-recargo {
+      margin: 6px 0;
+      padding: 12px 14px;
+      border-radius: var(--radio-md);
+      font-size: .86rem;
+      font-weight: 700;
+    }
+
+    .total-row-descuento {
+      background: var(--ambar-050);
+      border: 1px dashed var(--ambar-borde);
+      color: var(--ambar-700);
+    }
+
+    .total-row-recargo {
+      background: var(--rojo-050);
+      border: 1px dashed var(--rojo-borde);
+      color: var(--rojo);
+    }
+
+    .total-row-descuento .total-row-label,
+    .total-row-recargo .total-row-label { color: inherit; font-weight: 700; }
+
+    .total-row-descuento .total-row-label i { color: var(--ambar); }
+    .total-row-recargo .total-row-label i { color: var(--rojo); }
+
+    .total-row-descuento .total-row-value,
+    .total-row-recargo .total-row-value { color: inherit; }
+
+    /* Total final · misma superficie oscura que el total del carrito y del
+       checkout del catálogo. */
     .total-row.grand-total {
-      padding-top: 12px;
-      margin-top: 6px;
-      border-top: 2px solid var(--text-primary);
+      margin-top: 12px;
+      padding: 17px 19px;
+      background: var(--verde-900);
+      border-radius: var(--radio-md);
     }
 
     .total-row.grand-total .total-row-label {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1.1rem;
+      font-size: .74rem;
       font-weight: 700;
-      color: var(--text-primary);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.72);
     }
+
+    .total-row.grand-total .total-row-label i { color: rgba(255,255,255,.62); font-size: .95em; }
 
     .total-row.grand-total .total-row-value {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1.27rem;
-      font-weight: 700;
-      color: var(--text-primary);
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: #fff;
       cursor: pointer;
-      transition: color var(--transition);
+      transition: opacity var(--t);
     }
 
-    .total-row.grand-total .total-row-value:hover { color: var(--accent); }
+    .total-row.grand-total .total-row-value:hover { opacity: .82; }
 
+    /* .copied-feedback pinta con var(--accent), que sobre la barra oscura queda
+       ilegible: acá se repone con un verde claro. */
+    .total-row.grand-total .total-row-value.copied-feedback { color: #9fdcb4 !important; }
+
+    /* Campos de porcentaje e importe: los sigue leyendo y escribiendo el script
+       (.value), así que siguen siendo <input readonly>, pero se leen como texto. */
     .readonly-input {
-      width: 72px;
+      width: 84px;
+      padding: 3px 8px;
       text-align: right;
-      font-size: 0.94rem;
-      font-family: 'DM Sans', sans-serif;
-      padding: 3px 6px;
-      border: 1px solid var(--border-light);
+      font-family: var(--ui);
+      font-size: .86rem;
+      font-weight: 700;
+      color: inherit;
+      background: var(--superficie);
+      border: 1px solid var(--borde);
       border-radius: 6px;
-      background: var(--border-light);
-      color: var(--text-muted);
-      cursor: not-allowed;
-      -moz-appearance: textfield;
+      cursor: default;
+      font-variant-numeric: tabular-nums;
     }
 
-    .readonly-input::-webkit-outer-spin-button,
-    .readonly-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .readonly-input:focus { outline: none; }
 
-    .pct-input { width: 44px; }
+    .pct-input { width: 46px; }
 
-    /* === RADIO SELECTORS === */
+    /* ---------- 12 · MEDIO DE PAGO Y TIPO DE ENTREGA ----------
+       Tarjetas seleccionables con el look de .entrega-card del catálogo. La
+       estructura label > input + span es contrato: el estado seleccionado se
+       dibuja con input:checked + .radio-label, y los value de los radios
+       ('Efectivo', 'Correo Argentino', …) se guardan tal cual en Firebase. */
     .selector-section {
-      padding: 16px 18px;
-    }
-
-    .selector-section + .selector-section {
-      border-top: 1px solid var(--border-light);
+      padding: 18px 20px;
+      border-top: 1px solid var(--borde);
     }
 
     .selector-label {
-      font-size: 0.77rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 13px;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .1em;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-bottom: 10px;
+      color: var(--tinta-400);
     }
 
+    .selector-label i { color: var(--verde-600); font-size: 1.15em; }
+
     .radio-group {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      width: 90%;
-      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: 10px;
+      width: 100%;
     }
 
     .radio-option {
       position: relative;
-      cursor: pointer;
-      flex: 1;
+      display: block;
       min-width: 0;
+      cursor: pointer;
     }
 
     .radio-option input[type="radio"] {
@@ -621,199 +862,393 @@
 
     .radio-option .radio-label {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border: 1.5px solid var(--border);
-      border-radius: 100px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      transition: all var(--transition);
-      cursor: pointer;
-      white-space: normal;
-      width: 100%;
+      gap: 10px;
+      height: 100%;
+      min-height: 94px;
+      padding: 16px 12px;
+      background: var(--superficie);
+      border: 1px solid var(--borde-fuerte);
+      border-radius: var(--radio-md);
+      font-size: .84rem;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--tinta-900);
       text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color var(--t), background var(--t), color var(--t), transform var(--t), box-shadow var(--t);
     }
 
-    .radio-option input[type="radio"]:checked + .radio-label {
-      border-color: var(--accent);
-      background: var(--accent-light);
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .radio-option input[type="radio"]:disabled + .radio-label {
-      opacity: 0.5;
-      cursor: not-allowed;
+    .radio-option .radio-label > i {
+      font-size: 1.45rem;
+      line-height: 1;
+      color: var(--tinta-400);
+      transition: color var(--t);
     }
 
     .radio-option .radio-label img {
-      height: 20px;
+      height: 24px;
       width: auto;
+      max-width: 100%;
       object-fit: contain;
     }
 
-    /* === ACTION BUTTONS === */
+    /* Las dos tarjetas de transportista llevan ícono e imagen: el ícono es la
+       reserva para cuando el logo no resuelve (el onerror del <img> lo saca del
+       DOM). Si la imagen está, se muestra sólo el logo. */
+    .radio-option .radio-label:has(img) > i { display: none; }
+
+    .radio-option:hover .radio-label {
+      border-color: var(--verde-600);
+      background: var(--verde-050);
+      transform: translateY(-2px);
+    }
+
+    .radio-option input[type="radio"]:checked + .radio-label {
+      border-color: var(--verde-600);
+      background: var(--verde-050);
+      color: var(--verde-800);
+      box-shadow: 0 0 0 3px rgba(55,101,80,.14);
+    }
+
+    .radio-option input[type="radio"]:checked + .radio-label > i { color: var(--verde-600); }
+
+    .radio-option input[type="radio"]:focus-visible + .radio-label {
+      outline: 2px solid var(--verde-600);
+      outline-offset: 2px;
+    }
+
+    /* Pedido cerrado o cancelado: la selección guardada se sigue leyendo, pero
+       la tarjeta deja de responder. */
+    .radio-option:has(input[type="radio"]:disabled) { cursor: not-allowed; }
+
+    .radio-option input[type="radio"]:disabled + .radio-label {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .radio-option:hover input[type="radio"]:disabled + .radio-label {
+      border-color: var(--borde-fuerte);
+      background: var(--superficie);
+      transform: none;
+    }
+
+    .radio-option:hover input[type="radio"]:disabled:checked + .radio-label {
+      border-color: var(--verde-600);
+      background: var(--verde-050);
+    }
+
+    /* ---------- 13 · BOTONES DE ACCIÓN ----------
+       Mismos .btn-primary / .btn-secondary del catálogo. El índigo que usaba
+       "Solicitar Cierre" quedó afuera: no pertenece a la paleta. */
     .actions-row {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      margin-top: 16px;
-      animation: fadeUp 0.4s ease both;
-      animation-delay: 0.2s;
+      margin-top: 18px;
+      animation: slideUp .4s ease both;
+      animation-delay: .18s;
     }
 
     .btn {
       flex: 1;
-      min-width: 140px;
-      padding: 13px 16px;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.97rem;
-      font-weight: 600;
+      min-width: 150px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 15px 18px;
+      border: 1px solid transparent;
+      border-radius: var(--radio-sm);
+      font-family: var(--ui);
+      font-size: .92rem;
+      font-weight: 700;
       cursor: pointer;
-      transition: all var(--transition);
       text-align: center;
-      letter-spacing: 0.01em;
+      transition: background var(--t), border-color var(--t), color var(--t), transform var(--t);
     }
 
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn i { font-size: .95em; }
+
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+
+    .btn:disabled {
+      background: var(--superficie-2);
+      border-color: var(--borde);
+      color: var(--tinta-400);
+      cursor: not-allowed;
+    }
 
     .btn-primary {
-      background: var(--accent);
+      background: var(--verde-600);
+      border-color: var(--verde-600);
       color: #fff;
     }
 
     .btn-primary:hover:not(:disabled) {
-      background: var(--accent-hover);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .btn-danger {
-      background: var(--surface);
-      color: var(--danger);
-      border: 1.5px solid var(--danger);
-    }
-
-    .btn-danger:hover:not(:disabled) {
-      background: var(--danger-light);
+      background: var(--verde-700);
+      border-color: var(--verde-700);
     }
 
     .btn-secondary {
-      background: #5c6bc0;
-      color: #fff;
+      background: var(--superficie);
+      border-color: var(--borde-fuerte);
+      color: var(--tinta-700);
     }
 
     .btn-secondary:hover:not(:disabled) {
-      background: #4a5aa8;
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+      background: var(--superficie-2);
+      border-color: var(--tinta-400);
     }
 
-    .btn-whatsapp {
-      background: #25d366;
-      color: #fff;
+    .btn-danger {
+      background: var(--superficie);
+      border-color: var(--borde-fuerte);
+      color: var(--rojo);
     }
 
-    .btn-whatsapp:hover:not(:disabled) {
-      background: #20b858;
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+    .btn-danger:hover:not(:disabled) {
+      background: var(--rojo-050);
+      border-color: var(--rojo-borde);
     }
 
-    /* === LIGHTBOX === */
+    /* ---------- 14 · LIGHTBOX ---------- */
     .lightbox {
       position: fixed;
       inset: 0;
-      display: none;
+      display: none;               /* el script lo abre con display:flex */
       justify-content: center;
       align-items: center;
-      background: rgba(0,0,0,0.85);
+      background: rgba(15,20,28,.88);
+      backdrop-filter: blur(6px);
       z-index: 4000;
-      backdrop-filter: blur(4px);
+      padding: 24px;
+      animation: fadeIn .22s ease;
     }
 
     .lightbox img {
       max-width: 85vw;
       max-height: 80vh;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-lg);
+      border-radius: var(--radio-md);
+      background: #fff;            /* las fotos vienen recortadas sobre blanco */
+      box-shadow: var(--sombra-3);
     }
 
     .lightbox .close {
       position: absolute;
-      top: 20px;
-      right: 24px;
-      font-size: 2rem;
+      top: 22px;
+      right: 26px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,.12);
+      border: none;
+      border-radius: 50%;
+      font-size: 22px;
+      line-height: 1;
       color: #fff;
       cursor: pointer;
-      opacity: 0.7;
-      transition: opacity var(--transition);
-      background: none;
-      border: none;
+      transition: background var(--t);
     }
 
-    .lightbox .close:hover { opacity: 1; }
+    .lightbox .close:hover { background: rgba(255,255,255,.24); }
 
-    /* === POPUP === */
-    #avisoPopup {
+    /* ---------- 15 · MODALES ----------
+       Un solo lenguaje para los tres: encabezado oscuro, cuerpo claro y cierre
+       circular, igual que los modales del checkout del catálogo.
+       El script abre y cierra con style.display = 'flex' | 'none' (y con la
+       clase .active en el de borrar), así que el estado cerrado va en CSS. */
+    .modal-overlay,
+    #avisoPopup,
+    #confirmDeleteModal {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.5);
-      display: flex;
+      display: none;
       justify-content: center;
       align-items: center;
-      z-index: 10000;
-      backdrop-filter: blur(3px);
-      padding: 16px;
+      background: rgba(15,20,28,.55);
+      backdrop-filter: blur(6px);
+      padding: 20px;
+      animation: fadeIn .24s ease;
     }
 
-    .popup-content {
-      background: var(--surface);
-      padding: 28px;
-      border-radius: var(--radius);
-      max-width: 420px;
+    .modal-overlay { z-index: 5000; }
+    #confirmDeleteModal { z-index: 6000; }
+    #avisoPopup { z-index: 10000; }
+
+    #confirmDeleteModal.active { display: flex; }
+
+    .modal-content,
+    .popup-content,
+    .confirm-modal-box {
+      position: relative;
       width: 100%;
-      box-shadow: var(--shadow-lg);
-      animation: fadeUp 0.3s ease both;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--superficie);
+      border-radius: var(--radio-lg);
+      box-shadow: var(--sombra-3);
+      animation: slideUp .3s ease both;
     }
+
+    .popup-content { max-width: 440px; }
+    .confirm-modal-box { max-width: 400px; }
+
+    .modal-header {
+      padding: 24px 28px;
+      background: var(--verde-900);
+      color: #fff;
+    }
+
+    .modal-header h2 {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin: 0;
+      font-family: var(--display);
+      font-size: 1.24rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .modal-header h2 i { color: rgba(255,255,255,.62); font-size: .82em; }
+
+    .modal-header p {
+      margin: 7px 0 0;
+      font-size: .86rem;
+      color: rgba(255,255,255,.72);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,.14);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: .95rem;
+      cursor: pointer;
+      z-index: 10;
+      transition: background var(--t);
+    }
+
+    .modal-close:hover { background: rgba(255,255,255,.3); }
+
+    .modal-body { padding: 24px 28px; }
+
+    .modal-footer { padding: 0 28px 24px; display: flex; gap: 10px; }
+
+    /* Formulario */
+    .form-group { margin-bottom: 15px; text-align: left; }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--tinta-700);
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 13px 15px;
+      background: var(--superficie);
+      border: 1px solid var(--borde-fuerte);
+      border-radius: var(--radio-sm);
+      font-family: var(--ui);
+      font-size: .92rem;
+      color: var(--tinta-900);
+      transition: border-color var(--t), box-shadow var(--t);
+    }
+
+    .modal-input::placeholder { color: var(--tinta-400); }
+
+    .modal-input:focus {
+      outline: none;
+      border-color: var(--verde-600);
+      box-shadow: 0 0 0 3px rgba(55,101,80,.14);
+    }
+
+    .modal-input[readonly] {
+      background: var(--superficie-2);
+      color: var(--tinta-400);
+      cursor: not-allowed;
+    }
+
+    select.modal-input {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%234b5563' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 34px;
+      cursor: pointer;
+    }
+
+    /* Aviso de stock */
+    .popup-content { padding: 30px 28px 26px; }
 
     .popup-header {
       display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      margin-bottom: 18px;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+      text-align: center;
     }
 
     .popup-icon {
-      font-size: 2rem;
+      width: 58px;
+      height: 58px;
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ambar-050);
+      border: 1px solid var(--ambar-borde);
+      border-radius: var(--radio-md);
+      font-size: 23px;
       line-height: 1;
-      flex-shrink: 0;
+      color: var(--ambar);
     }
 
     .popup-title {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1.27rem;
+      font-family: var(--display);
+      font-size: 1.24rem;
       font-weight: 700;
-      color: var(--text-primary);
+      color: var(--tinta-900);
     }
 
     .popup-message {
-      color: var(--text-secondary);
-      font-size: 0.97rem;
-      line-height: 1.6;
       margin-bottom: 22px;
+      color: var(--tinta-600);
+      font-size: .92rem;
+      line-height: 1.65;
+      text-align: center;
     }
+
+    .popup-message strong { color: var(--tinta-900); font-weight: 700; }
 
     .popup-checkbox {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 10px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
       cursor: pointer;
       user-select: none;
     }
@@ -821,313 +1256,331 @@
     .popup-checkbox input[type="checkbox"] {
       width: 16px;
       height: 16px;
-      accent-color: var(--accent);
+      accent-color: var(--verde-600);
       cursor: pointer;
     }
 
     .popup-checkbox label {
-      font-size: 0.9rem;
-      color: var(--text-muted);
+      font-size: .84rem;
+      color: var(--tinta-400);
       cursor: pointer;
     }
 
     .popup-button {
-      background: var(--accent);
+      width: 100%;
+      padding: 14px;
+      background: var(--verde-600);
       color: #fff;
       border: none;
-      padding: 12px;
-      border-radius: var(--radius-sm);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.99rem;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      transition: background var(--transition);
-    }
-
-    .popup-button:hover { background: var(--accent-hover); }
-
-    /* === MODAL === */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 5000;
-      backdrop-filter: blur(3px);
-      padding: 16px;
-    }
-
-    .modal-content {
-      background: var(--surface);
-      padding: 24px;
-      border-radius: var(--radius);
-      max-width: 480px;
-      width: 100%;
-      box-shadow: var(--shadow-lg);
-      position: relative;
-      animation: fadeUp 0.3s ease both;
-    }
-
-    .modal-content h3 {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1.21rem;
+      border-radius: var(--radio-sm);
+      font-family: var(--ui);
+      font-size: .94rem;
       font-weight: 700;
-      margin-bottom: 18px;
-      color: var(--text-primary);
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 16px;
-      right: 18px;
-      background: none;
-      border: none;
-      font-size: 1.54rem;
-      color: var(--text-muted);
       cursor: pointer;
-      transition: color var(--transition);
-      padding: 0;
-      min-width: auto;
+      transition: background var(--t);
     }
 
-    .modal-close:hover { color: var(--text-primary); }
+    .popup-button:hover { background: var(--verde-700); }
 
-    .modal-input {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.97rem;
-      margin-bottom: 10px;
-      transition: border-color var(--transition);
-      color: var(--text-primary);
-      background: var(--surface);
+    /* ---------- 16 · CONFIRMACIÓN DE BORRADO ---------- */
+    .confirm-modal-box { padding: 28px 26px 24px; text-align: center; }
+
+    .confirm-modal-box .confirm-icon {
+      width: 54px;
+      height: 54px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--rojo-050);
+      border: 1px solid var(--rojo-borde);
+      border-radius: var(--radio-md);
+      color: var(--rojo);
+      font-size: 21px;
     }
 
-    .modal-input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(76,175,80,0.15);
+    .confirm-modal-box h4 {
+      margin-bottom: 8px;
+      font-family: var(--display);
+      font-size: 1.14rem;
+      font-weight: 700;
+      color: var(--tinta-900);
     }
 
-    .modal-input[readonly] {
-      background: var(--border-light);
-      color: var(--text-muted);
-      cursor: not-allowed;
+    .confirm-modal-box p {
+      margin-bottom: 22px;
+      font-size: .9rem;
+      line-height: 1.55;
+      color: var(--tinta-600);
     }
 
-    select.modal-input {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%235a5a5a' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 32px;
+    .confirm-modal-actions { display: flex; gap: 10px; }
+
+    .confirm-modal-actions button {
+      flex: 1;
+      padding: 13px;
+      border: 1px solid transparent;
+      border-radius: var(--radio-sm);
+      font-family: var(--ui);
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background var(--t), border-color var(--t), color var(--t);
     }
 
-    .modal-save-btn {
-      background: var(--accent);
+    .confirm-btn-cancel {
+      background: var(--superficie);
+      border-color: var(--borde-fuerte);
+      color: var(--tinta-700);
+    }
+
+    .confirm-btn-cancel:hover { background: var(--superficie-2); border-color: var(--tinta-400); }
+
+    .confirm-btn-delete {
+      background: var(--rojo);
+      border-color: var(--rojo);
       color: #fff;
-      border: none;
-      padding: 12px;
-      border-radius: var(--radius-sm);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.99rem;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 6px;
-      transition: background var(--transition);
     }
 
-    .modal-save-btn:hover { background: var(--accent-hover); }
+    .confirm-btn-delete:hover { background: var(--rojo-700); border-color: var(--rojo-700); }
 
-    /* === DISCLAIMER === */
-    .disclaimer {
+    /* ---------- 17 · PIE ----------
+       Versión compacta del pie del catálogo: las condiciones del pedido, el
+       contacto y la línea legal en una sola tarjeta. */
+    .site-footer {
+      margin: 30px 0 26px;
+      padding: 26px 26px 22px;
+      background: var(--superficie);
+      border: 1px solid var(--borde);
+      border-radius: var(--radio-lg);
+      box-shadow: var(--sombra-1);
+      animation: slideUp .4s ease both;
+      animation-delay: .24s;
+    }
+
+    .footer-titulo {
+      margin: 0 0 12px;
+      font-family: var(--ui);
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+      color: var(--tinta-400);
+    }
+
+    .footer-notas p {
+      position: relative;
+      margin-bottom: 8px;
+      padding-left: 16px;
+      font-size: .8rem;
+      line-height: 1.55;
+      color: var(--tinta-600);
+    }
+
+    .footer-notas p::before {
+      content: '';
+      position: absolute;
+      top: .62em;
+      left: 0;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--borde-fuerte);
+    }
+
+    .footer-notas p:last-child { margin-bottom: 0; }
+
+    .footer-marca {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      flex-wrap: wrap;
       margin-top: 24px;
-      padding: 18px;
-      background: transparent;
-      border-top: 1px solid var(--border);
-      animation: fadeUp 0.4s ease both;
-      animation-delay: 0.25s;
+      padding-top: 22px;
+      border-top: 1px solid var(--borde);
     }
 
-    .disclaimer p {
-      font-size: 0.83rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 6px;
+    .footer-marca img { width: 150px; height: auto; display: block; }
+
+    .footer-lista { display: flex; flex-direction: column; gap: 9px; }
+
+    .footer-lista a,
+    .footer-lista span {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--tinta-700);
+      text-decoration: none;
+      font-size: .84rem;
+      transition: color var(--t);
     }
 
-    .disclaimer p:last-child { margin-bottom: 0; }
+    .footer-lista a:hover { color: var(--verde-700); }
 
-    /* === RESPONSIVE === */
-    @media (max-width: 500px) {
-      .page-wrapper { padding: 10px; }
-
-      .page-header h1 { font-size: 1.54rem; }
-
-      .card-body { padding: 14px; }
-      .card-header { padding: 12px 14px; }
-
-      .client-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-
-      .items-table thead th { padding: 8px 8px; font-size: 0.72rem; }
-      .items-table tbody td { padding: 10px 8px; font-size: 0.9rem; }
-
-      .totals-section { padding: 14px; }
-
-      .selector-section { padding: 14px; }
-
-      .radio-option .radio-label {
-        padding: 7px 12px;
-        font-size: 0.86rem;
-      }
-
-      .radio-option .radio-label img { height: 16px; }
-
-      .actions-row {
-        flex-direction: column;
-      }
-
-      .btn { min-width: 100%; }
-
-      .popup-content { padding: 22px; }
-      .modal-content { padding: 20px; }
+    .footer-lista i {
+      width: 17px;
+      flex: none;
+      text-align: center;
+      color: var(--verde-600);
     }
 
-    @media (min-width: 501px) and (max-width: 768px) {
-      .client-grid {
-        grid-template-columns: 1fr 1fr;
-      }
+    .footer-legal {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--borde);
+      font-size: .74rem;
+      color: var(--tinta-400);
     }
 
-    /* === UTILITY === */
+    /* ---------- 18 · UTILIDADES ---------- */
     .hidden { display: none !important; }
 
     .copied-feedback {
       color: var(--accent) !important;
-      transition: color 0.15s;
+      transition: color .15s;
     }
 
-    /* === CONFIRM DELETE MODAL === */
-    #confirmDeleteModal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.45);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 6000;
-      backdrop-filter: blur(3px);
-      padding: 16px;
-    }
-
-    #confirmDeleteModal.active { display: flex; }
-
-    .confirm-modal-box {
-      background: var(--surface);
-      padding: 24px;
-      border-radius: var(--radius);
-      max-width: 360px;
-      width: 100%;
-      box-shadow: var(--shadow-lg);
+    /* Estado de error a pantalla completa (ID inválido / pedido inexistente) */
+    .estado-vacio {
+      width: min(100% - 40px, 460px);
+      margin: 70px auto;
+      padding: 40px 30px;
+      background: var(--superficie);
+      border: 1px solid var(--borde);
+      border-radius: var(--radio-lg);
+      box-shadow: var(--sombra-1);
       text-align: center;
-      animation: fadeUp 0.2s ease both;
+      animation: slideUp .35s ease both;
     }
 
-    .confirm-modal-box .confirm-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: var(--danger-light);
+    .estado-vacio .estado-vacio-icono {
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 14px;
+      background: var(--superficie-2);
+      border: 1px solid var(--borde);
+      border-radius: var(--radio-md);
+      color: var(--tinta-400);
+      font-size: 23px;
     }
 
-    .confirm-modal-box .confirm-icon svg {
-      width: 24px;
-      height: 24px;
-      color: var(--danger);
-    }
+    .estado-vacio h1 { margin-bottom: 8px; font-size: 1.28rem; font-weight: 700; }
+    .estado-vacio p { margin-bottom: 24px; font-size: .9rem; color: var(--tinta-600); line-height: 1.6; }
 
-    .confirm-modal-box h4 {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: var(--text-primary);
-    }
-
-    .confirm-modal-box p {
-      font-size: 0.94rem;
-      color: var(--text-secondary);
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
-
-    .confirm-modal-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .confirm-modal-actions button {
-      flex: 1;
-      padding: 10px;
-      border-radius: var(--radius-sm);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.94rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all var(--transition);
-      border: none;
-    }
-
-    .confirm-btn-cancel {
-      background: var(--border-light);
-      color: var(--text-secondary);
-      border: 1px solid var(--border) !important;
-    }
-
-    .confirm-btn-cancel:hover {
-      background: var(--border);
-    }
-
-    .confirm-btn-delete {
-      background: var(--danger);
-      color: #fff;
-    }
-
-    .confirm-btn-delete:hover {
-      background: #c62828;
-    }
-
-    /* === RADIO ICON === */
-    .radio-icon {
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
+    .estado-vacio a {
       display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 13px 22px;
+      background: var(--verde-600);
+      color: #fff;
+      border-radius: var(--radio-sm);
+      font-size: .9rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background var(--t);
     }
 
-    .radio-icon svg {
-      width: 100%;
-      height: 100%;
+    .estado-vacio a:hover { background: var(--verde-700); }
+
+    /* ---------- 19 · RESPONSIVE ---------- */
+    @media (max-width: 600px) {
+      body { font-size: 15px; }
+
+      .page-wrapper,
+      .estado-vacio { width: min(100% - 24px, var(--ancho)); }
+
+      .page-header { padding: 22px 0 18px; }
+      .page-header h1 { font-size: 1.42rem; }
+      .page-brand img { width: 150px; }
+
+      .card-header { padding: 13px 16px; }
+      .card-body { padding: 16px; }
+
+      .client-grid { grid-template-columns: 1fr; gap: 14px; }
+
+      .items-list { padding: 12px; gap: 8px; }
+      .item-card { padding: 10px; }
+      .item-thumb-wrap, .item-thumb-placeholder { width: 62px; height: 62px; }
+      .item-price-big { font-size: 1.02rem; }
+
+      .totals-section { padding: 4px 16px 16px; }
+      .total-row { font-size: .88rem; }
+      .total-row.grand-total { padding: 15px 16px; }
+      .total-row.grand-total .total-row-value { font-size: 1.3rem; }
+
+      .selector-section { padding: 16px; }
+      .radio-group { grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 8px; }
+      .radio-option .radio-label { min-height: 84px; padding: 13px 8px; gap: 8px; font-size: .78rem; }
+      .radio-option .radio-label > i { font-size: 1.3rem; }
+      .radio-option .radio-label img { height: 20px; }
+
+      .actions-row { flex-direction: column; }
+      .btn { min-width: 100%; }
+
+      .modal-header { padding: 20px 22px; }
+      .modal-header h2 { font-size: 1.14rem; }
+      .modal-body { padding: 20px 22px; }
+      .modal-footer { padding: 0 22px 20px; }
+      .popup-content { padding: 26px 22px 22px; }
+      .confirm-modal-box { padding: 24px 20px 20px; }
+
+      .site-footer { padding: 22px 20px 20px; border-radius: var(--radio-md); }
+      .footer-marca { gap: 18px; }
+      .footer-legal { flex-direction: column; gap: 6px; }
     }
+
+    /* ---------- 20 · MOVIMIENTO REDUCIDO ---------- */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .radio-option:hover .radio-label { transform: none; }
+    }
+
+    /* ---------- 21 · MODO OSCURO (excepciones sin variable) ----------
+       Casi todo se repinta solo al redefinir los tokens; acá van los pocos
+       valores que se escribieron sueltos y no pueden ir por variable. */
+
+    /* La flecha del <select> viaja dentro de un data-URI: el fill no acepta
+       currentColor, así que se repone la imagen con el gris claro del tema. */
+    [data-theme="dark"] select.modal-input {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a3a7ad' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+    }
+
+    /* Los logos de las transportistas son a color sobre fondo claro: en modo
+       oscuro necesitan su propia base para no perderse. */
+    [data-theme="dark"] .radio-option .radio-label img {
+      background: #fff;
+      padding: 3px 6px;
+      border-radius: 5px;
+    }
+
+    /* logo.png es un isotipo oscuro (pensado para fondos claros); en modo
+       oscuro se cambia por logoblanco.png. El `img` en el selector es
+       necesario para ganarle en especificidad a las reglas de ancho. */
+    img.logo-dark { display: none; }
+    [data-theme="dark"] img.logo-light { display: none; }
+    [data-theme="dark"] img.logo-dark { display: block; }
   </style>
 </head>
 <body>
 
   <!-- Loading Overlay -->
   <div id="loadingOverlay">
+    <img src="logo.png" alt="HomePoint" class="loading-logo logo-light">
+    <img src="logoblanco.png" alt="HomePoint" class="loading-logo logo-dark">
     <div class="loading-spinner"></div>
     <div class="loading-text">Cargando pedido</div>
     <div class="loading-subtext">Por favor, espere mientras se cargan los datos</div>
@@ -1137,8 +1590,8 @@
   <div id="avisoPopup" style="display: none;">
     <div class="popup-content">
       <div class="popup-header">
-        <div class="popup-icon">&#9432;</div>
-        <div class="popup-title">Información Importante</div>
+        <div class="popup-icon"><i class="fas fa-circle-info" aria-hidden="true"></i></div>
+        <div class="popup-title">Información importante</div>
       </div>
       <div class="popup-message">
         La solicitud de pedido realizada se considera una intención de compra y <strong>no asegura la disponibilidad total de la mercadería</strong>, hasta cerrar la operación.
@@ -1156,7 +1609,11 @@
 
     <!-- Header -->
     <div class="page-header">
-      <h1>Detalle del Pedido</h1>
+      <a class="page-brand" href="catalogo.html" title="Ir al catálogo">
+        <img src="logo.png" alt="HomePoint" class="logo-light">
+        <img src="logoblanco.png" alt="HomePoint" class="logo-dark">
+      </a>
+      <h1>Detalle del pedido</h1>
       <div id="fechaIngreso"></div>
       <div id="estado"></div>
     </div>
@@ -1164,8 +1621,10 @@
     <!-- Client Card -->
     <div class="card">
       <div class="card-header">
-        <span>Datos del cliente</span>
-        <button id="editarClienteBtn" class="btn-edit-client">Editar</button>
+        <h2 class="card-titulo"><i class="fas fa-user" aria-hidden="true"></i> Datos del cliente</h2>
+        <button id="editarClienteBtn" class="btn-edit-client">
+          <i class="fas fa-pen" aria-hidden="true"></i> Editar
+        </button>
       </div>
       <div class="card-body">
         <div class="client-grid">
@@ -1204,34 +1663,67 @@
     <!-- Items Card -->
     <div class="card">
       <div class="card-header">
-        <span>Detalle de Artículos</span>
+        <h2 class="card-titulo"><i class="fas fa-shopping-bag" aria-hidden="true"></i> Detalle del pedido</h2>
       </div>
       <div id="items"></div>
     </div>
 
     <!-- Action Buttons -->
     <div class="actions-row">
-      <button id="agregarItemBtn" class="btn btn-primary">Agregar Artículos</button>
-      <button id="hablarBtn" class="btn btn-secondary" style="display:none;">Solicitar Cierre</button>
-      <button id="cancelarBtn" class="btn btn-danger">Cancelar Pedido</button>
+      <button id="hablarBtn" class="btn btn-primary" style="display:none;">
+        <i class="fab fa-whatsapp" aria-hidden="true"></i> Solicitar cierre
+      </button>
+      <button id="agregarItemBtn" class="btn btn-secondary">
+        <i class="fas fa-plus" aria-hidden="true"></i> Agregar artículos
+      </button>
+      <button id="cancelarBtn" class="btn btn-danger">
+        <i class="fas fa-xmark" aria-hidden="true"></i> Cancelar pedido
+      </button>
     </div>
 
-    <!-- Disclaimer -->
-    <div class="disclaimer">
-      <p>* Los precios se congelan únicamente al momento de confirmar al vendedor el cierre del pedido.</p>
-      <p>** La cotización final se mantendrá vigente únicamente durante el día en curso; en caso de demorarse el pago, se recotizará el total.</p>
-      <p>*** La mercadería se separará únicamente al momento de abonar el pedido.</p>
-      <p>**** Los envíos se despachan únicamente a sucursal para reducir tiempos, costos de envío y simplificar el proceso de despacho. La cotización se encuentra sujeta a la distancia, el tamaño y el peso final del pedido.</p>
-    </div>
+    <!-- Pie -->
+    <footer class="site-footer">
+      <h3 class="footer-titulo">Condiciones del pedido</h3>
+      <div class="footer-notas">
+        <p>Los precios se congelan únicamente al momento de confirmar al vendedor el cierre del pedido.</p>
+        <p>La cotización final se mantendrá vigente únicamente durante el día en curso; en caso de demorarse el pago, se recotizará el total.</p>
+        <p>La mercadería se separará únicamente al momento de abonar el pedido.</p>
+        <p>Los envíos se despachan únicamente a sucursal para reducir tiempos, costos de envío y simplificar el proceso de despacho. La cotización se encuentra sujeta a la distancia, el tamaño y el peso final del pedido.</p>
+      </div>
+
+      <div class="footer-marca">
+        <a href="catalogo.html" title="Ir al catálogo">
+          <img src="logo.png" alt="HomePoint" class="logo-light">
+          <img src="logoblanco.png" alt="HomePoint" class="logo-dark">
+        </a>
+        <div class="footer-lista">
+          <a href="https://api.whatsapp.com/send/?phone=5491121891006" target="_blank" rel="noopener">
+            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+            <span>+54 9 11 2189-1006</span>
+          </a>
+          <a href="https://maps.app.goo.gl/L7QhZ11dmPc7LjWn7" target="_blank" rel="noopener">
+            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+            <span>Vélez Sarsfield 4127, Munro, Buenos Aires</span>
+          </a>
+          <span>
+            <i class="fas fa-clock" aria-hidden="true"></i>
+            <span>Lunes a sábados de 10 a 19 hs</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="footer-legal">
+        <span>HomePoint · Distribuidora Mayorista</span>
+        <span>Los valores publicados están sujetos a la cotización del día.</span>
+      </div>
+    </footer>
 
   </div>
 
   <!-- Confirm Delete Modal -->
   <div id="confirmDeleteModal" onclick="if(event.target===this)cerrarConfirmDelete()">
     <div class="confirm-modal-box">
-      <div class="confirm-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-      </div>
+      <div class="confirm-icon"><i class="fas fa-trash-can" aria-hidden="true"></i></div>
       <h4>Eliminar artículo</h4>
       <p id="confirmDeleteMsg">¿Eliminar este artículo del pedido?</p>
       <div class="confirm-modal-actions">
@@ -1243,7 +1735,7 @@
 
   <!-- Lightbox -->
   <div id="imgLightbox" class="lightbox" onclick="cerrarLB(event)">
-    <span class="close" onclick="cerrarLB(event)">&times;</span>
+    <span class="close" onclick="cerrarLB(event)" role="button" aria-label="Cerrar">&times;</span>
     <img id="lbImg" src="" alt="">
   </div>
 
@@ -1251,7 +1743,23 @@
   const qs    = new URLSearchParams(location.search);
   const id    = qs.get('id');
 
-  if (!id){ document.body.innerHTML = "<p style='text-align:center;padding:40px;font-family:DM Sans,sans-serif;'>ID inválido</p>"; throw 'no-id'; }
+  // Estado de error a pantalla completa · mismo lenguaje que el resto de la
+  // página (tarjeta, ícono y salida al catálogo) en vez de un párrafo suelto.
+  function mostrarEstadoVacio(icono, titulo, mensaje) {
+    document.body.innerHTML = `
+      <div class="estado-vacio">
+        <div class="estado-vacio-icono"><i class="fas ${icono}"></i></div>
+        <h1>${titulo}</h1>
+        <p>${mensaje}</p>
+        <a href="catalogo.html"><i class="fas fa-arrow-left"></i> Ir al catálogo</a>
+      </div>`;
+  }
+
+  if (!id){
+    mostrarEstadoVacio('fa-link-slash', 'Enlace inválido',
+      'El enlace no incluye el número de pedido. Volvé a abrirlo desde el mensaje que te enviamos.');
+    throw 'no-id';
+  }
 
   const pedidoRef = db.ref('pedidos/'+id);
 
@@ -1383,7 +1891,8 @@
       const loadingOverlay = document.getElementById('loadingOverlay');
       if (loadingOverlay) loadingOverlay.style.display = 'none';
 
-      document.body.innerHTML = "<p style='text-align:center;padding:40px;font-family:DM Sans,sans-serif;'>Pedido caducado o no encontrado</p>";
+      mostrarEstadoVacio('fa-receipt', 'Pedido no disponible',
+        'Este pedido caducó o ya no se encuentra en el sistema. Podés armar uno nuevo desde el catálogo.');
       return;
     }
 
@@ -1567,7 +2076,9 @@
   // Mostrar botón "Solicitar Cierre"
   const hablarBtn = document.getElementById('hablarBtn');
   if (hablarBtn) {
-    hablarBtn.style.display = 'inline-block';
+    // Se quita el display:none del markup y manda el CSS (.btn es inline-flex,
+    // que es lo que separa el ícono del texto).
+    hablarBtn.style.display = '';
     hablarBtn.onclick = function() {
       const mensaje = encodeURIComponent(`Quiero cerrar mi pedido: https://www.home-point.com.ar/pedidos.html?id=${id}`);
       window.open(`https://api.whatsapp.com/send/?phone=5491176460030&text=${mensaje}`, '_blank');
@@ -1778,7 +2289,7 @@
     const bloqueado = pedidoActual.status === 'CANCELADO' || pedidoActual.status === 'DESPACHADO/ENTREGADO';
     const bloqueadoCompleto = bloqueado || pedidoActual.locked;
 
-    pedidoActual.items.forEach((it, idx) => {
+    (pedidoActual.items || []).forEach((it, idx) => {
       const unitPesos = Math.round(it.valorU || 0);
       const subtotal = Math.round(it.cantidad * unitPesos);
       total += subtotal;
@@ -1795,7 +2306,7 @@
       const crearPlaceholder = () => {
         const imgPlaceholder = document.createElement('div');
         imgPlaceholder.className = 'item-thumb-placeholder';
-        imgPlaceholder.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" width="28" height="28"><rect x="3" y="3" width="18" height="18" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/></svg>';
+        imgPlaceholder.innerHTML = '<i class="fas fa-image" aria-hidden="true"></i>';
         imgPlaceholder.onclick = () => abrirLB(it.nombre);
         return imgPlaceholder;
       };
@@ -1832,8 +2343,10 @@
       nameRow.appendChild(nameSpan);
 
       const del = document.createElement('button');
-      del.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
+      del.innerHTML = '<i class="fas fa-trash-can" aria-hidden="true"></i>';
       del.className = 'btn-delete-item';
+      del.title = 'Quitar del pedido';
+      del.setAttribute('aria-label', 'Quitar del pedido');
       del.disabled = bloqueadoCompleto;
       del.onclick = () => {
         if (bloqueadoCompleto) return;
@@ -1914,6 +2427,11 @@
       itemsList.appendChild(card);
     });
 
+    if (!itemsList.children.length) {
+      itemsList.innerHTML = '<div class="items-vacio"><i class="fas fa-box-open" aria-hidden="true"></i>' +
+        '<p>El pedido no tiene artículos cargados.</p></div>';
+    }
+
     cont.appendChild(itemsList);
 
     /* ===== Totals Section ===== */
@@ -1969,36 +2487,39 @@
     let totalFinal = total - descuento + recargo + envio;
     if (totalFinal < 0) totalFinal = 0;
 
+    /* La clase .total-row es contrato: actualizarCalculosGlobales() llega a la
+       fila del descuento con porcentajeInput.closest('.total-row') y la fila de
+       envío se muestra con style.display = 'flex'. */
     totalsSection.innerHTML = `
       <div class="total-row">
         <span class="total-row-label">Subtotal</span>
         <span class="total-row-value" id="total">$ ${total.toLocaleString('es-AR')}</span>
       </div>
-      <div class="total-row" ${descuento === 0 && porcentaje === 0 ? 'style="display:none"' : ''}>
-        <span class="total-row-label">Descuento
+      <div class="total-row total-row-descuento" ${descuento === 0 && porcentaje === 0 ? 'style="display:none"' : ''}>
+        <span class="total-row-label"><i class="fas fa-tags" aria-hidden="true"></i> Descuento
           <input type="number" id="porcentajeInput" class="readonly-input pct-input" min="0" max="100" value="${porcentaje}" readonly> %
         </span>
-        <span class="total-row-value" style="color:var(--accent);">
+        <span class="total-row-value">
           - $ <input type="number" id="descuentoInput" class="readonly-input" min="0" value="${descuento}" readonly>
         </span>
       </div>
-      <div class="total-row" ${recargo === 0 && porcentajeRecargo === 0 ? 'style="display:none"' : ''}>
-        <span class="total-row-label">Recargo
+      <div class="total-row total-row-recargo" ${recargo === 0 && porcentajeRecargo === 0 ? 'style="display:none"' : ''}>
+        <span class="total-row-label"><i class="fas fa-circle-plus" aria-hidden="true"></i> Recargo
           <input type="number" id="porcentajeRecargoInput" class="readonly-input pct-input" min="0" max="100" value="${porcentajeRecargo}" readonly> %
         </span>
-        <span class="total-row-value" style="color:var(--danger);">
+        <span class="total-row-value">
           + $ <input type="number" id="recargoInput" class="readonly-input" min="0" value="${recargo}" readonly>
         </span>
       </div>
       <div class="total-row" id="envioDiv" style="display:none;">
-        <span class="total-row-label">Envío</span>
+        <span class="total-row-label"><i class="fas fa-truck" aria-hidden="true"></i> Envío</span>
         <span class="total-row-value">
           $ <input type="number" id="envioInput" class="readonly-input" min="0" value="${envio}" readonly>
         </span>
       </div>
       <div class="total-row grand-total">
-        <span class="total-row-label">Total Final</span>
-        <span class="total-row-value" id="totalFinalDiv" title="Click para copiar resumen">$ ${totalFinal.toLocaleString('es-AR')}</span>
+        <span class="total-row-label"><i class="fas fa-receipt" aria-hidden="true"></i> Total final</span>
+        <span class="total-row-value" id="totalFinalDiv" title="Click para copiar el resumen">$ ${totalFinal.toLocaleString('es-AR')}</span>
       </div>
     `;
 
@@ -2028,10 +2549,10 @@
           navigator.clipboard.writeText(textoCopiar).then(() => {
             const orig = tfDiv.textContent;
             tfDiv.textContent = 'Copiado';
-            tfDiv.style.color = 'var(--accent)';
+            tfDiv.classList.add('copied-feedback');
             setTimeout(() => {
               tfDiv.textContent = orig;
-              tfDiv.style.color = '';
+              tfDiv.classList.remove('copied-feedback');
             }, 1500);
           }).catch(err => alert('Error al copiar: ' + err));
         };
@@ -2044,16 +2565,19 @@
     // Payment
     const pagoSection = document.createElement('div');
     pagoSection.className = 'selector-section';
+    /* Los value de los radios se guardan tal cual en Firebase: cambia la
+       presentación, nunca el texto de value. La estructura label > input + span
+       tampoco: el estado seleccionado se dibuja con input:checked + .radio-label. */
     pagoSection.innerHTML = `
-      <div class="selector-label">Medio de pago</div>
+      <div class="selector-label"><i class="fas fa-wallet" aria-hidden="true"></i> Medio de pago</div>
       <div class="radio-group">
         <label class="radio-option">
           <input type="radio" name="tipoPago" value="Efectivo">
-          <span class="radio-label"><span class="radio-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg></span> Efectivo</span>
+          <span class="radio-label"><i class="fas fa-money-bill-wave" aria-hidden="true"></i> <span>Efectivo</span></span>
         </label>
         <label class="radio-option">
           <input type="radio" name="tipoPago" value="Transferencia">
-          <span class="radio-label"><span class="radio-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg></span> Transferencia</span>
+          <span class="radio-label"><i class="fas fa-building-columns" aria-hidden="true"></i> <span>Transferencia</span></span>
         </label>
       </div>
     `;
@@ -2062,24 +2586,27 @@
     // Delivery
     const entregaSection = document.createElement('div');
     entregaSection.className = 'selector-section';
+    /* Los logos de las transportistas llevan onerror: si el archivo no resuelve,
+       la tarjeta se queda con el ícono y el nombre en texto en vez de una imagen
+       rota. */
     entregaSection.innerHTML = `
-      <div class="selector-label">Tipo de entrega</div>
+      <div class="selector-label"><i class="fas fa-dolly" aria-hidden="true"></i> Tipo de entrega</div>
       <div class="radio-group">
         <label class="radio-option" style="display:none;">
           <input type="radio" name="tipoEntrega" value="Retiro en local">
-          <span class="radio-label"><img src="logo.png" alt="Retiro"> Retiro</span>
+          <span class="radio-label"><i class="fas fa-store" aria-hidden="true"></i> <span>Retiro</span></span>
         </label>
         <label class="radio-option">
           <input type="radio" name="tipoEntrega" value="Motomensajeria">
-          <span class="radio-label"><span class="radio-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg></span> Flete</span>
+          <span class="radio-label"><i class="fas fa-truck-fast" aria-hidden="true"></i> <span>Flete</span></span>
         </label>
         <label class="radio-option">
           <input type="radio" name="tipoEntrega" value="Correo Argentino">
-          <span class="radio-label"><img src="logo-correo.png" alt="Correo Argentino" style="height:22px;"></span>
+          <span class="radio-label"><i class="fas fa-box" aria-hidden="true"></i><img src="logo-correo.png" alt="" onerror="this.remove()"> <span>Correo Argentino</span></span>
         </label>
         <label class="radio-option">
           <input type="radio" name="tipoEntrega" value="Via Cargo">
-          <span class="radio-label"><img src="logo-viacargo.png" alt="Via Cargo" style="height:22px;"></span>
+          <span class="radio-label"><i class="fas fa-boxes-packing" aria-hidden="true"></i><img src="logo-viacargo.png" alt="" onerror="this.remove()"> <span>Vía Cargo</span></span>
         </label>
       </div>
     `;
@@ -2194,7 +2721,7 @@
   /* -------- BOTÓN AGREGAR -------- */
   document.getElementById('agregarItemBtn').onclick = () => {
     if (pedidoActual.locked) return;
-    window.location.href = `mayorista.html?pedido=${id}`;
+    window.location.href = `catalogo.html?pedido=${id}`;
   };
 
   document.getElementById('cancelarBtn').onclick = async () => {
@@ -2290,13 +2817,28 @@
     modalEditCliente.className = 'modal-overlay';
     modalEditCliente.innerHTML = `
       <div class="modal-content">
-        <button id="closeEditCliente" class="modal-close">&times;</button>
-        <h3>Editar datos del cliente</h3>
-        <input id="editNombre" type="text" placeholder="Nombre y Apellido" class="modal-input">
-        <input id="editDireccion" type="text" placeholder="Dirección Completa" class="modal-input">
-        <input id="editLocalidad" type="text" placeholder="Localidad" class="modal-input">
-        <select id="editProvincia" class="modal-input">
-          <option value="">Seleccione Provincia</option>
+        <div class="modal-header">
+          <h2><i class="fas fa-user-pen"></i> Editar datos del cliente</h2>
+          <p>Se actualizan en este pedido y en tu ficha de cliente.</p>
+        </div>
+        <button id="closeEditCliente" class="modal-close" aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+        <div class="modal-body">
+        <div class="form-group">
+          <label for="editNombre">Nombre y apellido</label>
+          <input id="editNombre" type="text" placeholder="Nombre y apellido" class="modal-input">
+        </div>
+        <div class="form-group">
+          <label for="editDireccion">Dirección</label>
+          <input id="editDireccion" type="text" placeholder="Calle, número, piso y depto." class="modal-input">
+        </div>
+        <div class="form-group">
+          <label for="editLocalidad">Localidad</label>
+          <input id="editLocalidad" type="text" placeholder="Localidad" class="modal-input">
+        </div>
+        <div class="form-group">
+          <label for="editProvincia">Provincia</label>
+          <select id="editProvincia" class="modal-input">
+          <option value="">Seleccione provincia</option>
           <option value="CABA">CABA</option>
           <option value="Gran Buenos Aires">Gran Buenos Aires</option>
           <option value="Buenos Aires">Buenos Aires</option>
@@ -2322,11 +2864,26 @@
           <option value="Santiago del Estero">Santiago del Estero</option>
           <option value="Tierra del Fuego">Tierra del Fuego</option>
           <option value="Tucumán">Tucumán</option>
-        </select>
-        <input id="editDni" type="text" placeholder="DNI" class="modal-input">
-        <input id="editTelefono" type="text" placeholder="Teléfono (opcional)" class="modal-input">
-        <input id="editEmail" type="email" placeholder="Email" class="modal-input" readonly>
-        <button id="guardarEditCliente" class="modal-save-btn">Guardar</button>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editDni">DNI</label>
+          <input id="editDni" type="text" placeholder="Sin puntos" class="modal-input">
+        </div>
+        <div class="form-group">
+          <label for="editTelefono">Teléfono</label>
+          <input id="editTelefono" type="text" placeholder="11 2345-6789" class="modal-input">
+        </div>
+        <div class="form-group">
+          <label for="editEmail">Email</label>
+          <input id="editEmail" type="email" placeholder="Email" class="modal-input" readonly>
+        </div>
+        </div>
+        <div class="modal-footer">
+          <button id="guardarEditCliente" class="btn btn-primary">
+            <i class="fas fa-check"></i> Guardar cambios
+          </button>
+        </div>
       </div>
     `;
     document.body.appendChild(modalEditCliente);
@@ -2415,7 +2972,40 @@
     }
   });
 
+  /* === Modo oscuro ===
+     El tema del primer pintado ya lo resolvió el script del <head>. Esta
+     pantalla no tiene interruptor propio (se elige en el catálogo y viaja por
+     localStorage), así que acá sólo queda seguir al sistema en vivo mientras el
+     usuario no haya elegido a mano: Windows y Android cambian solos al
+     anochecer, iOS y macOS igual. */
+  (function () {
+    const consultaTemaSistema = window.matchMedia
+      ? window.matchMedia('(prefers-color-scheme: dark)')
+      : null;
+    if (!consultaTemaSistema) return;
+
+    const alCambiarTemaSistema = function (evento) {
+      try {
+        if (localStorage.getItem('theme')) return;   // elección manual: manda ella
+      } catch (e) {
+        return;
+      }
+      if (evento.matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+    };
+
+    if (typeof consultaTemaSistema.addEventListener === 'function') {
+      consultaTemaSistema.addEventListener('change', alCambiarTemaSistema);
+    } else if (typeof consultaTemaSistema.addListener === 'function') {
+      // Safari < 14 (iOS 13 y anteriores) sólo tiene la API vieja.
+      consultaTemaSistema.addListener(alCambiarTemaSistema);
+    }
+  })();
+
 </script>
 
 </body>
-</html>
+</html>

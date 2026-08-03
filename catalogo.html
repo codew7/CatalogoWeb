@@ -1,0 +1,5339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="version" content="2.0">
+    <!-- Tema inicial · corre antes del primer pintado para que no haya destello
+         de modo claro. Prioridad: la elección manual guardada; si el usuario
+         nunca tocó el interruptor, se adopta la preferencia del sistema
+         operativo (Windows, macOS, Android e iOS la exponen todos vía
+         prefers-color-scheme). El seguimiento en vivo del sistema está en
+         mayorista.js. -->
+    <script>
+        (function () {
+            var guardado = null;
+            try { guardado = localStorage.getItem('theme'); } catch (e) {}
+            var oscuro = guardado
+                ? guardado === 'dark'
+                : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (oscuro) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+    <link rel="icon" href="faviconnegro.png" type="image/png">
+
+    
+    <title>Catálogo Mayorista</title>
+            
+        <!-- EmailJS Script v4 -->
+        <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+        <!-- Google Tag Manager -->
+        <script> (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-5P63433D');
+        </script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script src="config.js"></script>
+    <script src="catalogo.js" defer></script>
+    
+    <style>
+    /* ==========================================================================
+       HOMEPOINT · CATÁLOGO MAYORISTA
+       Sistema visual neutro claro — tomado de claro.png
+       Capas: tokens → base → layout → componentes → responsive
+       --------------------------------------------------------------------------
+       NOTA PARA QUIEN EDITE: mayorista.js construye las tarjetas con createElement
+       y les escribe estilos inline. Por eso algunas reglas de .card usan
+       !important. NUNCA usar !important sobre display / opacity / transform de
+       .btn-agregar-carrito ni del contenedor del selector de cantidad: el JS los
+       anima. Tampoco cambiar los hex #4CAF50 / #ffeb3b / #ff9800 de los
+       selectores [style*="color: …"] de .stock-info: los emite getStockLabel().
+       ========================================================================== */
+
+    /* ---------- 1 · TOKENS ----------
+       Colores medidos sobre claro.png. El verde queda reservado a acciones y al
+       precio mayorista; el resto de la interfaz es neutra. Las superficies
+       oscuras (encabezados de modales, barra del carrito, total, paginación
+       activa) usan --tinta-900, no verde. */
+    :root {
+        --verde-900:#111827;   /* superficies oscuras: neutro, no verde */
+        --verde-800:#1b5140;   /* precio mayorista y "Disponible" */
+        --verde-700:#2c5341;   /* hover de acciones */
+        --verde-600:#376550;   /* botón Agregar y primarios */
+        --verde-500:#4CAF50;   /* hex que escribe el JS · no usar como color visible */
+        --verde-100:#d5e2dc;
+        --verde-050:#eef3f0;
+
+        --navy:#12365c;        /* círculos de la franja informativa y destacados */
+
+        --ambar:#b06a12;
+        --ambar-700:#8a5210;
+        --ambar-050:#fdf4e7;
+
+        --rojo:#b42318;
+        --rojo-700:#8f1d15;
+        --rojo-050:#fdeceb;
+
+        --bg:#f8f9fa;
+        --superficie:#ffffff;
+        --superficie-2:#fafafa;
+        --borde:#e8eaed;
+        --borde-fuerte:#dcdfe4;
+
+        --tinta-900:#111827;
+        --tinta-700:#374151;
+        --tinta-600:#4b5563;
+        --tinta-400:#858a94;
+
+        --radio-sm:8px;
+        --radio-md:12px;
+        --radio-lg:16px;
+        --radio-full:999px;
+
+        --sombra-1:0 1px 2px rgba(17,24,39,.04);
+        --sombra-2:0 6px 20px -8px rgba(17,24,39,.14);
+        --sombra-3:0 24px 60px -22px rgba(17,24,39,.34);
+
+        --t:180ms cubic-bezier(.4,0,.2,1);
+        --ancho:1340px;
+
+        /* Barra de navegación inferior · el alto va en px a propósito: cualquier
+           medida en vh cambia sola cuando Chrome o Safari móvil muestran u
+           ocultan la barra de direcciones, y es lo que hace que una barra fija
+           aparezca cortada o desplazada. --tabbar-hueco es el alto real que
+           ocupa (incluye el área segura de iOS) y lo reutilizan el
+           padding-bottom del body, el panel del carrito y el botón de WhatsApp
+           para no quedar tapados ni pisarla. */
+        --tabbar-alto:60px;
+        --tabbar-hueco:calc(var(--tabbar-alto) + env(safe-area-inset-bottom, 0px));
+        --tabbar-z:1900;
+        --sheet-z:2500;
+
+        --ui:'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+        --display:var(--ui);   /* claro.png no usa serif: una sola familia */
+
+        color-scheme: light;
+    }
+
+    /* Modo oscuro: redefine los mismos tokens, así toda la interfaz (que ya
+       está construida sobre var(--...)) se re-pinta sola sin tocar cada
+       componente. Se activa poniendo data-theme="dark" en <html> (ver script
+       inline en <head> y el toggle en mayorista.js). */
+    :root[data-theme="dark"] {
+        --verde-900:#1a2230;
+        --verde-800:#4fae6c;
+        --verde-700:#5cbf7a;
+        --verde-100:#1c3226;
+        --verde-050:#16241c;
+
+        --navy:#4a9b63;
+
+        --ambar:#e0973a;
+        --ambar-700:#f0b45c;
+        --ambar-050:#2b2013;
+
+        --rojo:#ef5350;
+        --rojo-700:#ff8a80;
+        --rojo-050:#2a1512;
+
+        --bg:#0c0d0f;
+        --superficie:#17181b;
+        --superficie-2:#1e2023;
+        --borde:#2a2c30;
+        --borde-fuerte:#3a3d42;
+
+        --tinta-900:#f4f5f6;
+        --tinta-700:#cdd0d4;
+        --tinta-600:#a3a7ad;
+        --tinta-400:#73767c;
+
+        --sombra-1:0 1px 2px rgba(0,0,0,.4);
+        --sombra-2:0 6px 20px -8px rgba(0,0,0,.55);
+        --sombra-3:0 24px 60px -22px rgba(0,0,0,.7);
+
+        color-scheme: dark;
+    }
+
+    /* ---------- 2 · BASE ---------- */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    /* El padding inferior reserva el lugar de la barra de navegación fija: sin
+       él, el pie de página y el carrusel del final quedan tapados en cuanto se
+       llega al fondo del documento. */
+    body {
+        font-family: var(--ui);
+        margin: 0;
+        padding: 0 0 calc(var(--tabbar-hueco) + 16px);
+        background-color: var(--bg);
+        color: var(--tinta-900);
+        font-size: 16px;
+        line-height: 1.55;
+        letter-spacing: -.005em;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+    }
+
+    img { max-width: 100%; }
+
+    a { color: var(--verde-700); }
+
+    h1, h2, h3, h4 {
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: -.015em;
+        color: var(--tinta-900);
+    }
+
+    ::selection { background: var(--verde-050); color: var(--tinta-900); }
+
+    :focus-visible {
+        outline: 2px solid var(--verde-600);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+
+    .contenedor {
+        width: min(100% - 40px, var(--ancho));
+        margin-inline: auto;
+    }
+
+    /* Barra de scroll consistente en los paneles con overflow */
+    .modal-content::-webkit-scrollbar,
+    .modal-body::-webkit-scrollbar,
+    .welcome-popup::-webkit-scrollbar,
+    #cart-list::-webkit-scrollbar,
+    .info-modal-content::-webkit-scrollbar { width: 8px; }
+
+    .modal-content::-webkit-scrollbar-thumb,
+    .modal-body::-webkit-scrollbar-thumb,
+    .welcome-popup::-webkit-scrollbar-thumb,
+    #cart-list::-webkit-scrollbar-thumb,
+    .info-modal-content::-webkit-scrollbar-thumb {
+        background: var(--borde-fuerte);
+        border-radius: var(--radio-full);
+    }
+
+    .modal-content::-webkit-scrollbar-track,
+    #cart-list::-webkit-scrollbar-track { background: transparent; }
+
+    /* ---------- 3 · ANIMACIONES ----------
+       Los nombres son contrato: fadeOut lo inyecta el JS en runtime y el resto
+       se referencia desde estilos inline del markup. No renombrar. */
+    @keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeOut  { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes slideIn  { from { transform: translateY(-24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes slideUp  { from { transform: translateY(28px);  opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes slideInUp{ from { transform: translateY(28px);  opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes slideInLeft  { from { transform: translateX(-18px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideInRight { from { transform: translateX(18px);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideDown{ from { transform: translateY(-28px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes spin     { to { transform: rotate(360deg); } }
+    @keyframes pulse    { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+    @keyframes pulse-badge { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+    @keyframes wave     { 0%,100% { transform: rotate(0); } 25% { transform: rotate(16deg); } 75% { transform: rotate(-16deg); } }
+
+    /* ---------- 4 · ENCABEZADO ---------- */
+    .site-header {
+        background: var(--superficie);
+        border-bottom: 1px solid var(--borde);
+        position: relative;
+    }
+
+    .site-header-inner {
+        width: min(100% - 40px, var(--ancho));
+        margin-inline: auto;
+        min-height: 92px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 18px 0;
+    }
+
+    .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    .brand img {
+        width: 268px;
+        max-width: 60vw;
+        height: auto;
+        display: block;
+    }
+
+    .brand-tag {
+        font-family: var(--ui);
+        font-size: .74rem;
+        font-weight: 600;
+        color: var(--tinta-400);
+        text-transform: uppercase;
+        letter-spacing: .17em;
+        padding-left: 8px;
+    }
+
+    /* Acciones a la derecha del header: navegación (solo escritorio) + selector
+       de tema + menú hamburguesa */
+    .header-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+
+    /* Navegación dentro del header · en móvil no existe: ahí la misma función la
+       cumple la barra inferior (sección 21). Se muestra recién en ≥901px. */
+    .header-nav { display: none; }
+
+    .header-nav-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        height: 42px;
+        padding: 0 14px;
+        background: none;
+        border: 1px solid transparent;
+        border-radius: var(--radio-sm);
+        color: var(--tinta-700);
+        font-family: var(--ui);
+        font-size: .86rem;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background var(--t), color var(--t), border-color var(--t);
+    }
+
+    .header-nav-item:hover {
+        background: var(--superficie-2);
+        border-color: var(--borde);
+        color: var(--tinta-900);
+    }
+
+    .header-nav-item.is-activo {
+        background: var(--verde-050);
+        border-color: var(--verde-100);
+        color: var(--verde-800);
+        font-weight: 700;
+    }
+
+    .header-nav-item > i,
+    .header-nav-icono { font-size: 15px; color: var(--verde-600); }
+    .header-nav-item.is-activo > i,
+    .header-nav-item.is-activo .header-nav-icono { color: var(--verde-800); }
+
+    /* Ancla del globo del carrito y del punto de pedidos. El min-width reserva
+       el lugar que el globo ocupa al sobresalir: sin él, el número se monta
+       sobre la primera letra de la etiqueta. */
+    .header-nav-icono {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+    }
+
+    .header-divisor {
+        width: 1px;
+        height: 26px;
+        flex: none;
+        background: var(--borde-fuerte);
+        display: none;   /* solo tiene sentido cuando hay navegación al lado */
+    }
+
+    /* Menú hamburguesa */
+    .hamburger-menu { position: relative; flex: none; }
+
+    .hamburger-button {
+        width: 46px;
+        height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--superficie);
+        color: var(--tinta-900);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-sm);
+        font-size: 17px;
+        cursor: pointer;
+        transition: background var(--t), border-color var(--t), transform var(--t);
+    }
+
+    .hamburger-button:hover {
+        background: var(--superficie-2);
+        border-color: var(--borde-fuerte);
+        transform: translateY(-1px);
+    }
+
+    .hamburger-dropdown {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        box-shadow: var(--sombra-3);
+        min-width: 236px;
+        padding: 6px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: opacity var(--t), transform var(--t), visibility var(--t);
+        z-index: 1200;
+    }
+
+    .hamburger-dropdown.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .hamburger-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        color: var(--tinta-700);
+        text-decoration: none;
+        border-radius: var(--radio-sm);
+        cursor: pointer;
+        transition: background var(--t), color var(--t);
+    }
+
+    .hamburger-dropdown-item:hover,
+    .hamburger-dropdown-item:focus-visible {
+        background: var(--verde-050);
+        color: var(--verde-800);
+    }
+
+    .hamburger-dropdown-item i {
+        font-size: 15px;
+        width: 20px;
+        text-align: center;
+        color: var(--verde-600);
+    }
+
+    .hamburger-dropdown-item span { font-size: .9rem; font-weight: 600; }
+
+    /* ---------- 5 · CARRUSELES ---------- */
+    .carousel {
+        position: relative;
+        width: min(100% - 40px, var(--ancho));
+        margin: 26px auto;
+        overflow: hidden;
+        border-radius: var(--radio-lg);
+        border: 1px solid var(--borde);
+        box-shadow: var(--sombra-2);
+        height: 300px;
+        display: flex;
+        align-items: center;
+        background: var(--superficie-2);
+    }
+
+    .carousel-images {
+        display: flex;
+        transition: transform 600ms cubic-bezier(.65,0,.35,1);
+        height: 100%;
+        width: 100%;
+    }
+
+    /* min-width 100% es lo que hace funcionar el translateX(-n%) del JS */
+    .carousel-slide {
+        min-width: 100%;
+        flex: 0 0 100%;
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .carousel-slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* ---------- 6 · FRANJA INFORMATIVA ---------- */
+    .info-band {
+        width: min(100% - 40px, var(--ancho));
+        margin: 0 auto 26px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-lg);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+    }
+
+    .info-band-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 24px;
+        min-width: 0;
+    }
+
+    /* Divisor entre las dos columnas: se dibuja en la segunda para no dejar
+       un borde suelto cuando se apilan en móvil. Va como pseudo-elemento y no
+       como border-left para poder acortarlo: la línea no toca los bordes de la
+       franja, queda centrada respecto del alto del ítem. */
+    .info-band-item + .info-band-item { position: relative; }
+
+    .info-band-item + .info-band-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1px;
+        height: 46px;
+        background: var(--borde-fuerte);
+    }
+
+    /* Ícono suelto, sin píldora ni círculo: sólo el glifo en el color de acento
+       (--navy, que el modo oscuro redefine a verde). El ancho fijo es lo que
+       alinea el arranque del texto de los dos ítems, aunque el camión y el
+       signo $ tengan siluetas de ancho distinto. */
+    .info-band-icon {
+        width: 30px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        color: var(--navy);
+        border-radius: 0;
+        font-size: 23px;
+    }
+
+    .info-band-text {
+        font-size: .84rem;
+        line-height: 1.45;
+        color: var(--tinta-600);
+        min-width: 0;
+    }
+
+    .info-band-text strong {
+        display: block;
+        font-size: .92rem;
+        font-weight: 700;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+        color: var(--tinta-900);
+    }
+
+    /* En bloque para que el destacado caiga siempre en su propia línea y los
+       dos ítems queden con la misma silueta de dos renglones. */
+    .info-band-text b {
+        display: block;
+        color: var(--navy);
+        font-weight: 700;
+    }
+
+    /* ---------- 7 · BARRA DE FILTROS ---------- */
+    .controls {
+        width: min(100% - 40px, var(--ancho));
+        margin: 0 auto 24px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        padding: 12px;
+        display: grid;
+        grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.3fr) auto;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .controls-row { display: flex; align-items: center; min-width: 0; }
+
+    #row-filtros { gap: 14px; justify-content: flex-end; }
+
+    .control-field {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        background: var(--superficie-2);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-sm);
+        transition: border-color var(--t), box-shadow var(--t), background var(--t);
+    }
+
+    .control-field:focus-within {
+        background: var(--superficie);
+        border-color: var(--verde-600);
+        box-shadow: 0 0 0 3px rgba(55,101,80,.14);
+    }
+
+    .control-field > i:first-child {
+        position: absolute;
+        left: 14px;
+        font-size: 14px;
+        color: var(--tinta-600);
+        pointer-events: none;
+    }
+
+    .control-field:focus-within > i:first-child { color: var(--verde-600); }
+
+    .control-caret {
+        position: absolute;
+        right: 14px;
+        font-size: 11px;
+        color: var(--tinta-600);
+        pointer-events: none;
+    }
+
+    .controls input[type="text"],
+    .controls select {
+        width: 100%;
+        height: 48px;
+        padding: 0 16px 0 40px;
+        border: none;
+        background: transparent;
+        font-family: var(--ui);
+        font-size: .92rem;
+        font-weight: 500;
+        color: var(--tinta-900);
+        border-radius: var(--radio-sm);
+    }
+
+    .controls input[type="text"]:focus,
+    .controls select:focus { outline: none; }
+
+    .controls input[type="text"]::placeholder { color: var(--tinta-400); font-weight: 400; }
+
+    .controls select {
+        appearance: none;
+        -webkit-appearance: none;
+        padding-right: 38px;
+        cursor: pointer;
+    }
+
+    /* Interruptor "Solo disponibles" */
+    .switch {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+    .switch input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .switch-track {
+        position: relative;
+        width: 44px;
+        height: 26px;
+        flex: none;
+        border-radius: var(--radio-full);
+        background: #dddfe3;
+        transition: background var(--t), box-shadow var(--t);
+    }
+
+    .switch-track::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: var(--sombra-1);
+        transition: transform var(--t);
+    }
+
+    .switch input:checked + .switch-track { background: var(--verde-600); }
+    .switch input:checked + .switch-track::after { transform: translateX(18px); }
+    .switch input:focus-visible + .switch-track { box-shadow: 0 0 0 3px rgba(55,101,80,.3); }
+
+    .switch-label {
+        font-size: .85rem;
+        font-weight: 600;
+        color: var(--tinta-900);
+    }
+
+    .btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 48px;
+        padding: 0 18px;
+        background: var(--superficie);
+        color: var(--tinta-900);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-sm);
+        font-family: var(--ui);
+        font-size: .85rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background var(--t), border-color var(--t), color var(--t);
+    }
+
+    .btn-ghost:hover {
+        background: var(--superficie-2);
+        border-color: var(--borde-fuerte);
+        color: var(--tinta-900);
+    }
+
+    .btn-ghost i { font-size: 12px; }
+
+    #error {
+        width: min(100% - 40px, var(--ancho));
+        margin: 0 auto 20px;
+        text-align: center;
+        color: var(--rojo-700);
+        font-weight: 600;
+    }
+
+    #error:not(:empty) {
+        background: var(--rojo-050);
+        border: 1px solid #f3c9c4;
+        border-radius: var(--radio-md);
+        padding: 14px 18px;
+    }
+
+    /* ---------- 8 · GRILLA Y TARJETAS ---------- */
+    .grid {
+        display: grid;
+        gap: 18px;
+        width: min(100% - 40px, var(--ancho));
+        margin: 0 auto;
+        padding: 0;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .card {
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        padding: 0 0 16px;
+        text-align: left;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        transition: border-color var(--t), box-shadow var(--t), transform var(--t);
+    }
+
+    .card:hover {
+        border-color: var(--borde-fuerte);
+        box-shadow: var(--sombra-2);
+        transform: translateY(-2px);
+    }
+
+    /* El orden visual se reacomoda con flex; el orden del DOM lo fija el JS. */
+    .card > img            { order: 1; }
+    .card > h3             { order: 2; }
+    .card > .info          { order: 3; }
+    .card > .stock-info    { order: 4; }
+    .card > p:nth-of-type(1) { order: 5; }   /* Valor $ · precio de lista (el que suma el carrito) */
+    .card > p:nth-of-type(2) { order: 6; }   /* Mayorista $ · precio con descuento aplicado */
+    .card > div:last-child { order: 7; }
+
+    .card > img {
+        width: 100%;
+        max-width: none;
+        height: 172px;
+        max-height: none;
+        margin: 0;
+        padding: 16px;
+        border-radius: 0;
+        background: var(--superficie);
+        object-fit: contain;
+        cursor: zoom-in;
+        transition: transform 420ms cubic-bezier(.4,0,.2,1);
+    }
+
+    .card:hover > img { transform: scale(1.05); }
+
+    .card > h3 {
+        font-family: var(--ui);
+        font-size: .82rem;
+        font-weight: 700;
+        line-height: 1.35;
+        letter-spacing: -.005em;
+        color: var(--tinta-900);
+        text-align: left;
+        margin: 6px 16px 0;
+        min-height: 2.7em;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .card > .info {
+        display: block;
+        margin: 4px 16px 0;
+        font-size: .68rem;
+        font-weight: 500;
+        letter-spacing: .03em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+    }
+
+    /* Estado de stock: texto plano con ícono circular delante, sin píldora.
+       -------------------------------------------------------------------
+       getStockLabel() (mayorista.js:32-38) emite un único nodo de texto con el
+       símbolo y la palabra juntos ("✓ Disponible"), y el color va inline. Como
+       CSS no puede separar ese string, se oculta entero y se repone en dos
+       piezas: el ícono de Font Awesome en ::before y la etiqueta en ::after.
+       visibility:hidden (en vez de solo font-size:0) lo saca también del árbol
+       de accesibilidad, así el lector de pantalla no lo anuncia dos veces.
+
+       OJO AL MANTENER: las tres etiquetas quedan duplicadas acá abajo. Si
+       alguna vez cambia el texto que devuelve getStockLabel(), hay que
+       actualizar estas reglas. Los hex son los que emite el JS: no tocarlos. */
+    .card > .stock-info {
+        margin: 10px 16px 0 !important;
+        padding: 0;
+        text-align: left;
+        font-size: inherit;
+    }
+
+    .stock-info span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 0;
+        border: none;
+        background: none;
+        font-size: 0;
+        visibility: hidden;
+        letter-spacing: normal;
+    }
+
+    .stock-info span::before,
+    .stock-info span::after { visibility: visible; }
+
+    .stock-info span::before {
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 400;
+        font-size: .8rem;
+        line-height: 1;
+    }
+
+    .stock-info span::after {
+        font-size: .74rem;
+        font-weight: 600;
+    }
+
+    .stock-info span[style*="color: #4CAF50"] { color: var(--verde-800) !important; }
+    .stock-info span[style*="color: #4CAF50"]::before { content: '\f058'; }   /* circle-check */
+    .stock-info span[style*="color: #4CAF50"]::after  { content: 'Disponible'; }
+
+    .stock-info span[style*="color: #ffeb3b"] { color: var(--ambar-700) !important; }
+    /* circle-exclamation no existe en el peso 400 de Font Awesome 6 Free (se
+       renderiza como caja vacía), así que este va en sólido. Mantiene la misma
+       silueta circular que los otros dos y el relleno le viene bien a un aviso. */
+    .stock-info span[style*="color: #ffeb3b"]::before { content: '\f06a'; font-weight: 900; }
+    .stock-info span[style*="color: #ffeb3b"]::after  { content: 'Últimas unidades'; }
+
+    .stock-info span[style*="color: #ff9800"] { color: var(--rojo) !important; }
+    .stock-info span[style*="color: #ff9800"]::before { content: '\f057'; }   /* circle-xmark */
+    .stock-info span[style*="color: #ff9800"]::after  { content: 'Sin stock'; }
+
+    /* Precio de lista (primer <p>): cifra protagonista.
+       Es el valor que agregarAlCarrito() suma al total, por eso manda acá.
+       El JS lo imprime como "<strong>Valor $</strong> 11,210": se oculta la
+       etiqueta y el signo $ se repone con ::before, sin tocar mayorista.js. */
+    .card > p:nth-of-type(1) {
+        margin: 14px 16px 0 !important;
+        padding: 14px 0 0;
+        border-top: 1px solid var(--borde);   /* el divisor que separa datos de precios */
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+        color: var(--tinta-900) !important;
+        font-size: 1.5rem !important;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -.02em;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .card > p:nth-of-type(1)::before {
+        content: '$';
+        font-size: .78em;
+        font-weight: 800;
+        color: inherit;
+    }
+
+    .card > p:nth-of-type(1) strong { display: none; }
+
+    /* Precio mayorista (segundo <p>): el mismo valor con el 10% ya aplicado,
+       en dos líneas — etiqueta gris arriba y cifra verde abajo.
+       -------------------------------------------------------------------
+       El JS imprime "<strong>Mayorista $</strong> 12,101": el signo $ viaja
+       dentro de la etiqueta. Se oculta el texto original del <strong> (con
+       visibility, para que tampoco lo lea un lector de pantalla dos veces) y se
+       recompone: la etiqueta la pone el ::before del <p> como bloque, y el $
+       vuelve por el ::after del <strong>, ya con el tipo y color de la cifra.
+       Los tamaños viajan por --cifra / --etiqueta porque el font-size:0 del
+       <strong> haría colapsar cualquier medida en em; además así la media query
+       de móvil reescala las dos piezas de una sola vez. */
+    .card > p:nth-of-type(2) {
+        --cifra: 1rem;
+        --etiqueta: .64rem;
+        margin: 10px 16px 0 !important;
+        padding: 0 !important;
+        background: none;
+        border: none;
+        display: block;
+        font-size: var(--cifra) !important;
+        font-weight: 700;
+        line-height: 1.25;
+        color: var(--verde-800) !important;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .card > p:nth-of-type(2)::before {
+        content: 'Precio mayorista';
+        display: block;
+        margin-bottom: 2px;
+        font-size: var(--etiqueta);
+        font-weight: 500;
+        line-height: 1.3;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+    }
+
+    .card > p:nth-of-type(2) strong {
+        font-size: 0;
+        visibility: hidden;
+    }
+
+    /* Sin margen: el nodo de texto que sigue al <strong> ya empieza con un
+       espacio (el JS escribe "</strong> 12,101"), así que agregar margen acá
+       duplicaría la separación respecto del precio principal. */
+    .card > p:nth-of-type(2) strong::after {
+        content: '$';
+        visibility: visible;
+        font-size: var(--cifra);
+        font-weight: 700;
+        letter-spacing: normal;
+        color: var(--verde-800);
+    }
+
+    /* Ícono de información */
+    .info-icon {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 30px;
+        height: 30px;
+        background: rgba(255,255,255,.94);
+        border: 1px solid var(--borde);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--tinta-600);
+        font-size: 12px;
+        font-weight: 700;
+        transition: background var(--t), color var(--t), transform var(--t);
+        z-index: 10;
+        backdrop-filter: blur(4px);
+    }
+
+    .info-icon:hover { background: var(--verde-600); color: #fff; }
+    .info-icon:active { transform: scale(.94); }
+
+    /* Fila de acción · el JS anima display/opacity/transform de estos nodos */
+    .card > div:last-child {
+        margin-top: auto;
+        padding: 16px 16px 0;
+    }
+
+    .card .btn-agregar-carrito {
+        width: 100% !important;
+        height: 44px !important;
+        padding: 0 14px !important;
+        background: var(--verde-600) !important;
+        color: #fff !important;
+        border: 1px solid var(--verde-600) !important;
+        border-radius: var(--radio-sm) !important;
+        font-family: var(--ui);
+        font-size: .84rem !important;
+        font-weight: 600;
+        letter-spacing: -.005em;
+        text-align: center;
+        cursor: pointer;
+        transition: background var(--t), border-color var(--t), opacity 150ms ease, transform 150ms ease;
+    }
+
+    .card .btn-agregar-carrito::after {
+        content: 'Agregar';
+        margin-left: 8px;
+    }
+
+    .card .btn-agregar-carrito:hover:not(:disabled) {
+        background: var(--verde-700) !important;
+        border-color: var(--verde-700) !important;
+    }
+
+    .card .btn-agregar-carrito:disabled {
+        background: var(--superficie-2) !important;
+        color: var(--tinta-400) !important;
+        border-color: var(--borde) !important;
+        cursor: not-allowed;
+    }
+
+    .card .btn-agregar-carrito:disabled::after { content: 'Sin stock'; }
+
+    /* Selector de cantidad (div hermano del botón, sin clase propia) */
+    .card > div:last-child > div {
+        width: 100%;
+        justify-content: space-between;
+        background: var(--superficie);
+        border: 1px solid var(--borde-fuerte);
+        border-radius: var(--radio-sm);
+        padding: 3px;
+    }
+
+    .card > div:last-child > div > button {
+        width: 38px !important;
+        height: 38px !important;
+        padding: 0 !important;
+        background: var(--verde-050) !important;
+        color: var(--verde-800) !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-family: var(--ui);
+        font-size: 1.05rem !important;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+        transition: background var(--t), color var(--t);
+    }
+
+    .card > div:last-child > div > button:hover {
+        background: var(--verde-600) !important;
+        color: #fff !important;
+    }
+
+    .card > div:last-child > div input[type="number"] {
+        flex: 1;
+        width: 40px !important;
+        height: 38px !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        font-family: var(--ui);
+        font-size: .98rem !important;
+        font-weight: 800;
+        color: var(--tinta-900);
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .card > div:last-child > div input[type="number"]:focus { outline: none; }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type="number"] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+
+    /* ---------- 9 · PAGINACIÓN ---------- */
+    .pagination {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        margin: 34px auto;
+        gap: 6px;
+        width: min(100% - 40px, var(--ancho));
+    }
+
+    .pagination button {
+        height: 42px;
+        min-width: 42px;
+        padding: 0 14px;
+        background: var(--superficie);
+        color: var(--tinta-700);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-sm);
+        font-family: var(--ui);
+        font-size: .86rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background var(--t), border-color var(--t), color var(--t);
+    }
+
+    .pagination button:hover {
+        background: var(--verde-050);
+        border-color: var(--verde-600);
+        color: var(--verde-800);
+    }
+
+    .pagination-button {
+        width: 42px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .pagination-button.active,
+    .pagination-button.active:hover {
+        background: var(--verde-900);
+        border-color: var(--verde-900);
+        color: #fff;
+        font-weight: 700;
+        cursor: default;
+    }
+
+    /* ---------- 10 · LIGHTBOX ---------- */
+    .lightbox {
+        position: fixed;
+        inset: 0;
+        background: rgba(15,20,28,.88);
+        backdrop-filter: blur(6px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 1000;
+    }
+
+    .lightbox img {
+        max-width: 82%;
+        max-height: 76vh;
+        border-radius: var(--radio-md);
+        background: #fff;
+    }
+
+    .lightbox:target { display: flex; }
+
+    .lightbox .close {
+        position: absolute;
+        top: 22px;
+        right: 26px;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,.12);
+        border-radius: 50%;
+        font-size: 22px;
+        color: #fff;
+        cursor: pointer;
+        z-index: 1001;
+        transition: background var(--t);
+    }
+
+    .lightbox .close:hover { background: rgba(255,255,255,.24); }
+
+    #lightbox-value {
+        color: #fff;
+        font-family: var(--display);
+        font-size: 1.1rem;
+        text-align: center;
+        margin-top: 18px;
+    }
+
+    #prev-btn, #next-btn { transition: color var(--t); }
+    #prev-btn:hover, #next-btn:hover { color: #fff !important; }
+
+    /* ---------- 11 · MODAL DE INFORMACIÓN DEL PRODUCTO ---------- */
+    .info-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15,20,28,.55);
+        backdrop-filter: blur(6px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeIn .24s ease;
+    }
+
+    .info-modal.show { display: flex; }
+
+    .info-modal-content {
+        background: var(--superficie);
+        border-radius: var(--radio-lg);
+        padding: 26px;
+        max-width: 440px;
+        width: 100%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: var(--sombra-3);
+        animation: slideUp .3s ease;
+        position: relative;
+    }
+
+    .info-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--borde);
+    }
+
+    .info-modal-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        line-height: 1.3;
+    }
+
+    .info-modal-close {
+        background: var(--superficie-2);
+        border: none;
+        font-size: 22px;
+        line-height: 1;
+        color: var(--tinta-600);
+        cursor: pointer;
+        width: 34px;
+        height: 34px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background var(--t), color var(--t);
+    }
+
+    .info-modal-close:hover { background: var(--borde); color: var(--tinta-900); }
+
+    .info-modal-body { color: var(--tinta-700); line-height: 1.65; }
+
+    .info-modal-section { margin-bottom: 16px; }
+    .info-modal-section:last-child { margin-bottom: 0; }
+
+    .info-modal-section h4 {
+        font-family: var(--ui);
+        color: var(--verde-700);
+        margin: 0 0 6px;
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+    }
+
+    .info-modal-section p {
+        margin: 0;
+        color: var(--tinta-900);
+        white-space: pre-line;
+    }
+
+    /* ---------- 12 · CARRITO ---------- */
+    /* El botón flotante quedó reemplazado por el ítem "Carrito" de la barra de
+       navegación inferior, así que no se muestra nunca.
+       NO SACAR EL NODO DEL HTML: toggleCart() (script del final) le escribe
+       .style.display sin comprobar que exista y lanzaría un TypeError. Por esa
+       misma razón el ocultado necesita !important: el estilo inline que le
+       escriben toggleCart() y actualizarCarrito() le ganaría a la cascada. */
+    .cart-float-btn {
+        position: fixed;
+        bottom: 28px;
+        left: 22px;
+        width: 58px;
+        height: 58px;
+        background: var(--verde-700);
+        border: none;
+        border-radius: var(--radio-md);
+        box-shadow: var(--sombra-3);
+        display: none !important;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform var(--t), background var(--t);
+        z-index: 2000;
+    }
+
+    .cart-float-btn:hover { transform: translateY(-3px); background: var(--verde-800); }
+    .cart-float-btn i { color: #fff; font-size: 21px; }
+
+    .cart-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: var(--ambar);
+        color: #fff;
+        min-width: 24px;
+        height: 24px;
+        padding: 0 6px;
+        border-radius: var(--radio-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .72rem;
+        font-weight: 800;
+        border: 2px solid var(--bg);
+        font-variant-numeric: tabular-nums;
+        animation: pulse-badge 2.4s infinite;
+    }
+
+    /* Se apoya justo arriba de la barra inferior (su z-index es mayor, así que
+       el panel se dibuja por encima sin tapar los botones de navegación). */
+    .cart-container {
+        position: fixed;
+        bottom: calc(var(--tabbar-hueco) + 12px);
+        left: 22px;
+        background: var(--superficie);
+        padding: 0;
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-lg);
+        box-shadow: var(--sombra-3);
+        min-width: 340px;
+        max-width: 380px;
+        z-index: 2001;
+        display: none;
+        overflow: hidden;
+    }
+
+    .cart-container.active {
+        display: block;
+        animation: slideInLeft .26s ease-out;
+    }
+
+    .cart-container h3 {
+        background: var(--verde-900);
+        color: #fff;
+        font-family: var(--display);
+        font-size: 1.05rem;
+        font-weight: 600;
+        text-align: left;
+        margin: 0;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .cart-container h3::before {
+        content: '\f291';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        font-size: .82em;
+        color: rgba(255,255,255,.62);
+    }
+
+    #cart-list {
+        list-style: none;
+        padding: 12px;
+        margin: 0;
+        max-height: 272px;
+        overflow-y: auto;
+        background: var(--superficie);
+    }
+
+    #cart-list li {
+        background: var(--superficie-2);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-sm);
+        padding: 10px 40px 10px 12px !important;
+        margin-bottom: 8px;
+        font-size: .84rem;
+        line-height: 1.45;
+        position: relative;
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        transition: border-color var(--t);
+    }
+
+    #cart-list li:last-child { margin-bottom: 0; }
+    #cart-list li:hover { border-color: var(--verde-100); }
+
+    .cart-item-nombre {
+        display: block;
+        line-height: 1.3;
+        font-size: .82rem;
+        font-weight: 700;
+        color: var(--tinta-900);
+    }
+
+    .cart-item-meta {
+        display: block;
+        margin-top: 3px;
+        line-height: 1.2;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cart-item-precio { color: var(--verde-700); font-weight: 700; font-size: .8rem; }
+    .cart-item-cantidad { color: var(--tinta-400); margin-left: 8px; font-weight: 600; font-size: .78rem; }
+
+    .cart-item-delete {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        width: 26px;
+        height: 26px;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        color: var(--tinta-400);
+        font-size: 11px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background var(--t), color var(--t);
+        padding: 0;
+        flex-shrink: 0;
+    }
+
+    .cart-item-delete:hover { background: var(--rojo-050); color: var(--rojo); }
+
+    .cart-entrega {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        background: var(--superficie-2);
+        border-top: 1px solid var(--borde);
+    }
+
+    .cart-entrega-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: .8rem;
+        color: var(--tinta-600);
+    }
+
+    .cart-entrega-label i { color: var(--verde-600); }
+    .cart-entrega-label strong { color: var(--tinta-900); font-weight: 700; }
+
+    .cart-container .cart-entrega-cambiar {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: var(--superficie);
+        color: var(--verde-700);
+        border: 1px solid var(--borde-fuerte);
+        border-radius: var(--radio-full);
+        font-family: var(--ui);
+        font-size: .74rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: none;
+        transition: background var(--t), border-color var(--t);
+    }
+
+    .cart-container .cart-entrega-cambiar:hover {
+        background: var(--verde-050);
+        border-color: var(--verde-600);
+        box-shadow: none;
+    }
+
+    .cart-container .cart-entrega-cambiar i { font-size: .85em; }
+
+    .cart-discount {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        background: var(--ambar-050);
+        border-top: 1px dashed #f0c98a;
+        animation: fadeIn .3s ease;
+    }
+
+    .cart-discount-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: .82rem;
+        font-weight: 700;
+        color: var(--ambar-700);
+    }
+
+    .cart-discount-label i { color: var(--ambar); }
+
+    .cart-discount-amount {
+        font-size: .9rem;
+        font-weight: 800;
+        color: var(--ambar-700);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cart-discount-note {
+        margin: 0;
+        padding: 0 16px 9px;
+        background: var(--ambar-050);
+        font-size: .66rem;
+        color: #a5804f;
+        text-align: center;
+        line-height: 1.35;
+    }
+
+    .cart-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 18px;
+        background: var(--verde-900);
+        border-top: none;
+    }
+
+    .cart-total-label {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: .74rem;
+        font-weight: 700;
+        color: rgba(255,255,255,.72);
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .cart-total-label i { color: rgba(255,255,255,.62); font-size: .9em; }
+
+    .cart-total-wrap { display: flex; align-items: baseline; gap: 9px; }
+
+    .cart-total-original {
+        font-size: .82rem;
+        font-weight: 600;
+        color: rgba(255,255,255,.45);
+        text-decoration: line-through;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cart-total-amount {
+        font-size: 1.32rem;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -.02em;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cart-buttons-container {
+        padding: 12px;
+        background: var(--superficie);
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        border-top: 1px solid var(--borde);
+    }
+
+    .cart-container button {
+        flex: 1;
+        padding: 12px 14px;
+        font-family: var(--ui);
+        font-size: .82rem;
+        font-weight: 700;
+        color: #fff;
+        border: none;
+        border-radius: var(--radio-sm);
+        cursor: pointer;
+        transition: background var(--t);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+    }
+
+    .cart-container button.whatsapp-link { background: var(--verde-600); }
+    .cart-container button.whatsapp-link:hover { background: var(--verde-700); }
+
+    .cart-container button:not(.whatsapp-link):not(.cart-item-delete):not(.cart-entrega-cambiar) {
+        background: var(--superficie-2);
+        color: var(--tinta-600);
+        border: 1px solid var(--borde-fuerte);
+    }
+
+    .cart-container button:not(.whatsapp-link):not(.cart-item-delete):not(.cart-entrega-cambiar):hover {
+        background: var(--rojo-050);
+        border-color: #eab7b1;
+        color: var(--rojo);
+    }
+
+    /* ---------- 13 · MODALES ---------- */
+    .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(15,20,28,.55);
+        backdrop-filter: blur(6px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        z-index: 3000;
+        animation: fadeIn .24s ease;
+    }
+
+    .modal-content {
+        background: var(--superficie);
+        padding: 0;
+        border-radius: var(--radio-lg);
+        max-width: 520px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: var(--sombra-3);
+        animation: slideUp .3s ease;
+        position: relative;
+    }
+
+    .modal-header {
+        background: var(--verde-900);
+        color: #fff;
+        padding: 26px 30px;
+        border-radius: var(--radio-lg) var(--radio-lg) 0 0;
+        text-align: left;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-family: var(--display);
+        font-size: 1.35rem;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .modal-header h2 i { color: rgba(255,255,255,.62); font-size: .82em; }
+
+    .modal-header p {
+        margin: 7px 0 0;
+        color: rgba(255,255,255,.72);
+        font-size: .88rem;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 18px;
+        right: 20px;
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,.14);
+        border: none;
+        border-radius: 50%;
+        color: #fff;
+        font-size: .95rem;
+        cursor: pointer;
+        z-index: 10;
+        transition: background var(--t);
+    }
+
+    .modal-close:hover { background: rgba(255,255,255,.3); }
+
+    .modal-body { padding: 28px 30px; }
+
+    .modal-footer { padding: 0 30px 28px; }
+
+    .modal-footer > div { display: flex; gap: 10px; }
+
+    /* Selector nuevo / registrado */
+    .user-type-selector {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 22px;
+        background: var(--superficie-2);
+        padding: 6px;
+        border-radius: var(--radio-md);
+    }
+
+    .user-type-btn {
+        flex: 1;
+        padding: 13px 16px;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--tinta-600);
+        border-radius: var(--radio-sm);
+        cursor: pointer;
+        font-family: var(--ui);
+        font-size: .88rem;
+        font-weight: 700;
+        transition: background var(--t), color var(--t), border-color var(--t);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .user-type-btn:hover { background: rgba(255,255,255,.7); color: var(--tinta-900); }
+
+    .user-type-btn.active {
+        background: var(--superficie);
+        border-color: var(--verde-600);
+        color: var(--verde-800);
+        box-shadow: var(--sombra-1);
+    }
+
+    #btnUsuarioRegistrado.active { border-color: var(--verde-600); color: var(--verde-800); }
+
+    .form-section { display: none; animation: fadeIn .26s ease; }
+    .form-section.active { display: block; }
+
+    .form-group { margin-bottom: 16px; text-align: left; }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--tinta-700);
+        font-weight: 700;
+        font-size: .74rem;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+    }
+
+    .form-group label .optional {
+        color: var(--tinta-400);
+        font-weight: 500;
+        letter-spacing: 0;
+        text-transform: none;
+        font-size: .95em;
+    }
+
+    .modal-content input,
+    .modal-content select {
+        width: 100%;
+        padding: 13px 15px;
+        border: 1px solid var(--borde-fuerte);
+        border-radius: var(--radio-sm);
+        box-sizing: border-box;
+        font-family: var(--ui);
+        font-size: .92rem;
+        color: var(--tinta-900);
+        background: var(--superficie);
+        transition: border-color var(--t), box-shadow var(--t);
+    }
+
+    .modal-content input:focus,
+    .modal-content select:focus {
+        outline: none;
+        border-color: var(--verde-600);
+        box-shadow: 0 0 0 3px rgba(55,101,80,.14);
+    }
+
+    .modal-content input::placeholder { color: var(--tinta-400); }
+
+    .modal-content button#continuarBtn,
+    .modal-content button#retiroContinuarBtn {
+        width: 100%;
+        background: var(--verde-600);
+        color: #fff;
+        border: none;
+        padding: 15px 20px;
+        border-radius: var(--radio-sm);
+        cursor: pointer;
+        font-family: var(--ui);
+        font-size: .95rem;
+        font-weight: 700;
+        transition: background var(--t), transform var(--t);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+    }
+
+    .modal-content button#continuarBtn:hover,
+    .modal-content button#retiroContinuarBtn:hover { background: var(--verde-700); }
+
+    .modal-content button#continuarBtn:active,
+    .modal-content button#retiroContinuarBtn:active { transform: translateY(1px); }
+
+    .info-text {
+        background: var(--verde-050);
+        border: 1px solid var(--verde-100);
+        border-left: 3px solid var(--verde-600);
+        padding: 13px 16px;
+        margin-bottom: 20px;
+        border-radius: var(--radio-sm);
+        color: var(--verde-800);
+        font-size: .85rem;
+        line-height: 1.5;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .info-text i { color: var(--verde-600); flex: none; }
+
+    .modal-body .info-text.initial {
+        background: var(--superficie-2);
+        border-color: var(--borde);
+        border-left-color: var(--borde-fuerte);
+        color: var(--tinta-600);
+        justify-content: center;
+    }
+
+    .modal-body .info-text.initial i { color: var(--tinta-400); }
+
+    /* Confirmación del pedido */
+    .confirmacion-section {
+        margin-bottom: 24px;
+        padding-bottom: 22px;
+        border-bottom: 1px solid var(--borde);
+    }
+
+    .confirmacion-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .confirmacion-titulo {
+        font-family: var(--ui);
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+        margin: 0 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .confirmacion-titulo i { color: var(--verde-600); font-size: 1.1em; }
+
+    .info-card {
+        background: var(--superficie-2);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 14px;
+    }
+
+    .info-item { display: flex; flex-direction: column; gap: 3px; }
+
+    .info-item label {
+        font-size: .66rem;
+        color: var(--tinta-400);
+        font-weight: 700;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+    }
+
+    .info-item span { font-size: .9rem; color: var(--tinta-900); font-weight: 500; }
+
+    /* Tipo de entrega */
+    .entrega-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .entrega-card {
+        background: var(--superficie);
+        border: 1px solid var(--borde-fuerte);
+        border-radius: var(--radio-md);
+        padding: 24px 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color var(--t), background var(--t), transform var(--t);
+        user-select: none;
+    }
+
+    .entrega-card:hover {
+        border-color: var(--verde-600);
+        background: var(--verde-050);
+        transform: translateY(-2px);
+    }
+
+    .entrega-card i {
+        font-size: 1.7em;
+        color: var(--tinta-400);
+        display: block;
+        margin-bottom: 12px;
+        transition: color var(--t);
+    }
+
+    .entrega-card .entrega-titulo {
+        font-family: var(--ui);
+        font-weight: 700;
+        color: var(--tinta-900);
+        font-size: .95rem;
+        display: block;
+    }
+
+    .entrega-card.selected {
+        border-color: var(--verde-600);
+        background: var(--verde-050);
+        box-shadow: 0 0 0 3px rgba(55,101,80,.14);
+    }
+
+    .entrega-card.selected i { color: var(--verde-600); }
+
+    .entrega-detalle {
+        margin-top: 15px;
+        background: var(--verde-050);
+        border: 1px solid var(--verde-100);
+        border-radius: var(--radio-sm);
+        padding: 15px;
+        font-size: .9rem;
+        color: var(--tinta-700);
+        line-height: 1.6;
+    }
+
+    .entrega-detalle a { color: var(--verde-700); font-weight: 700; }
+
+    .entrega-resumen {
+        background: var(--superficie-2);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        color: var(--tinta-900);
+    }
+
+    .entrega-resumen i { font-size: 1.4em; color: var(--verde-600); flex-shrink: 0; }
+    .entrega-resumen strong { font-size: .95rem; }
+
+    .entrega-resumen .entrega-resumen-sub {
+        display: block;
+        font-size: .82rem;
+        color: var(--tinta-600);
+        margin-top: 2px;
+        font-weight: 400;
+    }
+
+    /* Detalle de ítems del pedido */
+    .pedido-items { display: flex; flex-direction: column; gap: 8px; }
+
+    .pedido-item {
+        background: var(--superficie-2);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-sm);
+        padding: 13px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        transition: border-color var(--t);
+    }
+
+    .pedido-item:hover { border-color: var(--verde-100); }
+
+    .item-info { flex: 1; min-width: 0; }
+    .item-nombre { font-weight: 700; color: var(--tinta-900); margin-bottom: 3px; font-size: .9rem; }
+    .item-detalles { font-size: .78rem; color: var(--tinta-600); font-variant-numeric: tabular-nums; }
+
+    .item-precio {
+        font-weight: 800;
+        color: var(--verde-700);
+        font-size: 1rem;
+        text-align: right;
+        min-width: 92px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .total-section { margin-top: 20px; }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 17px 19px;
+        background: var(--verde-900);
+        border-radius: var(--radio-md);
+        font-size: .8rem;
+        font-weight: 700;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,.72);
+    }
+
+    .total-row strong {
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -.02em;
+        text-transform: none;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .total-row-amount { display: flex; align-items: baseline; gap: 10px; }
+
+    .total-original {
+        font-size: .9rem;
+        font-weight: 600;
+        color: rgba(255,255,255,.45);
+        text-decoration: line-through;
+        text-transform: none;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .total-discount-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 13px 16px;
+        margin-bottom: 9px;
+        background: var(--ambar-050);
+        border: 1px dashed #f0c98a;
+        border-radius: var(--radio-md);
+        font-size: .88rem;
+        color: var(--ambar-700);
+    }
+
+    .total-discount-row span { display: flex; align-items: center; gap: 9px; font-weight: 700; }
+    .total-discount-row i { color: var(--ambar); }
+    .total-discount-row strong { color: var(--ambar-700); font-variant-numeric: tabular-nums; }
+
+    /* Botones de acción */
+    .btn-primary, .btn-secondary {
+        flex: 1;
+        padding: 15px 20px;
+        border-radius: var(--radio-sm);
+        cursor: pointer;
+        font-family: var(--ui);
+        font-size: .92rem;
+        font-weight: 700;
+        transition: background var(--t), border-color var(--t), color var(--t), transform var(--t);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+    }
+
+    .btn-primary { background: var(--verde-600); color: #fff; border: 1px solid var(--verde-600); }
+    .btn-primary:hover { background: var(--verde-700); border-color: var(--verde-700); }
+    .btn-primary:active { transform: translateY(1px); }
+
+    .btn-primary:disabled {
+        background: var(--superficie-2);
+        border-color: var(--borde);
+        color: var(--tinta-400);
+        cursor: not-allowed;
+    }
+
+    .btn-primary:disabled:hover { transform: none; background: var(--superficie-2); }
+
+    .btn-secondary { background: var(--superficie); color: var(--tinta-700); border: 1px solid var(--borde-fuerte); }
+    .btn-secondary:hover { background: var(--superficie-2); border-color: var(--tinta-400); }
+
+    /* ---------- 14 · MODAL "ÚLTIMO PEDIDO" ---------- */
+    .buscar-pedido-icono {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 16px;
+        background: var(--verde-050);
+        border: 1px solid var(--verde-100);
+        border-radius: var(--radio-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--verde-700);
+        font-size: 22px;
+    }
+
+    .buscar-pedido-titulo { text-align: center; margin-bottom: 22px; }
+    .buscar-pedido-titulo h3 { margin: 0 0 6px; font-size: 1.25rem; }
+    .buscar-pedido-titulo p { margin: 0; color: var(--tinta-600); font-size: .88rem; }
+
+    .campo-con-icono { position: relative; margin-bottom: 16px; }
+
+    .campo-con-icono > i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--tinta-400);
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    .modal-content .campo-con-icono input { padding-left: 42px; }
+
+    #buscarUltimoPedidoBtn {
+        width: 100%;
+        padding: 14px;
+        background: var(--verde-600);
+        color: #fff;
+        border: none;
+        border-radius: var(--radio-sm);
+        font-family: var(--ui);
+        font-size: .95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background var(--t);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+    }
+
+    #buscarUltimoPedidoBtn:hover { background: var(--verde-700); }
+
+    #buscarSpinner {
+        width: 18px;
+        height: 18px;
+        border: 3px solid rgba(255,255,255,.35);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
+    }
+
+    #ultimoPedidoMensaje {
+        margin-top: 15px;
+        padding: 13px 15px;
+        border-radius: var(--radio-sm);
+        font-size: .86rem;
+        animation: fadeIn .3s ease;
+    }
+
+    #ultimoPedidoMensaje i { margin-right: 9px; }
+
+    /* ---------- 15 · POPUP DE BIENVENIDA / FAQ ---------- */
+    .welcome-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15,20,28,.62);
+        backdrop-filter: blur(6px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        animation: fadeIn .3s ease;
+        padding: 20px;
+    }
+
+    .welcome-popup {
+        background: var(--superficie);
+        border-radius: var(--radio-lg);
+        box-shadow: var(--sombra-3);
+        max-width: 620px;
+        width: 100%;
+        max-height: 86vh;
+        overflow-y: auto;
+        animation: slideInUp .34s ease;
+        position: relative;
+    }
+
+    .welcome-header {
+        background: var(--verde-900);
+        padding: 28px 30px;
+        border-radius: var(--radio-lg) var(--radio-lg) 0 0;
+        text-align: left;
+        color: #fff;
+    }
+
+    .welcome-header h2 {
+        margin: 0 0 6px;
+        font-family: var(--display);
+        font-size: 1.6rem;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .welcome-header p { margin: 0; font-size: .9rem; color: rgba(255,255,255,.72); }
+
+    .welcome-body { padding: 18px 30px 20px; }
+
+    .faq-section { margin-bottom: 0; }
+
+    .faq-item {
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        margin-bottom: 8px;
+        overflow: hidden;
+        transition: border-color var(--t);
+    }
+
+    .faq-item:hover { border-color: var(--borde-fuerte); }
+    .faq-item:last-child { margin-bottom: 0; }
+
+    .faq-question {
+        padding: 14px 17px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        font-weight: 600;
+        font-size: .88rem;
+        color: var(--tinta-900);
+        user-select: none;
+        transition: background var(--t), color var(--t);
+    }
+
+    .faq-question:hover { background: var(--superficie-2); }
+
+    .faq-question.active {
+        background: var(--verde-050);
+        color: var(--verde-800);
+    }
+
+    .faq-icon {
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .7em;
+        color: var(--verde-600);
+        transition: transform var(--t);
+        flex-shrink: 0;
+    }
+
+    .faq-question.active .faq-icon { transform: rotate(180deg); }
+
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .32s ease, padding .32s ease;
+        padding: 0 17px;
+        background: var(--superficie);
+        color: var(--tinta-700);
+        font-size: .88rem;
+        line-height: 1.65;
+    }
+
+    .faq-answer.active {
+        max-height: 800px;
+        padding: 4px 17px 18px;
+    }
+
+    .faq-answer strong { color: var(--tinta-900); }
+
+    .faq-map-container {
+        margin-top: 14px;
+        position: relative;
+        width: 100%;
+        background: var(--superficie-2);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        overflow: hidden;
+    }
+
+    .faq-map-wrapper { position: relative; height: 220px; overflow: hidden; }
+    .faq-map-wrapper iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+    .faq-video-container {
+        margin-top: 14px;
+        position: relative;
+        width: 100%;
+        background: #000;
+        border-radius: var(--radio-md);
+        overflow: hidden;
+    }
+
+    .faq-video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; }
+    .faq-video-wrapper iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+    .expand-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin: 10px 0 12px 12px;
+        padding: 8px 15px;
+        background: var(--superficie);
+        color: var(--verde-700);
+        border: 1px solid var(--borde-fuerte);
+        border-radius: var(--radio-full);
+        font-family: var(--ui);
+        font-size: .78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background var(--t), border-color var(--t);
+    }
+
+    .expand-btn:hover { background: var(--verde-050); border-color: var(--verde-600); }
+
+    .welcome-footer {
+        padding: 18px 30px 24px;
+        background: var(--superficie-2);
+        border-top: 1px solid var(--borde);
+        border-radius: 0 0 var(--radio-lg) var(--radio-lg);
+    }
+
+    .no-show-again {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 14px;
+        padding: 11px 13px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-sm);
+        cursor: pointer;
+        transition: border-color var(--t);
+    }
+
+    .no-show-again:hover { border-color: var(--verde-600); }
+
+    .no-show-again input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--verde-600);
+        flex: none;
+    }
+
+    .no-show-again label {
+        cursor: pointer;
+        font-size: .84rem;
+        color: var(--tinta-600);
+        user-select: none;
+        margin: 0;
+    }
+
+    .welcome-btn {
+        width: 100%;
+        padding: 15px 24px;
+        background: var(--verde-600);
+        color: #fff;
+        border: none;
+        border-radius: var(--radio-sm);
+        font-family: var(--ui);
+        font-size: .98rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background var(--t), transform var(--t);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .welcome-btn:hover { background: var(--verde-700); }
+    .welcome-btn:active { transform: translateY(1px); }
+
+    /* ---------- 16 · MODAL MULTIMEDIA ---------- */
+    .media-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(10,14,20,.94);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 11000;
+        padding: 20px;
+        animation: fadeIn .3s ease;
+    }
+
+    .media-modal.active { display: flex; }
+
+    .media-modal-content {
+        position: relative;
+        width: 100%;
+        max-width: 1120px;
+        background: #000;
+        border-radius: var(--radio-md);
+        overflow: hidden;
+        box-shadow: var(--sombra-3);
+        animation: slideInUp .34s ease;
+    }
+
+    .media-modal-header {
+        background: var(--verde-900);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .media-modal-title {
+        color: #fff;
+        font-family: var(--display);
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .media-modal-close {
+        background: rgba(255,255,255,.14);
+        border: none;
+        color: #fff;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: .95rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        transition: background var(--t);
+    }
+
+    .media-modal-close:hover { background: rgba(255,255,255,.3); }
+
+    .media-modal-body { position: relative; padding-bottom: 56.25%; height: 0; }
+    .media-modal-body.map-modal { padding-bottom: 72%; }
+    .media-modal-body iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+    /* ---------- 17 · WHATSAPP FLOTANTE ---------- */
+    /* Sube por encima de la barra de navegación inferior. En escritorio la barra
+       es una píldora centrada y no llega hasta acá, pero se corrige en todos los
+       anchos: entre 900 y 1100px las dos piezas quedan a tiro. */
+    #whatsappFloatMenu {
+        position: fixed;
+        bottom: calc(var(--tabbar-hueco) + 16px);
+        right: 22px;
+        z-index: 1100;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+    }
+
+    #whatsappOptions {
+        display: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        animation: slideInRight .22s ease;
+    }
+
+    /* Mismo lenguaje que .hamburger-dropdown: una sola tarjeta blanca con ítems,
+       en vez de píldoras sueltas con círculos verde WhatsApp. */
+    .wsp-panel {
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        box-shadow: var(--sombra-3);
+        padding: 6px;
+        min-width: 244px;
+    }
+
+    .wsp-panel-titulo {
+        display: block;
+        padding: 10px 12px 8px;
+        font-size: .62rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+    }
+
+    .wsp-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: var(--radio-sm);
+        cursor: pointer;
+        transition: background var(--t);
+    }
+
+    .wsp-option:hover,
+    .wsp-option:focus-visible { background: var(--verde-050); }
+
+    .wsp-option > i {
+        width: 34px;
+        height: 34px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--verde-050);
+        color: var(--verde-700);
+        border-radius: 50%;
+        font-size: 13px;
+        transition: background var(--t), color var(--t);
+    }
+
+    .wsp-option:hover > i { background: var(--verde-600); color: #fff; }
+
+    .wsp-option-texto {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.3;
+        min-width: 0;
+    }
+
+    .wsp-option-texto strong { font-size: .85rem; font-weight: 700; color: var(--tinta-900); }
+    .wsp-option-texto small { font-size: .72rem; color: var(--tinta-400); }
+
+    #whatsappFloatBtn {
+        cursor: pointer;
+        transition: transform var(--t);
+        filter: drop-shadow(0 6px 14px rgba(17,24,39,.28));
+    }
+
+    #whatsappFloatBtn:hover { transform: scale(1.08); }
+
+    /* ---------- 18 · PIE ---------- */
+    .site-footer {
+        width: min(100% - 40px, var(--ancho));
+        margin: 44px auto 26px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-lg);
+        box-shadow: var(--sombra-1);
+        padding: 38px 34px 32px;
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, .8fr);
+        gap: 34px;
+        align-items: start;
+    }
+
+    .footer-marca img { width: 190px; height: auto; display: block; }
+
+    .footer-marca p {
+        margin: 14px 0 0;
+        font-size: .84rem;
+        color: var(--tinta-600);
+        line-height: 1.6;
+        max-width: 30ch;
+    }
+
+    .footer-titulo {
+        font-family: var(--ui);
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .11em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+        margin: 0 0 14px;
+    }
+
+    .footer-lista { display: flex; flex-direction: column; gap: 11px; }
+
+    .footer-lista a,
+    .footer-lista span {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--tinta-700);
+        text-decoration: none;
+        font-size: .88rem;
+        transition: color var(--t);
+    }
+
+    .footer-lista a:hover { color: var(--verde-700); }
+
+    .footer-lista i {
+        color: var(--verde-600);
+        width: 17px;
+        text-align: center;
+        flex: none;
+    }
+
+    .footer-social { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .footer-social a {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px 16px;
+        border: 1px solid var(--borde-fuerte);
+        border-radius: var(--radio-full);
+        color: var(--tinta-700);
+        text-decoration: none;
+        font-size: .84rem;
+        font-weight: 600;
+        transition: border-color var(--t), color var(--t), background var(--t);
+    }
+
+    .footer-social a:hover { background: var(--superficie-2); border-color: var(--tinta-400); }
+    .footer-social a i { font-size: 1.05rem; }
+    .footer-social .red-instagram:hover { color: #E1306C; border-color: #E1306C; }
+    .footer-social .red-tiktok:hover { color: #111; border-color: #111; }
+
+    #faqFooterLink { cursor: pointer; font-weight: 700; color: var(--verde-700); }
+    #faqFooterLink:hover { text-decoration: underline; }
+
+    .footer-legal {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid var(--borde);
+        font-size: .76rem;
+        color: var(--tinta-400);
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    /* ---------- 19 · OVERLAY DE CARGA ---------- */
+    #loadingOverlay {
+        position: fixed;
+        inset: 0;
+        background: var(--bg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        flex-direction: column;
+        padding: 24px;
+        text-align: center;
+    }
+
+    #loadingOverlay .loading-logo { width: 190px; margin-bottom: 30px; opacity: .9; }
+
+    .loading-spinner {
+        width: 42px;
+        height: 42px;
+        border: 3px solid var(--borde);
+        border-top-color: var(--verde-600);
+        border-radius: 50%;
+        animation: spin .9s linear infinite;
+        margin-bottom: 22px;
+    }
+
+    .loading-text {
+        font-family: var(--display);
+        font-size: 1.25rem;
+        color: var(--tinta-900);
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .loading-subtext {
+        font-size: .88rem;
+        color: var(--tinta-600);
+        max-width: 340px;
+        line-height: 1.55;
+    }
+
+    /* ---------- 20 · POPUP DE MANTENIMIENTO ---------- */
+    .maintenance-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15,20,28,.62);
+        backdrop-filter: blur(6px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+        padding: 20px;
+        animation: fadeIn .3s ease-in;
+    }
+
+    .maintenance-popup {
+        background: var(--superficie);
+        border-radius: var(--radio-lg);
+        padding: 38px 34px;
+        max-width: 480px;
+        width: 100%;
+        box-shadow: var(--sombra-3);
+        text-align: center;
+        position: relative;
+        animation: slideDown .34s ease-out;
+    }
+
+    .maintenance-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 20px;
+        background: var(--ambar-050);
+        border: 1px solid #f6d9b6;
+        border-radius: var(--radio-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: var(--ambar);
+    }
+
+    .maintenance-popup h2 { font-size: 1.35rem; margin: 0 0 14px; }
+
+    .maintenance-popup p {
+        color: var(--tinta-600);
+        font-size: .92rem;
+        line-height: 1.65;
+        margin: 0 0 26px;
+    }
+
+    .maintenance-close-btn {
+        background: var(--verde-600);
+        color: #fff;
+        border: none;
+        padding: 13px 34px;
+        font-family: var(--ui);
+        font-size: .92rem;
+        font-weight: 700;
+        border-radius: var(--radio-sm);
+        cursor: pointer;
+        transition: background var(--t);
+    }
+
+    .maintenance-close-btn:hover { background: var(--verde-700); }
+
+    /* ---------- 21 · BARRA DE NAVEGACIÓN INFERIOR ----------
+       Reúne las cuatro acciones que el cliente repite todo el tiempo:
+       Categorías, Buscar, Carrito y Pedidos. Un solo componente con dos
+       presentaciones: en móvil una barra de ancho completo pegada al borde
+       inferior, y de 901px para arriba la misma barra convertida en píldora
+       centrada y acotada (en un monitor ancho, una barra de borde a borde se
+       lee como un error de maquetación).
+
+       DECISIONES QUE SOSTIENEN LA BARRA EN CUALQUIER PANTALLA — no revertirlas
+       sin leer esto:
+       · Alto en px (--tabbar-alto), nunca vh: en móvil el viewport cambia solo
+         cuando el navegador esconde la barra de direcciones.
+       · env(safe-area-inset-bottom): en iPhone el indicador de home se come el
+         borde inferior. Sin esto, las etiquetas quedan debajo del área táctil.
+       · Grid de columnas iguales + min-width:0: no puede desbordar a ningún
+         ancho, ni siquiera con etiquetas largas.
+       · Siempre visible, sin ocultarse al scrollear: un auto-hide atado al
+         scroll es justamente lo que deja la barra a medio camino.
+       · z-index escalonado: barra (1900) < panel del carrito (2001) < paneles
+         inferiores (2500) < modales del checkout (3000). */
+    .tabbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: var(--tabbar-hueco);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        align-items: stretch;
+        background: var(--superficie);
+        border-top: 1px solid var(--borde);
+        box-shadow: 0 -6px 24px -14px rgba(17,24,39,.22);
+        z-index: var(--tabbar-z);
+    }
+
+    .tabbar-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        min-width: 0;
+        padding: 0 2px;
+        background: none;
+        border: none;
+        border-radius: var(--radio-sm);
+        color: var(--tinta-600);
+        font-family: var(--ui);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: color var(--t);
+    }
+
+    .tabbar-item:hover { color: var(--tinta-900); }
+    .tabbar-item.is-activo { color: var(--verde-800); }
+
+    /* El contenedor del ícono ancla el globo del carrito y el punto de Pedidos */
+    .tabbar-icono {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 22px;
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .tabbar-label {
+        max-width: 100%;
+        font-size: .66rem;
+        font-weight: 600;
+        letter-spacing: -.005em;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tabbar-item.is-activo .tabbar-label { font-weight: 700; }
+
+    /* Globo del carrito y punto de pedidos · compartidos por la barra inferior
+       (móvil) y la navegación del header (escritorio): el JS los busca por las
+       clases .js-badge-carrito y .js-punto-pedido y actualiza todas las copias,
+       así nunca quedan dos contadores distintos. Mismo lenguaje visual que
+       .cart-badge del botón flotante al que reemplazan. */
+    .nav-badge {
+        position: absolute;
+        top: -7px;
+        left: 9px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        background: var(--ambar);
+        color: #fff;
+        border: 2px solid var(--superficie);
+        border-radius: var(--radio-full);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: .62rem;
+        font-weight: 800;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Aviso sin número: solo señala que hay un pedido guardado en este navegador */
+    .nav-punto {
+        position: absolute;
+        top: -3px;
+        left: 11px;
+        width: 8px;
+        height: 8px;
+        background: var(--verde-600);
+        border: 2px solid var(--superficie);
+        border-radius: 50%;
+        display: none;
+    }
+
+    /* Dentro del header el fondo del hover cambia, así que el borde del globo
+       lo acompaña para que no se vea un halo blanco sobre gris */
+    .header-nav-item:hover .nav-badge,
+    .header-nav-item:hover .nav-punto { border-color: var(--superficie-2); }
+    .header-nav-item.is-activo .nav-badge,
+    .header-nav-item.is-activo .nav-punto { border-color: var(--verde-050); }
+
+    /* --- Paneles inferiores (categorías y último pedido) --- */
+    .sheet-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15,20,28,.55);
+        backdrop-filter: blur(6px);
+        display: none;
+        z-index: var(--sheet-z);
+        animation: fadeIn .2s ease;
+    }
+
+    .sheet-backdrop.active { display: block; }
+
+    .sheet {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-bottom: none;
+        border-radius: var(--radio-lg) var(--radio-lg) 0 0;
+        box-shadow: var(--sombra-3);
+        display: none;
+        flex-direction: column;
+        max-height: min(72vh, 520px);
+        z-index: calc(var(--sheet-z) + 1);
+    }
+
+    .sheet.active {
+        display: flex;
+        animation: slideInUp .26s ease-out;
+    }
+
+    .sheet-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex: none;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--borde);
+    }
+
+    .sheet-header h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sheet-header h3 i { color: var(--verde-600); font-size: .88em; }
+
+    .sheet-close {
+        width: 34px;
+        height: 34px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--superficie-2);
+        color: var(--tinta-600);
+        border: none;
+        border-radius: 50%;
+        font-size: .95rem;
+        cursor: pointer;
+        transition: background var(--t), color var(--t);
+    }
+
+    .sheet-close:hover { background: var(--borde); color: var(--tinta-900); }
+
+    /* El scroll vive acá dentro, no en el panel: así el encabezado queda fijo.
+       El padding inferior cubre el área segura de iOS, porque el panel se
+       dibuja por encima de la barra y llega hasta el borde de la pantalla. */
+    .sheet-body {
+        padding: 12px 12px calc(16px + env(safe-area-inset-bottom, 0px));
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sheet-body::-webkit-scrollbar { width: 8px; }
+    .sheet-body::-webkit-scrollbar-thumb {
+        background: var(--borde-fuerte);
+        border-radius: var(--radio-full);
+    }
+
+    /* Lista de categorías */
+    .sheet-opcion {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 14px;
+        background: none;
+        border: none;
+        border-radius: var(--radio-sm);
+        color: var(--tinta-700);
+        font-family: var(--ui);
+        font-size: .9rem;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+        transition: background var(--t), color var(--t);
+    }
+
+    .sheet-opcion:hover { background: var(--superficie-2); color: var(--tinta-900); }
+
+    .sheet-opcion.is-activo {
+        background: var(--verde-050);
+        color: var(--verde-800);
+        font-weight: 700;
+    }
+
+    .sheet-opcion i { color: var(--verde-600); flex: none; font-size: .9em; opacity: 0; }
+    .sheet-opcion.is-activo i { opacity: 1; }
+
+    .sheet-vacio {
+        padding: 22px 14px;
+        text-align: center;
+        color: var(--tinta-400);
+        font-size: .88rem;
+    }
+
+    /* Ficha del último pedido */
+    .pedido-ficha {
+        background: var(--superficie-2);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        padding: 16px;
+    }
+
+    .pedido-ficha-fecha {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: .9rem;
+        font-weight: 700;
+        color: var(--tinta-900);
+    }
+
+    .pedido-ficha-fecha i { color: var(--verde-600); }
+
+    .pedido-ficha-datos {
+        margin: 6px 0 0;
+        font-size: .84rem;
+        color: var(--tinta-600);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .pedido-ficha-datos strong { color: var(--verde-800); font-weight: 700; }
+
+    .pedido-ficha-btn {
+        width: 100%;
+        margin-top: 14px;
+        padding: 13px 16px;
+        background: var(--verde-600);
+        color: #fff;
+        border: none;
+        border-radius: var(--radio-sm);
+        font-family: var(--ui);
+        font-size: .9rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        transition: background var(--t);
+    }
+
+    .pedido-ficha-btn:hover { background: var(--verde-700); }
+
+    .pedido-otro {
+        width: 100%;
+        margin-top: 10px;
+        padding: 12px;
+        background: none;
+        border: none;
+        color: var(--verde-700);
+        font-family: var(--ui);
+        font-size: .85rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: var(--radio-sm);
+        transition: background var(--t);
+    }
+
+    .pedido-otro:hover { background: var(--verde-050); }
+
+    /* Aviso breve para el carrito vacío: evita abrir un panel en blanco.
+       Se centra con márgenes automáticos y no con translateX, por el mismo
+       motivo explicado en la píldora de escritorio más abajo. */
+    .tabbar-aviso {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: calc(var(--tabbar-hueco) + 16px);
+        width: fit-content;
+        max-width: calc(100% - 32px);
+        margin-inline: auto;
+        padding: 11px 18px;
+        background: var(--verde-900);
+        color: #fff;
+        border-radius: var(--radio-full);
+        box-shadow: var(--sombra-3);
+        font-size: .85rem;
+        font-weight: 600;
+        white-space: nowrap;
+        z-index: calc(var(--tabbar-z) + 1);
+        animation: fadeIn .2s ease;
+    }
+
+    /* --- Escritorio (≥901px): las acciones viven en el header ---
+       La barra inferior desaparece y su lugar lo toma el grupo .header-nav, con
+       el header fijo arriba para que quede siempre a mano. Móvil no cambia en
+       nada: todo lo de acá está dentro de la media query. */
+    @media (min-width: 901px) {
+        /* La barra inferior y el hueco que reservaba dejan de existir */
+        .tabbar { display: none; }
+        body { padding-bottom: 0; }
+
+        /* El carrito y WhatsApp vuelven a sus posiciones originales, ya que no
+           hay nada fijo abajo con lo que puedan chocar */
+        .cart-container { bottom: 22px; }
+        #whatsappFloatMenu { bottom: 28px; }
+
+        .header-nav { display: flex; align-items: center; gap: 2px; }
+        .header-divisor { display: block; }
+
+        /* Header fijo · sticky y no fixed: sigue ocupando su lugar en el flujo,
+           así no hace falta compensar con padding en el contenido de abajo.
+           z-index por debajo del panel del carrito (2001), de los paneles (2500)
+           y de los modales (3000), pero por encima del contenido. */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 1800;
+            box-shadow: 0 6px 20px -16px rgba(17,24,39,.5);
+        }
+
+        /* Más bajo que en reposo: un header fijo de 92px se come demasiada
+           pantalla en un notebook. El logo acompaña la reducción. */
+        .site-header-inner { min-height: 72px; padding: 12px 0; }
+        .brand img { width: 226px; }
+        .brand-tag { font-size: .68rem; letter-spacing: .15em; }
+
+        /* En modo edición hay un aviso fijo arriba (lo inyecta mayorista.js con
+           position:fixed y top:0). El header se corre para no quedar debajo. */
+        body:has(#aviso-edicion-pedido) .site-header { top: 54px; }
+
+        /* Los paneles cuelgan del header, cerca de los botones que los abren, en
+           lugar de subir desde abajo. Entran con slideDown por el mismo motivo.
+           No se usa translate para posicionarlos: la animación ocupa transform
+           (ver el comentario del centrado más arriba). */
+        /* El tope exacto lo pone abrirSheet() con el alto real del header; este
+           valor es solo el punto de partida antes de que el JS lo ajuste. */
+        .sheet {
+            top: 92px;
+            bottom: auto;
+            left: auto;
+            right: 20px;
+            width: min(400px, calc(100% - 40px));
+            max-height: min(70vh, 520px);
+            border: 1px solid var(--borde);
+            border-radius: var(--radio-lg);
+        }
+
+        .sheet.active { animation: slideDown .24s ease-out; }
+        .sheet-body { padding-bottom: 16px; }
+
+        /* El aviso del carrito vacío aparece junto al botón que lo provocó */
+        .tabbar-aviso {
+            bottom: auto;
+            left: auto;
+            right: 20px;
+            margin-inline: 0;
+        }
+
+        /* Acá los paneles se comportan como el desplegable del hamburguesa, y un
+           desplegable no atenúa la página. El fondo sigue existiendo para
+           capturar el click de cierre, pero invisible: con el velo oscuro el
+           header quedaría difuminado detrás de un panel que cuelga de él. */
+        .sheet-backdrop {
+            background: none;
+            backdrop-filter: none;
+            animation: none;
+        }
+    }
+
+    /* ---------- 22 · RESPONSIVE ---------- */
+    @media (max-width: 1180px) {
+        .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .footer-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    }
+
+    @media (max-width: 1024px) {
+        .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .carousel { height: 200px; }
+        .controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+        #row-filtros { grid-column: 1 / -1; justify-content: space-between; }
+    }
+
+    @media (max-width: 760px) {
+        .site-header-inner { min-height: 76px; padding: 14px 0; }
+        .brand img { width: 210px; }
+        .brand-tag { font-size: .66rem; letter-spacing: .14em; }
+        .info-band-item { padding: 14px 18px; gap: 13px; }
+        .info-band-icon { width: 26px; font-size: 20px; }
+        .info-band-text { font-size: .78rem; }
+        .info-band-text strong { font-size: .84rem; }
+        .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+        .site-footer { padding: 30px 24px 26px; }
+        .entrega-opciones { grid-template-columns: 1fr; }
+        .info-card { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+        body { font-size: 15px; }
+
+        /* Un poco más baja en móvil, donde el alto de pantalla es el recurso
+           escaso. Al ir por el token, el padding del body, el panel del carrito
+           y el botón de WhatsApp se reacomodan solos. */
+        :root { --tabbar-alto: 56px; }
+
+        .contenedor,
+        .site-header-inner,
+        .carousel,
+        .info-band,
+        .controls,
+        .grid,
+        .pagination,
+        .site-footer,
+        #error { width: min(100% - 24px, var(--ancho)); }
+
+        .carousel { height: 150px; margin: 18px auto; border-radius: var(--radio-md); }
+
+        /* Las dos columnas de la franja se apilan y el divisor pasa a horizontal */
+        .info-band { grid-template-columns: 1fr; }
+        .info-band-item + .info-band-item::before {
+            left: 16px;
+            right: 16px;
+            top: 0;
+            transform: none;
+            width: auto;
+            height: 1px;
+        }
+
+        .controls {
+            grid-template-columns: 1fr;
+            padding: 12px;
+            border-radius: var(--radio-md);
+            gap: 10px;
+        }
+
+        #row-filtros { gap: 10px; }
+        .btn-ghost { flex: none; padding: 0 14px; }
+        .switch-label { font-size: .8rem; }
+
+        .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+        .card > img { height: 130px; padding: 12px; }
+        .card > h3 { font-size: .76rem; margin: 4px 12px 0; }
+        .card > .info { margin: 4px 12px 0; font-size: .6rem; }
+        .card > .stock-info { margin: 8px 12px 0 !important; }
+        .stock-info span::before { font-size: .72rem; }
+        .stock-info span::after { font-size: .66rem; }
+        .card > p:nth-of-type(1) { margin: 11px 12px 0 !important; padding-top: 11px; font-size: 1.25rem !important; }
+        .card > p:nth-of-type(2) { --cifra: .88rem; --etiqueta: .58rem; margin: 8px 12px 0 !important; }
+        .card > div:last-child { padding: 12px 12px 0; }
+        .card .btn-agregar-carrito { height: 42px !important; font-size: .78rem !important; }
+        .card > div:last-child > div > button { width: 34px !important; height: 34px !important; }
+        .card > div:last-child > div input[type="number"] { height: 34px !important; }
+
+        .modal { padding: 14px; }
+        .modal-header { padding: 22px 22px; }
+        .modal-header h2 { font-size: 1.18rem; }
+        .modal-body { padding: 22px; }
+        .modal-footer { padding: 0 22px 22px; }
+        .modal-footer > div { flex-direction: column; }
+
+        .user-type-btn { padding: 12px 10px; font-size: .82rem; }
+        .user-type-btn i { display: none; }
+
+        .welcome-popup { max-height: 90vh; }
+        .welcome-header { padding: 22px; }
+        .welcome-header h2 { font-size: 1.32rem; }
+        .welcome-body { padding: 14px 22px 16px; }
+        .welcome-footer { padding: 16px 22px 20px; }
+        .faq-question { font-size: .82rem; padding: 12px 14px; }
+        .faq-answer { font-size: .84rem; padding: 0 14px; }
+        .faq-answer.active { padding: 4px 14px 16px; }
+        .faq-map-wrapper { height: 190px; }
+
+        .cart-float-btn { bottom: 20px; left: 16px; width: 54px; height: 54px; }
+        .cart-float-btn i { font-size: 19px; }
+
+        .cart-container {
+            bottom: calc(var(--tabbar-hueco) + 10px);
+            left: 12px;
+            right: 12px;
+            min-width: 0;
+            max-width: none;
+            border-radius: var(--radio-md);
+        }
+
+        .cart-container h3 { font-size: .96rem; padding: 14px 16px; }
+        #cart-list { padding: 10px; max-height: 210px; }
+        .cart-total-amount { font-size: 1.18rem; }
+
+        #whatsappFloatMenu { right: 16px; }
+
+        .total-row { padding: 15px; font-size: .72rem; }
+        .total-row strong { font-size: 1.28rem; }
+
+        .pagination button { height: 40px; min-width: 40px; padding: 0 12px; font-size: .82rem; }
+        .pagination-button { width: 40px; }
+
+        .site-footer { padding: 26px 20px 22px; border-radius: var(--radio-md); }
+        .footer-legal { flex-direction: column; gap: 6px; }
+
+        .maintenance-popup { padding: 28px 22px; }
+    }
+
+    @media (max-width: 400px) {
+        .cart-container { bottom: calc(var(--tabbar-hueco) + 8px); left: 8px; right: 8px; }
+        .cart-container button span { display: none; }
+        .cart-container button i { font-size: 1.1em; }
+        .card > img { height: 112px; }
+        .brand img { width: 170px; }
+
+        /* Cuatro ítems entran cómodos incluso acá (unos 85px cada uno): la
+           etiqueta se achica en lugar de desaparecer, que sería peor de usar. */
+        .tabbar-label { font-size: .59rem; }
+        .tabbar-icono { font-size: 17px; }
+    }
+
+    /* ---------- 23 · MOVIMIENTO REDUCIDO ---------- */
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .01ms !important;
+            scroll-behavior: auto !important;
+        }
+        .card:hover { transform: none; }
+        .card:hover > img { transform: none; }
+    }
+
+    /* ---------- 24 · MODO OSCURO (excepciones sin variable) ----------
+       Casi todo el sitio está construido sobre var(--...), así que redefinir
+       los tokens en la sección 1 ya repinta el 95% de la interfaz. Acá sólo
+       van los pocos valores que se escribieron sueltos (no como token) y por
+       eso no se actualizan solos. */
+    [data-theme="dark"] .site-header { border-bottom: 2px solid var(--verde-600); }
+
+    [data-theme="dark"] .switch-track { background: #34373c; }
+
+    [data-theme="dark"] .info-icon { background: rgba(23,25,28,.85); }
+
+    [data-theme="dark"] .user-type-btn:hover { background: rgba(255,255,255,.06); }
+
+    /* logo.png es un isotipo oscuro (pensado para fondos claros); en modo
+       oscuro se reemplaza por logoblanco.png en el header, el pie y la
+       pantalla de carga.
+       -------------------------------------------------------------------
+       Los selectores llevan el tipo `img` a propósito: sin él quedan en
+       especificidad (0,1,0) y `.brand img { display:block }` (0,1,1) los
+       pisa, dejando el logo oculto visible como una caja vacía que empuja
+       al .brand-tag. No quitar el `img`. */
+    img.logo-dark { display: none; }
+    [data-theme="dark"] img.logo-light { display: none; }
+    [data-theme="dark"] img.logo-dark { display: block; }
+    </style>
+
+    <!-- === CONFIGURACIÓN POPUP DE MANTENIMIENTO === -->
+    <!-- Cambia MOSTRAR_POPUP_MANTENIMIENTO a false para desactivar el popup -->
+    <script>
+        const MOSTRAR_POPUP_MANTENIMIENTO = false; // Cambiar a false para desactivar
+    </script>
+
+    <!-- === POPUP DE MANTENIMIENTO HTML === -->
+    <div id="maintenanceOverlay" class="maintenance-overlay" style="display: none;">
+        <div class="maintenance-popup">
+            <div class="maintenance-icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            <h2>Aviso de Mantenimiento</h2>
+            <p>
+                Informamos que nuestro catálogo está experimentando inconvenientes temporales con algunas imágenes.
+                Estamos trabajando para resolverlo.
+                <br><br>
+                Pedimos disculpas por las molestias que esto pueda ocasionar y agradecemos su comprensión.
+            </p>
+            <button class="maintenance-close-btn" onclick="cerrarPopupMantenimiento()">Entendido</button>
+        </div>
+    </div>
+
+    <!-- === SCRIPT POPUP DE MANTENIMIENTO === -->
+    <script>
+        function cerrarPopupMantenimiento() {
+            const overlay = document.getElementById('maintenanceOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+
+        // Mostrar popup al cargar la página si está activado
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof MOSTRAR_POPUP_MANTENIMIENTO !== 'undefined' && MOSTRAR_POPUP_MANTENIMIENTO === true) {
+                const overlay = document.getElementById('maintenanceOverlay');
+                if (overlay) {
+                    overlay.style.display = 'flex';
+                }
+            }
+        });
+    </script>
+</head>
+
+<body>
+
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5P63433D"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+    <!-- === POPUP DE BIENVENIDA === -->
+    <div id="welcomeOverlay" class="welcome-overlay" style="display: none;">
+        <div class="welcome-popup">
+            <div class="welcome-header">
+                <h2>Bienvenido al catálogo</h2>
+                <p>PREGUNTAS FRECUENTES</p>
+            </div>
+
+            <div class="welcome-body">
+
+                <div class="faq-section">
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <span>¿Cuál es el mínimo de compra?</span>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            En nuestro local <strong>NO HAY</strong> requisitos ni minimos de compra. Podés venir y llevarte todo lo que necesites.
+                            <br>* No aplicable a envios.</div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <span>¿Hacen envíos?</span>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            Sí, enviamos a todo el país por medio de fletes o encomiendas a través de <strong>Expreso Viacargo y Correo Argentino</strong>.
+                            <br>El costo de las encomiendas es determinado por estas empresas, y varía según el peso y tamaño de la caja.
+                            <br><strong>Los envíos cuentan con un mínimo de compra de $50.000 para fletes cercanos y $100.000 para encomiendas.</strong>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <span>¿Cuáles son las formas de pago?</span>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            Aceptamos pagos en <strong>Efectivo</strong> y <strong>Transferencia Bancaria o de MercadoPago</strong>.
+                            <br>Tarjetas únicamente acercandote a nuestro local.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <span>¿Donde estan ubicados?</span>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            Estamos en Vélez Sarsfield 4127, Munro, Vicente López (Zona Norte).<br>
+                            <strong>Horario de atención:</strong> Lunes a Sábados de 10 a 19 hs.
+                            <div class="faq-map-container">
+                                <div class="faq-map-wrapper">
+                                    <iframe
+                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3287.6582398598877!2d-58.5471906!3d-34.5298700!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb7e9e3e3e3e3%3A0x3e3e3e3e3e3e3e3e!2sVélez%20Sarsfield%204127%2C%20Munro%2C%20Vicente%20López%2C%20Provincia%20de%20Buenos%20Aires!5e0!3m2!1ses-419!2sar!4v1700000000000!5m2!1ses-419!2sar"
+                                        title="Mapa de la ubicación del showroom"
+                                        allowfullscreen=""
+                                        loading="lazy"
+                                        referrerpolicy="no-referrer-when-downgrade">
+                                    </iframe>
+                                </div>
+                                <button class="expand-btn" onclick="expandMap(event)">
+                                    <i class="fas fa-expand"></i>
+                                    <span>Ver mapa completo</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <span>Hice pedido en la web, ¿me reservan la mercadería?</span>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            La solicitud de pedido es una intención de compra y <strong>no asegura la disponibilidad total de la mercadería</strong>, hasta cerrar la operación.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            <span>¿Los articulos cuentan con garantia?</span>
+                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="faq-answer">
+                            Sí, los productos cuentan con cambio o reparación por defectos de fabricación a corto plazo, sujeto a evaluación técnica previa.
+                            <br>Los tiempos de respuesta pueden variar según el producto en cuestión.
+                            <br>La garantía no cubre costos de envío o despacho.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="welcome-footer">
+                <div class="no-show-again" onclick="document.getElementById('noShowCheckbox').click();">
+                    <input type="checkbox" id="noShowCheckbox" onclick="event.stopPropagation();">
+                    <label for="noShowCheckbox" onclick="event.stopPropagation();">No volver a mostrar este mensaje</label>
+                </div>
+                <button class="welcome-btn" onclick="closeWelcomePopup()">
+                    <i class="fas fa-arrow-right"></i> Comenzar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Mapa Expandido -->
+    <div id="mapModal" class="media-modal">
+        <div class="media-modal-content">
+            <div class="media-modal-header">
+                <h3 class="media-modal-title">Ubicación del Showroom</h3>
+                <button class="media-modal-close" aria-label="Cerrar mapa" onclick="closeMediaModal('mapModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="media-modal-body map-modal">
+                <iframe
+                    src="https://maps.app.goo.gl/L7QhZ11dmPc7LjWn7"
+                    title="Mapa ampliado del showroom"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+<!-- === ENCABEZADO === -->
+<header class="site-header">
+    <div class="site-header-inner">
+        <div class="brand">
+            <img src="logo.png" alt="HomePoint" class="logo-light">
+            <img src="logoblanco.png" alt="HomePoint" class="logo-dark">
+            <span class="brand-tag">Distribuidora Mayorista</span>
+        </div>
+
+        <div class="header-actions">
+            <!-- Las mismas cuatro acciones que en móvil viven en la barra
+                 inferior. No se duplica lógica: los handlers se enganchan por
+                 [data-accion], así que estos botones y los de la barra comparten
+                 el mismo código (ver el script del final). El CSS muestra unos u
+                 otros según el ancho. -->
+            <div class="header-nav" id="headerNav">
+                <button type="button" class="header-nav-item" data-accion="categorias" aria-haspopup="dialog" aria-expanded="false">
+                    <i class="fas fa-layer-group" aria-hidden="true"></i>
+                    <span>Categorías</span>
+                </button>
+
+                <button type="button" class="header-nav-item" data-accion="buscar">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <span>Buscar</span>
+                </button>
+
+                <button type="button" class="header-nav-item" data-accion="carrito">
+                    <span class="header-nav-icono">
+                        <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                        <span class="nav-badge js-badge-carrito">0</span>
+                    </span>
+                    <span>Carrito</span>
+                </button>
+
+                <button type="button" class="header-nav-item" data-accion="pedidos" aria-haspopup="dialog" aria-expanded="false">
+                    <span class="header-nav-icono">
+                        <i class="fas fa-receipt" aria-hidden="true"></i>
+                        <span class="nav-punto js-punto-pedido" aria-hidden="true"></span>
+                    </span>
+                    <span>Pedidos</span>
+                </button>
+            </div>
+
+            <span class="header-divisor" aria-hidden="true"></span>
+
+            <button id="themeToggleBtn" class="hamburger-button" aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro">
+                <i class="fas fa-moon" aria-hidden="true"></i>
+            </button>
+
+            <div class="hamburger-menu">
+                <button id="hamburgerBtn" class="hamburger-button" aria-label="Abrir menú">
+                    <i class="fas fa-bars" aria-hidden="true"></i>
+                </button>
+                <div id="hamburgerDropdown" class="hamburger-dropdown">
+                    <div class="hamburger-dropdown-item" id="ultimoPedidoBtn" role="button" tabindex="0">
+                        <i class="fas fa-receipt" aria-hidden="true"></i>
+                        <span>Último Pedido</span>
+                    </div>
+                    <div class="hamburger-dropdown-item" role="button" tabindex="0" onclick="openWelcomePopup()">
+                        <i class="fas fa-question-circle" aria-hidden="true"></i>
+                        <span>Preguntas Frecuentes</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Botón flotante de WhatsApp con submenú -->
+<div id="whatsappFloatMenu">
+    <div id="whatsappOptions">
+        <div class="wsp-panel">
+            <span class="wsp-panel-titulo">¿Con quién querés hablar?</span>
+            <div class="wsp-option" role="button" tabindex="0" onclick="window.open(WHATSAPP_URL, '_blank'); cerrarMenuWsp();">
+                <i class="fas fa-store" aria-hidden="true"></i>
+                <span class="wsp-option-texto">
+                    <strong>Showroom</strong>
+                    <small>Consultas y visitas</small>
+                </span>
+            </div>
+            <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491176460030', '_blank'); cerrarMenuWsp();">
+                <i class="fas fa-truck" aria-hidden="true"></i>
+                <span class="wsp-option-texto">
+                    <strong>Envíos</strong>
+                    <small>Despachos a todo el país</small>
+                </span>
+            </div>
+        </div>
+    </div>
+    <img src="whatsapp.png" alt="Contactar por WhatsApp" id="whatsappFloatBtn" onclick="toggleMenuWsp(event)" width="49" height="49">
+</div>
+
+<!-- Modal para buscar último pedido -->
+<div id="ultimoPedidoModal" class="modal">
+  <div class="modal-content" style="max-width:420px;">
+    <div class="modal-body">
+      <button id="closeUltimoPedidoModal" class="modal-close" aria-label="Cerrar" style="background:var(--superficie-2); color:var(--tinta-600);">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="buscar-pedido-icono">
+        <i class="fas fa-receipt" aria-hidden="true"></i>
+      </div>
+
+      <div class="buscar-pedido-titulo">
+        <h3>Buscar tu pedido</h3>
+        <p>Ingresá tu email para acceder a tu último pedido registrado</p>
+      </div>
+
+      <div class="campo-con-icono">
+        <i class="fas fa-envelope" aria-hidden="true"></i>
+        <input id="ultimoPedidoEmailInput" type="email" placeholder="tu@email.com" aria-label="Email registrado">
+      </div>
+
+      <button id="buscarUltimoPedidoBtn">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <span id="buscarBtnText">Buscar pedido</span>
+        <div id="buscarSpinner" style="display:none;"></div>
+      </button>
+
+      <div id="ultimoPedidoMensaje" style="display:none;">
+        <i class="fas"></i>
+        <span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Carrusel principal -->
+<div id="carousel" class="carousel">
+    <div id="carousel-images" class="carousel-images">
+        <!--
+            <div class="carousel-slide">
+                <picture>
+                <source srcset="image1-mobile.jpg" media="(max-width: 600px)">
+                <img src="image1.jpg" alt="Imagen 1">
+                </picture>
+            </div>
+        -->
+        <div class="carousel-slide">
+            <picture>
+                <source srcset="image2-mobile.jpg" media="(max-width: 600px)">
+                <img src="image2.jpg" alt="Imagen 2">
+            </picture>
+        </div>
+        <div class="carousel-slide">
+            <picture>
+                <source srcset="image3-mobile.jpg" media="(max-width: 600px)">
+                <img src="image3.jpg" alt="Imagen 3">
+            </picture>
+        </div>
+    </div>
+</div>
+
+<!-- Franja informativa · cada ítem son dos líneas: el dato principal y su
+     aclaración. En el primero el orden es título + detalle; en el segundo la
+     frase arranca arriba y remata en el destacado. -->
+<div class="info-band">
+    <div class="info-band-item">
+        <span class="info-band-icon"><i class="fas fa-truck" aria-hidden="true"></i></span>
+        <span class="info-band-text">
+            <strong>Envíos a todo el país</strong>
+            Rápidos y seguros
+        </span>
+    </div>
+    <div class="info-band-item">
+        <span class="info-band-icon"><i class="fas fa-dollar-sign" aria-hidden="true"></i></span>
+        <span class="info-band-text">
+            Los valores publicados se encuentran
+            <b>en pesos argentinos</b>
+        </span>
+    </div>
+</div>
+
+<!-- No eliminar: mayorista.js (DOMContentLoaded, líneas 1925-1926) escribe en estos dos
+     spans. Si no existen, el listener lanza TypeError y cargarCarritoLocal() nunca corre,
+     es decir, el carrito deja de restaurarse al recargar la página. -->
+<div id="marquee-legacy" style="display:none" aria-hidden="true">
+    <span id="marquee-text-1"></span><span id="marquee-text-2"></span>
+</div>
+
+    <!-- Overlay de carga -->
+    <div id="loadingOverlay">
+        <img src="logo.png" alt="HomePoint" class="loading-logo logo-light">
+        <img src="logoblanco.png" alt="HomePoint" class="loading-logo logo-dark">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Cargando catálogo…</div>
+        <div class="loading-subtext">Estamos trayendo los productos y el stock actualizado desde el servidor.</div>
+    </div>
+
+    <!-- Barra de filtros -->
+    <div class="controls">
+        <div class="controls-row" id="row-buscar">
+            <span class="control-field">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <input type="text" id="buscar" placeholder="Buscar por nombre o código…" aria-label="Buscar artículo">
+            </span>
+        </div>
+        <div class="controls-row" id="row-categorias">
+            <span class="control-field">
+                <i class="fas fa-layer-group" aria-hidden="true"></i>
+                <select id="categorias" aria-label="Filtrar por categoría">
+                    <option value="todos">Todas las categorías</option>
+                </select>
+                <i class="fas fa-chevron-down control-caret" aria-hidden="true"></i>
+            </span>
+        </div>
+        <div class="controls-row" id="row-filtros">
+            <label class="switch">
+                <input type="checkbox" id="filtroDisponibles" checked>
+                <span class="switch-track" aria-hidden="true"></span>
+                <span class="switch-label">Solo disponibles</span>
+            </label>
+            <button type="button" id="todos" class="btn-ghost">
+                <i class="fas fa-undo" aria-hidden="true"></i>
+                <span>Mostrar todos</span>
+            </button>
+        </div>
+    </div>
+
+    <p id="error" role="status"></p>
+
+    <div class="grid" id="catalogo">
+        <!-- Los datos se cargarán aquí -->
+    </div>
+
+    <div class="pagination" id="pagination">
+        <!-- Controles de paginación -->
+    </div>
+
+    <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+        <span class="close" onclick="closeLightbox(event)" role="button" aria-label="Cerrar imagen">&times;</span>
+        <button id="prev-btn" aria-label="Imagen anterior" style="position: absolute; left: 15px; top: 50%; transform:translateY(-70%); font-size:3em; background:none; border:none; color:#8f9a8c; cursor:pointer; display:none;">&#10094;</button>
+        <img id="lightbox-img" src="" alt="Imagen ampliada">
+        <div id="lightbox-value"></div>
+        <button id="next-btn" aria-label="Imagen siguiente" style="position: absolute; right: 15px; top: 50%; transform:translateY(-70%); font-size:3em; background:none; border:none; color:#8f9a8c; cursor:pointer; display:none;">&#10095;</button>
+    </div>
+
+    <!-- Modal de información del producto -->
+    <div id="infoModal" class="info-modal" onclick="closeInfoModal(event)">
+        <div class="info-modal-content" onclick="event.stopPropagation()">
+            <div class="info-modal-header">
+                <h3 id="infoModalTitle">Información del Producto</h3>
+                <button class="info-modal-close" aria-label="Cerrar" onclick="closeInfoModal()">&times;</button>
+            </div>
+            <div class="info-modal-body" id="infoModalBody">
+                <!-- El contenido se cargará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón flotante del carrito · lo reemplazó el ítem "Carrito" de la barra
+         inferior, así que el CSS lo oculta. NO ELIMINAR EL NODO: toggleCart() y
+         actualizarCarrito() le escriben .style.display y toggleCart() lo hace sin
+         comprobar que exista (ver el comentario en la sección 12 del CSS). -->
+    <div class="cart-float-btn" id="cartFloatBtn" onclick="toggleCart()" role="button" tabindex="0" aria-label="Abrir carrito">
+        <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+        <span class="cart-badge" id="cartBadge">0</span>
+    </div>
+
+    <!-- === BARRA DE NAVEGACIÓN INFERIOR ===
+         Las cuatro acciones frecuentes, siempre a mano. Categorías y Pedidos
+         abren un panel inferior; Buscar lleva el foco al campo de búsqueda y
+         Carrito reutiliza toggleCart(). La lógica está en el script del final. -->
+    <nav class="tabbar" id="tabbar" aria-label="Navegación del catálogo">
+        <button type="button" class="tabbar-item" data-accion="categorias" aria-haspopup="dialog" aria-expanded="false">
+            <span class="tabbar-icono"><i class="fas fa-layer-group" aria-hidden="true"></i></span>
+            <span class="tabbar-label">Categorías</span>
+        </button>
+
+        <button type="button" class="tabbar-item" data-accion="buscar">
+            <span class="tabbar-icono"><i class="fas fa-search" aria-hidden="true"></i></span>
+            <span class="tabbar-label">Buscar</span>
+        </button>
+
+        <button type="button" class="tabbar-item" data-accion="carrito">
+            <span class="tabbar-icono">
+                <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                <span class="nav-badge js-badge-carrito">0</span>
+            </span>
+            <span class="tabbar-label">Carrito</span>
+        </button>
+
+        <button type="button" class="tabbar-item" data-accion="pedidos" aria-haspopup="dialog" aria-expanded="false">
+            <span class="tabbar-icono">
+                <i class="fas fa-receipt" aria-hidden="true"></i>
+                <span class="nav-punto js-punto-pedido" aria-hidden="true"></span>
+            </span>
+            <span class="tabbar-label">Pedidos</span>
+        </button>
+    </nav>
+
+    <!-- Fondo compartido por los dos paneles inferiores -->
+    <div class="sheet-backdrop" id="sheetBackdrop"></div>
+
+    <!-- Panel de categorías · la lista se arma al abrir, copiando las opciones
+         que mayorista.js ya inyectó en el <select id="categorias"> -->
+    <div class="sheet" id="sheetCategorias" role="dialog" aria-modal="true" aria-labelledby="sheetCategoriasTitulo">
+        <div class="sheet-header">
+            <h3 id="sheetCategoriasTitulo"><i class="fas fa-layer-group" aria-hidden="true"></i> Categorías</h3>
+            <button type="button" class="sheet-close" data-cerrar-sheet aria-label="Cerrar">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="sheet-body" id="sheetCategoriasLista"></div>
+    </div>
+
+    <!-- Panel del último pedido registrado en este navegador -->
+    <div class="sheet" id="sheetPedido" role="dialog" aria-modal="true" aria-labelledby="sheetPedidoTitulo">
+        <div class="sheet-header">
+            <h3 id="sheetPedidoTitulo"><i class="fas fa-receipt" aria-hidden="true"></i> Tu último pedido</h3>
+            <button type="button" class="sheet-close" data-cerrar-sheet aria-label="Cerrar">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="sheet-body" id="sheetPedidoCuerpo"></div>
+    </div>
+
+    <!-- Contenedor del carrito de compras (expandido) -->
+    <div class="cart-container" id="cartContainer">
+        <h3>Tu solicitud</h3>
+        <ul id="cart-list"></ul>
+        <div class="cart-entrega" id="cartEntrega" style="display:none;">
+            <span class="cart-entrega-label">
+                <i class="fas fa-truck" id="cartEntregaIcono"></i>
+                Entrega: <strong id="cartEntregaTexto">Envío</strong>
+            </span>
+            <button type="button" class="cart-entrega-cambiar" onclick="mostrarModalTipoEntrega()">
+                <i class="fas fa-pen"></i> Cambiar
+            </button>
+        </div>
+        <div class="cart-discount" id="cartDiscount" style="display:none;">
+            <span class="cart-discount-label"><i class="fas fa-tags"></i>Descuento (10%)</span>
+            <span class="cart-discount-amount" id="cartDiscountAmount">-$0</span>
+        </div>
+        <p class="cart-discount-note" id="cartDiscountNote" style="display:none;">No acumulable con otros descuentos o vouchers de compra</p>
+        <div class="cart-total" id="cartTotal">
+            <span class="cart-total-label"><i class="fas fa-receipt"></i>Total</span>
+            <span class="cart-total-wrap">
+                <span class="cart-total-original" id="cartTotalOriginal"></span>
+                <span class="cart-total-amount" id="cartTotalAmount">$0</span>
+            </span>
+        </div>
+        <div class="cart-buttons-container">
+            <button onclick="enviarPedido()" class="whatsapp-link">
+                <i class="fas fa-paper-plane"></i>
+                <span>Enviar Pedido</span>
+            </button>
+            <button onclick="limpiarCarrito()">
+                <i class="fas fa-trash-alt"></i>
+                <span>Vaciar Carrito</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- === Paso 1: Modal de tipo de entrega === -->
+    <div id="tipoEntregaModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button id="closeTipoEntregaModal" class="modal-close" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <h2><i class="fas fa-dolly"></i> ¿Cómo querés recibir tu pedido?</h2>
+                <p>Elegí una opción para continuar</p>
+            </div>
+
+            <div class="modal-body">
+                <div class="entrega-opciones">
+                    <div class="entrega-card" data-tipo="envio" role="button" tabindex="0">
+                        <i class="fas fa-truck"></i>
+                        <span class="entrega-titulo">Envío</span>
+                    </div>
+                    <div class="entrega-card" data-tipo="retiro" role="button" tabindex="0">
+                        <i class="fas fa-store"></i>
+                        <span class="entrega-titulo">Retiro</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === Paso 2 (retiro): datos mínimos de contacto === -->
+    <div id="retiroDatosModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <button id="closeRetiroDatosModal" class="modal-close" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <h2><i class="fas fa-store"></i> Retiro en el showroom</h2>
+                <p>Necesitamos tus datos para contactarte</p>
+            </div>
+
+            <div class="modal-body">
+                <div class="info-text">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>Un representante se va a comunicar con vos por WhatsApp para cerrar el pedido. Esperá a que te contactemos antes de acercarte a retirar.</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="retiroNombreInput">Nombre y Apellido</label>
+                    <input id="retiroNombreInput" type="text" placeholder="Ingresá tu nombre completo" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="retiroTelefonoInput">Teléfono</label>
+                    <input id="retiroTelefonoInput" type="tel" placeholder="Ingresá tu teléfono" required>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="retiroContinuarBtn">
+                    <i class="fas fa-check-circle"></i> Continuar con el Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === Modal solicitar datos de cliente === -->
+    <div id="clienteModal" class="modal">
+        <div class="modal-content">
+            <button id="closeClienteModal" class="modal-close" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <h2><i class="fas fa-shopping-cart"></i> Finalizar Pedido</h2>
+                <p>Completá tus datos para continuar</p>
+            </div>
+
+            <div class="modal-body">
+                <div class="user-type-selector">
+                    <button class="user-type-btn" id="btnNuevoUsuario" type="button">
+                        <i class="fas fa-user-plus"></i>
+                        Nuevo Cliente
+                    </button>
+                    <button class="user-type-btn" id="btnUsuarioRegistrado" type="button">
+                        <i class="fas fa-user-check"></i>
+                        Ya soy Cliente
+                    </button>
+                </div>
+
+                <div id="initialMessage" class="info-text initial">
+                    <i class="fas fa-hand-pointer"></i>
+                    <span>Seleccioná una opción arriba para continuar</span>
+                </div>
+
+                <!-- Formulario para usuarios nuevos -->
+                <div id="formNuevoUsuario" class="form-section">
+                    <div class="info-text">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Completá todos los campos para registrarte y realizar tu primer pedido</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nombreInput">Nombre y Apellido</label>
+                        <input id="nombreInput" type="text" placeholder="Ingresá tu nombre completo" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="emailInput">Email</label>
+                        <input id="emailInput" type="email" placeholder="tu@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telefonoInput">Teléfono</label>
+                        <input id="telefonoInput" type="tel" placeholder="Ingresá tu teléfono" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="direccionInput">Dirección <span class="optional">(opcional, para envíos)</span></label>
+                        <input id="direccionInput" type="text" placeholder="Calle y número">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="localidadInput">Localidad <span class="optional">(opcional, para envíos)</span></label>
+                        <input id="localidadInput" type="text" placeholder="Tu localidad">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="provinciaInput">Provincia <span class="optional">(opcional, para envíos)</span></label>
+                        <select id="provinciaInput">
+                            <option value="">Selecciona tu provincia</option>
+                            <option value="CABA">CABA</option>
+                            <option value="Gran Buenos Aires">Gran Buenos Aires</option>
+                            <option value="Buenos Aires">Buenos Aires</option>
+                            <option value="Catamarca">Catamarca</option>
+                            <option value="Chaco">Chaco</option>
+                            <option value="Chubut">Chubut</option>
+                            <option value="Córdoba">Córdoba</option>
+                            <option value="Corrientes">Corrientes</option>
+                            <option value="Entre Ríos">Entre Ríos</option>
+                            <option value="Formosa">Formosa</option>
+                            <option value="Jujuy">Jujuy</option>
+                            <option value="La Pampa">La Pampa</option>
+                            <option value="La Rioja">La Rioja</option>
+                            <option value="Mendoza">Mendoza</option>
+                            <option value="Misiones">Misiones</option>
+                            <option value="Neuquén">Neuquén</option>
+                            <option value="Río Negro">Río Negro</option>
+                            <option value="Salta">Salta</option>
+                            <option value="San Juan">San Juan</option>
+                            <option value="San Luis">San Luis</option>
+                            <option value="Santa Cruz">Santa Cruz</option>
+                            <option value="Santa Fe">Santa Fe</option>
+                            <option value="Santiago del Estero">Santiago del Estero</option>
+                            <option value="Tierra del Fuego">Tierra del Fuego</option>
+                            <option value="Tucumán">Tucumán</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dniNuevoInput">DNI <span class="optional">(opcional, para envíos)</span></label>
+                        <input id="dniNuevoInput" type="tel" placeholder="Número de documento">
+                    </div>
+                </div>
+
+                <!-- Formulario para usuarios registrados -->
+                <div id="formUsuarioRegistrado" class="form-section">
+                    <div class="info-text">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Ingresá tu email registrado para autocompletar tus datos</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="emailClienteInput">Email Registrado</label>
+                        <input id="emailClienteInput" type="email" placeholder="tu@email.com" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="continuarBtn">
+                    <i class="fas fa-check-circle"></i> Continuar con el Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === Modal de Confirmación del Pedido === -->
+    <div id="confirmacionModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-clipboard-check"></i> Confirmar Pedido</h2>
+                <p>Revisá los detalles antes de confirmar</p>
+            </div>
+
+            <div class="modal-body" style="max-height: 58vh; overflow-y: auto;">
+                <!-- Tipo de Entrega (resumen de lo elegido en el paso 1) -->
+                <div class="confirmacion-section" id="tipoEntregaSection">
+                    <h3 class="confirmacion-titulo">
+                        <i class="fas fa-dolly"></i> Tipo de Entrega
+                    </h3>
+                    <div id="tipoEntregaResumen" class="entrega-resumen"></div>
+                </div>
+
+                <!-- Información del Cliente -->
+                <div class="confirmacion-section">
+                    <h3 class="confirmacion-titulo">
+                        <i class="fas fa-user"></i> Información del Cliente
+                    </h3>
+                    <div id="clienteInfo" class="info-card"></div>
+                </div>
+
+                <!-- Detalle del Pedido -->
+                <div class="confirmacion-section">
+                    <h3 class="confirmacion-titulo">
+                        <i class="fas fa-shopping-bag"></i> Detalle del Pedido
+                    </h3>
+                    <div id="pedidoDetalle" class="pedido-items"></div>
+                    <div class="total-section">
+                        <div class="total-discount-row" id="totalDescuentoRow" style="display:none;">
+                            <span><i class="fas fa-tags"></i> Descuento (10%):</span>
+                            <strong id="totalDescuento">-$0</strong>
+                        </div>
+                        <div class="total-row">
+                            <span>Total del Pedido</span>
+                            <span class="total-row-amount">
+                                <span class="total-original" id="totalPedidoOriginal"></span>
+                                <strong id="totalPedido">$0</strong>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div>
+                    <button id="volverBtn" class="btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al Catálogo
+                    </button>
+                    <button id="confirmarBtn" class="btn-primary">
+                        <i class="fas fa-check-circle"></i> Confirmar Pedido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === PIE === -->
+    <footer class="site-footer">
+        <div class="footer-grid">
+            <div class="footer-marca">
+                <img src="logo.png" alt="HomePoint" class="logo-light">
+                <img src="logoblanco.png" alt="HomePoint" class="logo-dark">
+                <p>Distribuidora mayorista de artículos para el hogar. Showroom en Munro y envíos a todo el país.</p>
+            </div>
+
+            <div>
+                <h4 class="footer-titulo">Contacto</h4>
+                <div class="footer-lista">
+                    <a href="https://api.whatsapp.com/send/?phone=5491121891006&text&type=phone_number&app_absent=0" target="_blank" rel="noopener">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>+54 9 11 2189-1006</span>
+                    </a>
+                    <a href="mailto:distribuidorahomepoint@gmail.com">
+                        <i class="fas fa-envelope"></i>
+                        <span>distribuidorahomepoint@gmail.com</span>
+                    </a>
+                    <a href="https://maps.app.goo.gl/L7QhZ11dmPc7LjWn7" target="_blank" rel="noopener">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Vélez Sarsfield 4127, Munro, Buenos Aires</span>
+                    </a>
+                    <span>
+                        <i class="fas fa-clock"></i>
+                        <span>Lunes a sábados de 10 a 19 hs</span>
+                    </span>
+                    <a id="faqFooterLink" onclick="openWelcomePopup()">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Preguntas Frecuentes</span>
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="footer-titulo">Seguinos</h4>
+                <div class="footer-social">
+                    <a class="red-instagram" href="https://www.instagram.com/distribuidora.homepoint/" target="_blank" rel="noopener">
+                        <i class="fab fa-instagram"></i>
+                        <span>Instagram</span>
+                    </a>
+                    <a class="red-tiktok" href="https://www.tiktok.com/@sdistribuidora.homepoint/" target="_blank" rel="noopener">
+                        <i class="fab fa-tiktok"></i>
+                        <span>TikTok</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-legal">
+            <span>HomePoint · Distribuidora Mayorista</span>
+            <span>Los valores publicados están sujetos a la cotización del día.</span>
+        </div>
+    </footer>
+
+<!-- Carrusel Pie de Página -->
+<div id="carousel-pie" class="carousel" style="margin-bottom: 26px;">
+    <div id="carousel-pie-images" class="carousel-images">
+        <div class="carousel-slide">
+            <picture>
+                <source srcset="imagepie1-mobile.jpg" media="(max-width: 600px)">
+                <img src="imagepie1.jpg" alt="Imagen Pie 1">
+            </picture>
+        </div>
+        <div class="carousel-slide">
+            <picture>
+                <source srcset="imagepie2-mobile.jpg" media="(max-width: 600px)">
+                <img src="imagepie2.jpg" alt="Imagen Pie 2">
+            </picture>
+        </div>
+        <div class="carousel-slide">
+            <picture>
+                <source srcset="imagepie3-mobile.jpg" media="(max-width: 600px)">
+                <img src="imagepie3.jpg" alt="Imagen Pie 3">
+            </picture>
+        </div>
+        <div class="carousel-slide">
+            <picture>
+                <source srcset="imagepie4-mobile.jpg" media="(max-width: 600px)">
+                <img src="imagepie4.jpg" alt="Imagen Pie 4">
+            </picture>
+        </div>
+        <div class="carousel-slide">
+            <picture>
+                <source srcset="imagepie5-mobile.jpg" media="(max-width: 600px)">
+                <img src="imagepie5.jpg" alt="Imagen Pie 5">
+            </picture>
+        </div>
+    </div>
+</div>
+<script>
+// Script para manejar el cambio entre formularios de usuarios nuevos y registrados
+document.addEventListener('DOMContentLoaded', function() {
+    const btnNuevoUsuario = document.getElementById('btnNuevoUsuario');
+    const btnUsuarioRegistrado = document.getElementById('btnUsuarioRegistrado');
+    const formNuevoUsuario = document.getElementById('formNuevoUsuario');
+    const formUsuarioRegistrado = document.getElementById('formUsuarioRegistrado');
+    const initialMessage = document.getElementById('initialMessage');
+
+    btnNuevoUsuario.addEventListener('click', function() {
+        // Ocultar mensaje inicial
+        if (initialMessage) initialMessage.style.display = 'none';
+        
+        // Activar botón de nuevo usuario
+        btnNuevoUsuario.classList.add('active');
+        btnUsuarioRegistrado.classList.remove('active');
+        
+        // Mostrar formulario de nuevo usuario
+        formNuevoUsuario.classList.add('active');
+        formUsuarioRegistrado.classList.remove('active');
+    });
+
+    btnUsuarioRegistrado.addEventListener('click', function() {
+        // Ocultar mensaje inicial
+        if (initialMessage) initialMessage.style.display = 'none';
+        
+        // Activar botón de usuario registrado
+        btnUsuarioRegistrado.classList.add('active');
+        btnNuevoUsuario.classList.remove('active');
+        
+        // Mostrar formulario de usuario registrado
+        formUsuarioRegistrado.classList.add('active');
+        formNuevoUsuario.classList.remove('active');
+    });
+
+    // Autocompletar datos cuando el usuario registrado ingresa su email
+    const emailClienteInput = document.getElementById('emailClienteInput');
+    if (emailClienteInput) {
+        emailClienteInput.addEventListener('blur', function(e) {
+            const email = e.target.value.trim().toLowerCase();
+            if (email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+                // Buscar el cliente en Firebase
+                db.ref('clientes').orderByChild('email').equalTo(email).limitToFirst(1).once('value')
+                    .then(snap => {
+                        if (!snap.exists()) {
+                            alert('No se encontró el email ingresado. Por favor, regístrate como nuevo cliente.');
+                            emailClienteInput.value = '';
+                            return;
+                        }
+                        
+                        // Cliente encontrado - autocompletar datos
+                        const cli = Object.values(snap.val())[0];
+                        
+                        // Guardar datos en la variable global
+                        datosExtraCliente = {
+                            email: email,
+                            nombre: cli.nombre || '',
+                            telefono: cli.telefono || '',
+                            localidad: cli.localidad || '',
+                            direccion: cli.direccion || '',
+                            provincia: cli.provincia || '',
+                            dni: cli.dni || '',
+                            tipoCliente: cli.tipoCliente || 'mayorista'
+                        };
+                        
+                        console.log('Datos del cliente cargados:', datosExtraCliente);
+                    })
+                    .catch(e => {
+                        console.error('Error al consultar email del cliente:', e);
+                        alert('Error al buscar el cliente. Por favor, intenta de nuevo.');
+                    });
+            }
+        });
+    }
+
+    // === Validación de pedido abierto ===
+    function validarPedidoAbierto(email, callback) {
+        db.ref('pedidos')
+            .orderByChild('cliente/email')
+            .equalTo(email)
+            .once('value')
+            .then(snap => {
+                let abierto = null;
+                let pedidoId = null;
+                snap.forEach(child => {
+                    const pedido = child.val();
+                    if (pedido.status === 'ABIERTO' && !abierto) {
+                        abierto = pedido;
+                        pedidoId = pedido.id || child.key;
+                    }
+                });
+                callback(abierto, pedidoId);
+            })
+            .catch(err => {
+                console.error('Error validando pedido abierto', err);
+                callback(null, null);
+            });
+    }
+
+    function mostrarMensajePedidoAbierto(pedidoId) {
+        const clienteModal = document.getElementById('clienteModal');
+        clienteModal.style.display = 'none';
+        
+        let overlay = document.getElementById('pedido-abierto-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'pedido-abierto-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(0,0,0,0.6)';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            overlay.style.zIndex = '9999';
+            document.body.appendChild(overlay);
+        }
+        overlay.innerHTML = `
+            <div style="background: #fff; padding: 30px 40px; border-radius: 12px; text-align: center; max-width: 90vw;">
+                <h2 style='color:#d32f2f;'>¡Ya tienes un pedido abierto en proceso! 🛒</h2>
+                <p>Si quieres hacer cambios, puedes modificarlo o cancelarlo para crear uno completamente nuevo.</p>
+                <button id="verPedidoBtn" style="background:#4CAF50;color:#fff;padding:10px 30px;border:none;border-radius:6px;font-size:1.1em;cursor:pointer;">Ver Pedido</button>
+            </div>
+        `;
+        document.getElementById('verPedidoBtn').onclick = function() {
+            window.location.href = `pedidos.html?id=${pedidoId}&v=${PEDIDOS_VERSION}`;
+        };
+    }
+
+    // Event listener para el botón Continuar
+    const continuarBtn = document.getElementById('continuarBtn');
+    if (continuarBtn) {
+        continuarBtn.addEventListener('click', function() {
+            const formNuevoActivo = formNuevoUsuario.classList.contains('active');
+            const formRegistradoActivo = formUsuarioRegistrado.classList.contains('active');
+            
+            if (formNuevoActivo) {
+                // Validar y obtener datos del formulario de nuevo usuario
+                const nombre = document.getElementById('nombreInput').value.trim();
+                const email = document.getElementById('emailInput').value.trim().toLowerCase();
+                const telefono = document.getElementById('telefonoInput').value.trim();
+                
+                if (!nombre || !email || !telefono) {
+                    alert('Por favor completa los campos obligatorios: Nombre, Email y Teléfono');
+                    return;
+                }
+                
+                // Primero verificar si el email ya existe en la base de datos
+                db.ref('clientes').orderByChild('email').equalTo(email).limitToFirst(1).once('value')
+                    .then(snap => {
+                        if (snap.exists()) {
+                            // El email ya está registrado
+                            alert('Este email ya está registrado. Por favor, selecciona "Ya soy Cliente" e ingresa tu email para continuar.');
+                            return;
+                        }
+                        
+                        // El email no existe, verificar si tiene pedido abierto (por seguridad)
+                        validarPedidoAbierto(email, (abierto, pedidoId) => {
+                            if (abierto) {
+                                mostrarMensajePedidoAbierto(pedidoId);
+                                return;
+                            }
+                            
+                            // No hay pedido abierto y el email no está registrado, continuar con el flujo normal
+                            datosExtraCliente = {
+                                nombre: nombre,
+                                email: email,
+                                telefono: telefono,
+                                direccion: document.getElementById('direccionInput').value.trim(),
+                                localidad: document.getElementById('localidadInput').value.trim(),
+                                provincia: document.getElementById('provinciaInput').value,
+                                dni: document.getElementById('dniNuevoInput').value.trim(),
+                                tipoCliente: 'mayorista'
+                            };
+                            
+                            // Mostrar modal de confirmación
+                            mostrarModalConfirmacion();
+                        });
+                    })
+                    .catch(e => {
+                        console.error('Error al verificar email:', e);
+                        alert('Error al verificar el email. Por favor, intenta de nuevo.');
+                    });
+                
+            } else if (formRegistradoActivo) {
+                // Validar email del usuario registrado
+                const emailCliente = document.getElementById('emailClienteInput').value.trim().toLowerCase();
+                
+                if (!emailCliente) {
+                    alert('Por favor ingresa tu email registrado');
+                    return;
+                }
+                
+                // Verificar que los datos del cliente estén cargados
+                if (!datosExtraCliente || !datosExtraCliente.nombre || datosExtraCliente.nombre === 'Cliente Registrado') {
+                    // Si no están cargados, buscar en Firebase
+                    db.ref('clientes').orderByChild('email').equalTo(emailCliente).limitToFirst(1).once('value')
+                        .then(snap => {
+                            if (!snap.exists()) {
+                                alert('No se encontró el email ingresado. Por favor, regístrate como nuevo cliente.');
+                                return;
+                            }
+                            
+                            const cli = Object.values(snap.val())[0];
+                            datosExtraCliente = {
+                                email: emailCliente,
+                                nombre: cli.nombre || '',
+                                telefono: cli.telefono || '',
+                                localidad: cli.localidad || '',
+                                direccion: cli.direccion || '',
+                                provincia: cli.provincia || '',
+                                dni: cli.dni || '',
+                                tipoCliente: cli.tipoCliente || 'mayorista'
+                            };
+                            
+                            // Validar si el usuario ya tiene un pedido abierto
+                            validarPedidoAbierto(emailCliente, (abierto, pedidoId) => {
+                                if (abierto) {
+                                    mostrarMensajePedidoAbierto(pedidoId);
+                                    return;
+                                }
+                                
+                                // No hay pedido abierto, mostrar modal de confirmación
+                                mostrarModalConfirmacion();
+                            });
+                        })
+                        .catch(e => {
+                            console.error('Error al consultar email del cliente:', e);
+                            alert('Error al buscar el cliente. Por favor, intenta de nuevo.');
+                        });
+                } else {
+                    // Los datos ya están cargados, validar pedido abierto
+                    validarPedidoAbierto(emailCliente, (abierto, pedidoId) => {
+                        if (abierto) {
+                            mostrarMensajePedidoAbierto(pedidoId);
+                            return;
+                        }
+                        
+                        // No hay pedido abierto, mostrar modal de confirmación
+                        mostrarModalConfirmacion();
+                    });
+                }
+                
+            } else {
+                alert('Por favor selecciona si eres nuevo cliente o ya estás registrado');
+            }
+        });
+    }
+});
+
+// === Elección del tipo de entrega ===
+// Se pide al agregar el primer artículo al carrito (pedirTipoEntregaSiHaceFalta en mayorista.js),
+// desde el botón "Cambiar" del carrito, y como respaldo al tocar "Enviar Pedido".
+// onElegido solo se ejecuta si el cliente elige una opción: si cierra el modal, se descarta.
+let _onTipoEntregaElegido = null;
+
+function mostrarModalTipoEntrega(onElegido) {
+    _onTipoEntregaElegido = typeof onElegido === 'function' ? onElegido : null;
+
+    const modal = document.getElementById('tipoEntregaModal');
+    if (!modal) return;
+
+    // Marcar la opción vigente (al reabrir para cambiarla)
+    modal.querySelectorAll('.entrega-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.tipo === tipoEntrega);
+    });
+
+    modal.style.display = 'flex';
+}
+
+// Con la entrega ya elegida, arranca el flujo correspondiente. La invoca enviarPedido() (mayorista.js).
+function continuarCheckout() {
+    if (tipoEntrega === 'retiro') {
+        continuarConRetiro();
+    } else {
+        continuarConEnvio();
+    }
+}
+
+// Camino de envío: monto mínimo -> stock -> formulario completo de datos
+function continuarConEnvio() {
+    // El mínimo de compra solo aplica a los envíos
+    if (calcularTotalCarrito() < 50000) {
+        mostrarModalMontoMinimo();
+        return;
+    }
+
+    // Validar stock antes de pedir los datos, para no hacer completar el formulario en vano
+    validarStockCarrito().then(res => {
+        if (res.estado === 'error') {
+            alert('No pudimos verificar la disponibilidad de stock en este momento. Por favor, revisá tu conexión e intentá de nuevo.');
+            return;
+        }
+        if (res.estado === 'conflictos') {
+            aplicarAjustesStock(res.conflictos);
+            mostrarModalStockAjustado(res.conflictos);
+            return;
+        }
+        const clienteModal = document.getElementById('clienteModal');
+        if (clienteModal) clienteModal.style.display = 'flex';
+    });
+}
+
+// Camino de retiro: sin monto mínimo ni validación de stock, solo nombre y teléfono
+function continuarConRetiro() {
+    const modal = document.getElementById('retiroDatosModal');
+    if (!modal) return;
+
+    // Arrancar siempre con los campos vacíos
+    document.getElementById('retiroNombreInput').value = '';
+    document.getElementById('retiroTelefonoInput').value = '';
+    modal.style.display = 'flex';
+}
+
+// Función global para mostrar el modal de confirmación
+function mostrarModalConfirmacion() {
+    const confirmacionModal = document.getElementById('confirmacionModal');
+    const clienteModal = document.getElementById('clienteModal');
+    
+    // Cerrar el modal de cliente y resetear su estado
+    clienteModal.style.display = 'none';
+    
+    // Resetear botones del modal de cliente
+    const btnNuevoUsuario = document.getElementById('btnNuevoUsuario');
+    const btnUsuarioRegistrado = document.getElementById('btnUsuarioRegistrado');
+    const formNuevoUsuario = document.getElementById('formNuevoUsuario');
+    const formUsuarioRegistrado = document.getElementById('formUsuarioRegistrado');
+    const initialMessage = document.getElementById('initialMessage');
+    
+    // Restaurar estado inicial
+    btnNuevoUsuario.classList.remove('active');
+    btnUsuarioRegistrado.classList.remove('active');
+    formNuevoUsuario.classList.remove('active');
+    formUsuarioRegistrado.classList.remove('active');
+    if (initialMessage) initialMessage.style.display = 'flex';
+    
+    // Construir información del cliente
+    const clienteInfo = document.getElementById('clienteInfo');
+    const datosCliente = datosExtraCliente; // Variable global del mayorista.js
+    
+    let infoHTML = '';
+    if (datosCliente.nombre) {
+        infoHTML += `<div class="info-item"><label>Nombre:</label><span>${datosCliente.nombre}</span></div>`;
+    }
+    if (datosCliente.email) {
+        infoHTML += `<div class="info-item"><label>Email:</label><span>${datosCliente.email}</span></div>`;
+    }
+    if (datosCliente.telefono) {
+        infoHTML += `<div class="info-item"><label>Teléfono:</label><span>${datosCliente.telefono}</span></div>`;
+    }
+    if (datosCliente.direccion) {
+        infoHTML += `<div class="info-item"><label>Dirección:</label><span>${datosCliente.direccion}</span></div>`;
+    }
+    if (datosCliente.localidad) {
+        infoHTML += `<div class="info-item"><label>Localidad:</label><span>${datosCliente.localidad}</span></div>`;
+    }
+    if (datosCliente.provincia) {
+        infoHTML += `<div class="info-item"><label>Provincia:</label><span>${datosCliente.provincia}</span></div>`;
+    }
+    if (datosCliente.dni) {
+        infoHTML += `<div class="info-item"><label>DNI:</label><span>${datosCliente.dni}</span></div>`;
+    }
+    
+    clienteInfo.innerHTML = infoHTML;
+    
+    // Construir detalle del pedido
+    const pedidoDetalle = document.getElementById('pedidoDetalle');
+    let detalleHTML = '';
+    let total = 0;
+    let totalUnidades = 0;
+
+    // Función para formatear números sin decimales y con separador de miles
+    function formatearPrecio(numero) {
+        return Math.round(numero).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    
+    carrito.forEach(item => {
+        const precioUnitario = parseFloat(item.precio.replace(/[^0-9.-]+/g, ''));
+        const subtotal = precioUnitario * item.cantidad;
+        total += subtotal;
+        totalUnidades += (parseFloat(item.cantidad) || 0);
+
+        detalleHTML += `
+            <div class="pedido-item">
+                <div class="item-info">
+                    <div class="item-nombre">${item.nombre}</div>
+                    <div class="item-detalles">
+                        Código: ${item.codigo} | Cantidad: ${item.cantidad} | Precio unit: $${formatearPrecio(precioUnitario)}
+                    </div>
+                </div>
+                <div class="item-precio">
+                    $${formatearPrecio(subtotal)}
+                </div>
+            </div>
+        `;
+    });
+    
+    pedidoDetalle.innerHTML = detalleHTML;
+
+    // Aplicar descuento del 10%: solo en envíos, con total > $100.000 y 5 o más unidades
+    const UMBRAL_DESCUENTO = 100000;
+    const UMBRAL_UNIDADES = 5;
+    const PORCENTAJE_DESCUENTO = 0.10;
+    const aplicaDescuento = entregaConDescuento() && total > UMBRAL_DESCUENTO && totalUnidades >= UMBRAL_UNIDADES;
+    const montoDescuento = aplicaDescuento ? total * PORCENTAJE_DESCUENTO : 0;
+    const totalFinal = total - montoDescuento;
+
+    const totalDescuentoRow = document.getElementById('totalDescuentoRow');
+    const totalDescuentoEl = document.getElementById('totalDescuento');
+    const totalPedidoOriginal = document.getElementById('totalPedidoOriginal');
+    if (totalDescuentoRow && totalDescuentoEl && totalPedidoOriginal) {
+        if (aplicaDescuento) {
+            totalDescuentoRow.style.display = 'flex';
+            totalDescuentoEl.textContent = `-$${formatearPrecio(montoDescuento)}`;
+            totalPedidoOriginal.textContent = `$${formatearPrecio(total)}`;
+        } else {
+            totalDescuentoRow.style.display = 'none';
+            totalPedidoOriginal.textContent = '';
+        }
+    }
+
+    document.getElementById('totalPedido').textContent = `$${formatearPrecio(totalFinal)}`;
+
+    // Reflejar el tipo de entrega elegido en el paso 1
+    pintarResumenTipoEntrega();
+
+    // Mostrar el modal de confirmación
+    confirmacionModal.style.display = 'flex';
+}
+
+// Muestra en el modal de confirmación el tipo de entrega elegido en el paso 1 (solo lectura)
+function pintarResumenTipoEntrega() {
+    const seccion = document.getElementById('tipoEntregaSection');
+    const resumen = document.getElementById('tipoEntregaResumen');
+    if (!seccion || !resumen) return;
+
+    // En modo edición el pedido original ya define su tipo de entrega
+    if (modoEdicion || !tipoEntrega) {
+        seccion.style.display = 'none';
+        return;
+    }
+
+    const datos = {
+        envio:  { icono: 'fa-truck', titulo: 'Envío a domicilio', sub: 'Coordinamos el despacho con los datos que cargaste.' },
+        retiro: { icono: 'fa-store', titulo: 'Retiro en el showroom', sub: 'Un representante te va a contactar por WhatsApp.' }
+    }[tipoEntrega];
+
+    seccion.style.display = '';
+    resumen.innerHTML = `
+        <i class="fas ${datos.icono}"></i>
+        <span>
+            <strong>${datos.titulo}</strong>
+            <span class="entrega-resumen-sub">${datos.sub}</span>
+        </span>
+    `;
+}
+
+// Manejadores de botones del modal de confirmación
+document.addEventListener('DOMContentLoaded', function() {
+    const volverBtn = document.getElementById('volverBtn');
+    const confirmarBtn = document.getElementById('confirmarBtn');
+    const confirmacionModal = document.getElementById('confirmacionModal');
+    
+    // Botón Volver - cierra el modal de confirmación
+    volverBtn.addEventListener('click', function() {
+        confirmacionModal.style.display = 'none';
+        // El carrito se mantiene intacto
+    });
+
+    // === Selector de tipo de entrega ===
+    const tipoEntregaModal = document.getElementById('tipoEntregaModal');
+
+    // Cierre sin elegir: se descarta la acción pendiente (no se agrega el artículo)
+    function cerrarTipoEntregaModal() {
+        _onTipoEntregaElegido = null;
+        tipoEntregaModal.style.display = 'none';
+    }
+
+    document.querySelectorAll('#tipoEntregaModal .entrega-card').forEach(card => {
+        const elegir = () => {
+            setTipoEntrega(card.dataset.tipo); // función del mayorista.js: asigna y persiste
+            tipoEntregaModal.style.display = 'none';
+
+            const continuar = _onTipoEntregaElegido;
+            _onTipoEntregaElegido = null;
+            if (continuar) continuar();
+
+            // Con carrito cargado hay que recalcular: el descuento del 10% solo aplica a envíos
+            if (carrito.length > 0) {
+                actualizarCarrito();
+            } else {
+                pintarEntregaEnCarrito(); // solo la fila "Entrega" del panel del carrito
+            }
+        };
+        card.addEventListener('click', elegir);
+        card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                elegir();
+            }
+        });
+    });
+
+    document.getElementById('closeTipoEntregaModal').addEventListener('click', cerrarTipoEntregaModal);
+    tipoEntregaModal.addEventListener('mousedown', function(e) {
+        if (e.target === tipoEntregaModal) cerrarTipoEntregaModal();
+    });
+
+    // === Paso 2 (retiro): datos mínimos de contacto ===
+    const retiroDatosModal = document.getElementById('retiroDatosModal');
+
+    function cerrarRetiroDatosModal() {
+        retiroDatosModal.style.display = 'none';
+    }
+    document.getElementById('closeRetiroDatosModal').addEventListener('click', cerrarRetiroDatosModal);
+    retiroDatosModal.addEventListener('mousedown', function(e) {
+        if (e.target === retiroDatosModal) cerrarRetiroDatosModal();
+    });
+
+    document.getElementById('retiroContinuarBtn').addEventListener('click', function() {
+        const nombre = document.getElementById('retiroNombreInput').value.trim();
+        const telefono = document.getElementById('retiroTelefonoInput').value.trim();
+
+        if (!nombre || !telefono) {
+            alert('Por favor completá tu nombre y tu teléfono para continuar.');
+            return;
+        }
+
+        datosExtraCliente = { nombre: nombre, telefono: telefono };
+        retiroDatosModal.style.display = 'none';
+        mostrarModalConfirmacion();
+    });
+
+    // Botón Confirmar - ejecuta el envío del pedido
+    confirmarBtn.addEventListener('click', function() {
+        // Sin tipo de entrega no se genera el pedido
+        if (!tipoEntrega && !modoEdicion) return;
+        confirmacionModal.style.display = 'none';
+        enviarPedidoFinal(); // Función del mayorista.js
+    });
+    
+    // Cerrar modal al hacer clic fuera
+    confirmacionModal.addEventListener('mousedown', function(e) {
+        if (e.target === confirmacionModal) {
+            confirmacionModal.style.display = 'none';
+        }
+    });
+
+    // === Cierre del modal "Finalizar Pedido" (clienteModal) ===
+    const clienteModalEl = document.getElementById('clienteModal');
+    const closeClienteBtn = document.getElementById('closeClienteModal');
+
+    function cerrarClienteModal() {
+        if (!clienteModalEl) return;
+        clienteModalEl.style.display = 'none';
+        // Restaurar estado inicial del modal
+        const btnNuevo = document.getElementById('btnNuevoUsuario');
+        const btnReg = document.getElementById('btnUsuarioRegistrado');
+        const formNuevo = document.getElementById('formNuevoUsuario');
+        const formReg = document.getElementById('formUsuarioRegistrado');
+        const initialMsg = document.getElementById('initialMessage');
+        if (btnNuevo) btnNuevo.classList.remove('active');
+        if (btnReg) btnReg.classList.remove('active');
+        if (formNuevo) formNuevo.classList.remove('active');
+        if (formReg) formReg.classList.remove('active');
+        if (initialMsg) initialMsg.style.display = 'flex';
+    }
+
+    if (closeClienteBtn) {
+        closeClienteBtn.addEventListener('click', cerrarClienteModal);
+    }
+    if (clienteModalEl) {
+        clienteModalEl.addEventListener('mousedown', function(e) {
+            if (e.target === clienteModalEl) {
+                cerrarClienteModal();
+            }
+        });
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && clienteModalEl && clienteModalEl.style.display === 'flex') {
+            cerrarClienteModal();
+        }
+    });
+});
+</script>
+
+<script>
+// === FUNCIONALIDAD DEL POPUP DE BIENVENIDA ===
+
+// Función para alternar FAQ
+function toggleFAQ(questionElement) {
+    const faqItem = questionElement.parentElement;
+    const answer = questionElement.nextElementSibling;
+    const isActive = questionElement.classList.contains('active');
+    
+    // Cerrar todos los FAQs abiertos
+    document.querySelectorAll('.faq-question.active').forEach(q => {
+        q.classList.remove('active');
+        q.nextElementSibling.classList.remove('active');
+    });
+    
+    // Si no estaba activo, abrirlo
+    if (!isActive) {
+        questionElement.classList.add('active');
+        answer.classList.add('active');
+    }
+}
+
+// Función para cerrar el popup de bienvenida
+function closeWelcomePopup() {
+    const overlay = document.getElementById('welcomeOverlay');
+    const checkbox = document.getElementById('noShowCheckbox');
+    
+    // Si el checkbox está marcado, guardar en localStorage
+    if (checkbox && checkbox.checked) {
+        localStorage.setItem('hideWelcomePopup', 'true');
+    }
+    
+    // Cerrar el popup con animación
+    overlay.style.animation = 'fadeOut 0.3s ease';
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        overlay.style.animation = '';
+    }, 300);
+}
+
+// Función para abrir el popup desde el footer
+function openWelcomePopup() {
+    const overlay = document.getElementById('welcomeOverlay');
+    if (overlay) {
+        overlay.style.display = 'flex';
+        // Desmarcar el checkbox cuando se abre manualmente
+        const checkbox = document.getElementById('noShowCheckbox');
+        if (checkbox) {
+            checkbox.checked = false;
+        }
+    }
+}
+
+// === FUNCIONES PARA EXPANDIR VIDEO Y MAPA ===
+
+// Función para abrir el video de YouTube en nueva pestaña
+function openYouTubeVideo(event) {
+    event.stopPropagation();
+    // Abrir el video de YouTube en una nueva pestaña
+    window.open('https://www.youtube.com/watch?v=cb12KmMMDJA', '_blank');
+}
+
+// Función para expandir el mapa
+function expandMap(event) {
+    event.stopPropagation();
+    const modal = document.getElementById('mapModal');
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+}
+
+// Función para cerrar modales de media
+function closeMediaModal(modalId) {
+    const modal = document.getElementById(modalId);
+    
+    modal.classList.remove('active');
+    document.body.style.overflow = ''; // Restaurar scroll del body
+}
+
+// Cerrar modales al hacer click fuera del contenido
+document.addEventListener('DOMContentLoaded', function() {
+    const mapModal = document.getElementById('mapModal');
+    
+    if (mapModal) {
+        mapModal.addEventListener('click', function(e) {
+            if (e.target === mapModal) {
+                closeMediaModal('mapModal');
+            }
+        });
+    }
+});
+
+// Cerrar modales con la tecla Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const mapModal = document.getElementById('mapModal');
+        
+        if (mapModal && mapModal.classList.contains('active')) {
+            closeMediaModal('mapModal');
+        }
+    }
+});
+
+// Agregar animación de fadeOut
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+// Mostrar el popup al cargar la página (si no está marcado para no mostrar)
+window.addEventListener('load', function() {
+    const hidePopup = localStorage.getItem('hideWelcomePopup');
+    
+    if (hidePopup !== 'true') {
+        // Esperar un breve momento antes de mostrar el popup
+        setTimeout(() => {
+            const overlay = document.getElementById('welcomeOverlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+            }
+        }, 500);
+    }
+});
+
+// Cerrar popup al hacer clic fuera del contenido
+document.addEventListener('DOMContentLoaded', function() {
+    const overlay = document.getElementById('welcomeOverlay');
+    const popup = document.querySelector('.welcome-popup');
+    
+    if (overlay) {
+        overlay.addEventListener('click', function(e) {
+            // Si el click fue en el overlay (fondo) y no en el popup
+            if (e.target === overlay) {
+                closeWelcomePopup();
+            }
+        });
+    }
+    
+    // Prevenir que clicks dentro del popup cierren el overlay
+    if (popup) {
+        popup.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+});
+
+// Cerrar popup al presionar Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('welcomeOverlay');
+        if (overlay && overlay.style.display === 'flex') {
+            closeWelcomePopup();
+        }
+    }
+});
+</script>
+
+<script>
+// === FUNCIONALIDAD DEL CARRITO FLOTANTE ===
+
+// Variables globales para el carrito
+let cartExpanded = false;
+
+// Función para alternar entre expandir/minimizar el carrito
+function toggleMenuWsp(event) {
+    event.stopPropagation();
+    const options = document.getElementById('whatsappOptions');
+    const abierto = options.style.display === 'flex';
+    options.style.display = abierto ? 'none' : 'flex';
+    options.style.flexDirection = 'column';
+    options.style.alignItems = 'flex-end';
+}
+
+function cerrarMenuWsp() {
+    document.getElementById('whatsappOptions').style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('whatsappFloatMenu');
+    if (menu && !menu.contains(e.target)) {
+        cerrarMenuWsp();
+    }
+});
+
+// Deja iluminado el botón "Carrito" mientras el panel está abierto, tanto en el
+// header (escritorio) como en la barra inferior (móvil). Se llama desde todos los
+// caminos que cambian cartExpanded (este toggle, el cierre por click externo y el
+// vaciado del carrito en actualizarCarrito()), así el resaltado nunca queda pegado.
+function sincronizarTabCarrito() {
+    const abierto = typeof cartExpanded !== 'undefined' && cartExpanded;
+    document.querySelectorAll('[data-accion="carrito"]').forEach(btn => {
+        btn.classList.toggle('is-activo', abierto);
+    });
+}
+window.sincronizarTabCarrito = sincronizarTabCarrito;
+
+function toggleCart() {
+    const cartContainer = document.getElementById('cartContainer');
+    const cartFloatBtn = document.getElementById('cartFloatBtn');
+
+    cartExpanded = !cartExpanded;
+
+    if (cartExpanded) {
+        cartContainer.classList.add('active');
+        cartFloatBtn.style.display = 'none';
+    } else {
+        cartContainer.classList.remove('active');
+        // Solo mostrar el botón si hay items en el carrito
+        if (typeof carrito !== 'undefined' && carrito.length > 0) {
+            cartFloatBtn.style.display = 'flex';
+        }
+    }
+
+    sincronizarTabCarrito();
+}
+
+// Cerrar carrito al hacer clic fuera de él
+document.addEventListener('click', function(event) {
+    const cartContainer = document.getElementById('cartContainer');
+    const cartFloatBtn = document.getElementById('cartFloatBtn');
+    
+    if (cartExpanded && 
+        cartContainer &&
+        cartFloatBtn &&
+        !cartContainer.contains(event.target) && 
+        !cartFloatBtn.contains(event.target)) {
+        toggleCart();
+    }
+});
+
+// Prevenir que clicks dentro del carrito lo cierren
+const cartContainer = document.getElementById('cartContainer');
+if (cartContainer) {
+    cartContainer.addEventListener('click', function(event) {
+        event.stopPropagation();
+    });
+}
+
+// === BARRA DE NAVEGACIÓN INFERIOR ===
+// Cuatro accesos: Categorías, Buscar, Carrito y Pedidos. Nada de esto duplica
+// lógica existente: Categorías empuja el <select> que ya filtra, Buscar mueve el
+// foco al campo que ya busca y Carrito llama al mismo toggleCart() de arriba.
+//
+// OJO CON EL ORDEN DE CARGA: este script es inline y corre durante el parseo,
+// antes que mayorista.js (que va con defer). Por eso todo lo que necesita
+// funciones de ese archivo (leerUltimoPedidoLocal, PEDIDOS_VERSION) se ejecuta
+// dentro de handlers o de DOMContentLoaded, nunca en el nivel superior.
+(function () {
+    const backdrop = document.getElementById('sheetBackdrop');
+    const sheets   = [document.getElementById('sheetCategorias'), document.getElementById('sheetPedido')];
+
+    // Todos los disparadores de una acción, estén en el header (escritorio) o en
+    // la barra inferior (móvil). Ambos conjuntos comparten estos handlers.
+    function botonesDe(accion) {
+        return document.querySelectorAll('[data-accion="' + accion + '"]');
+    }
+
+    function marcarActivo(accion, activo) {
+        botonesDe(accion).forEach(btn => {
+            btn.classList.toggle('is-activo', activo);
+            if (btn.hasAttribute('aria-expanded')) {
+                btn.setAttribute('aria-expanded', activo ? 'true' : 'false');
+            }
+        });
+    }
+
+    // Qué acción se ilumina con cada panel abierto
+    const accionDeSheet = {
+        sheetCategorias: 'categorias',
+        sheetPedido: 'pedidos'
+    };
+
+    // Cuánto tapa el header cuando está fijo, medido hasta su borde inferior.
+    // Sirve para dos cosas: descontarlo de los scrolls programáticos (si no, el
+    // destino aterriza escondido detrás) y apoyar los paneles justo debajo.
+    // Se consulta el position calculado y no el ancho de la ventana: en móvil el
+    // header no es sticky y devuelve 0, así que ahí nada cambia. Se mide el
+    // borde inferior y no el alto porque en modo edición el header baja 54px
+    // para dejar pasar el aviso fijo.
+    function offsetHeaderFijo() {
+        const header = document.querySelector('.site-header');
+        if (!header) return 0;
+        if (getComputedStyle(header).position !== 'sticky') return 0;
+        return Math.round(header.getBoundingClientRect().bottom);
+    }
+    window.offsetHeaderFijo = offsetHeaderFijo;
+
+    function cerrarCarritoSiEstaAbierto() {
+        // Vía toggleCart() y no tocando clases a mano: así cartExpanded queda
+        // coherente y el listener global de cierre no vuelve a alternarlo cuando
+        // este mismo click burbujee hasta document.
+        if (typeof cartExpanded !== 'undefined' && cartExpanded) toggleCart();
+    }
+
+    function cerrarSheets() {
+        sheets.forEach(sheet => {
+            if (!sheet) return;
+            sheet.classList.remove('active');
+            marcarActivo(accionDeSheet[sheet.id], false);
+        });
+        if (backdrop) backdrop.classList.remove('active');
+    }
+
+    function abrirSheet(id) {
+        const sheet = document.getElementById(id);
+        if (!sheet) return;
+
+        const yaEstaba = sheet.classList.contains('active');
+        cerrarSheets();
+        cerrarCarritoSiEstaAbierto();
+        if (yaEstaba) return;   // segundo toque en el mismo botón: cierra
+
+        // En escritorio el panel cuelga del header, así que su tope se calcula
+        // con el alto real del header y no con un valor fijo: ese alto cambia con
+        // el largo del logo, con el breakpoint y con el aviso del modo edición.
+        // En móvil el panel va anclado abajo y el estilo inline se retira.
+        const tope = offsetHeaderFijo();
+        sheet.style.top = tope ? (tope + 8) + 'px' : '';
+
+        sheet.classList.add('active');
+        if (backdrop) backdrop.classList.add('active');
+        marcarActivo(accionDeSheet[id], true);
+    }
+
+    if (backdrop) backdrop.addEventListener('click', cerrarSheets);
+
+    document.querySelectorAll('[data-cerrar-sheet]').forEach(btn => {
+        btn.addEventListener('click', cerrarSheets);
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') cerrarSheets();
+    });
+
+    // Al cruzar el breakpoint con un panel abierto, el panel cambia de anclaje
+    // (colgado del header en escritorio, apoyado abajo en móvil). Se recalcula el
+    // tope para que no quede el valor del otro modo: en móvil se retira el estilo
+    // inline y manda el bottom:0 del CSS.
+    window.addEventListener('resize', function () {
+        const abierto = sheets.find(s => s && s.classList.contains('active'));
+        if (!abierto) return;
+
+        const tope = offsetHeaderFijo();
+        abierto.style.top = tope ? (tope + 8) + 'px' : '';
+    });
+
+    // Aviso breve sobre la barra (se usa para el carrito vacío)
+    let avisoTimer = null;
+    function mostrarAvisoTabbar(texto) {
+        const previo = document.getElementById('tabbarAviso');
+        if (previo) previo.remove();
+        if (avisoTimer) clearTimeout(avisoTimer);
+
+        const aviso = document.createElement('div');
+        aviso.id = 'tabbarAviso';
+        aviso.className = 'tabbar-aviso';
+        aviso.setAttribute('role', 'status');
+        aviso.textContent = texto;
+        // Igual que los paneles: bajo el header en escritorio, sobre la barra en móvil
+        const tope = offsetHeaderFijo();
+        if (tope) aviso.style.top = (tope + 8) + 'px';
+        document.body.appendChild(aviso);
+
+        avisoTimer = setTimeout(() => aviso.remove(), 2200);
+    }
+
+    // --- Categorías ---
+    // La lista se copia del <select id="categorias"> en cada apertura. Es a
+    // propósito: mayorista.js llena ese select recién cuando responde la hoja de
+    // cálculo, así que leerlo al abrir es lo que hace que el panel esté al día.
+    function pintarCategorias() {
+        const select = document.getElementById('categorias');
+        const cont = document.getElementById('sheetCategoriasLista');
+        if (!select || !cont) return;
+
+        cont.innerHTML = '';
+
+        // Solo está la opción fija: el catálogo todavía se está cargando
+        if (select.options.length <= 1) {
+            const vacio = document.createElement('p');
+            vacio.className = 'sheet-vacio';
+            vacio.textContent = 'Cargando categorías…';
+            cont.appendChild(vacio);
+            return;
+        }
+
+        Array.from(select.options).forEach(opcion => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'sheet-opcion';
+            if (opcion.value === select.value) btn.classList.add('is-activo');
+
+            const texto = document.createElement('span');
+            texto.textContent = opcion.textContent;
+
+            const check = document.createElement('i');
+            check.className = 'fas fa-check';
+            check.setAttribute('aria-hidden', 'true');
+
+            btn.appendChild(texto);
+            btn.appendChild(check);
+
+            btn.addEventListener('click', function () {
+                // aplicarFiltros() vive dentro del .then() del fetch en
+                // mayorista.js y no es accesible desde acá, así que se empuja el
+                // select y se dispara su evento 'change': filtra por el mismo
+                // camino que usa el control de la barra de filtros.
+                select.value = opcion.value;
+                select.dispatchEvent(new Event('change'));
+                cerrarSheets();
+            });
+
+            cont.appendChild(btn);
+        });
+    }
+
+    botonesDe('categorias').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            pintarCategorias();
+            abrirSheet('sheetCategorias');
+        });
+    });
+
+    // --- Buscar ---
+    botonesDe('buscar').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            cerrarSheets();
+            cerrarCarritoSiEstaAbierto();
+
+            const controls = document.querySelector('.controls');
+            const input = document.getElementById('buscar');
+            if (controls) {
+                const y = controls.getBoundingClientRect().top + window.pageYOffset - offsetHeaderFijo() - 16;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+            // El foco va después del scroll: mostrarPagina() omite su propio
+            // scroll automático cuando #buscar tiene el foco, y enfocarlo antes
+            // haría que el navegador reposicione la vista por su cuenta.
+            if (input) setTimeout(() => input.focus(), 320);
+        });
+    });
+
+    // --- Carrito ---
+    botonesDe('carrito').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            // Imprescindible: el listener global de cierre (más arriba) cierra el
+            // carrito ante cualquier click fuera del panel. Sin esto, el mismo
+            // click lo abriría y lo cerraría.
+            e.stopPropagation();
+            cerrarSheets();
+
+            if (typeof carrito === 'undefined' || carrito.length === 0) {
+                mostrarAvisoTabbar('Tu carrito está vacío');
+                return;
+            }
+
+            toggleCart();   // ya sincroniza el resaltado de los botones
+        });
+    });
+
+    // --- Pedidos ---
+    function formatearMontoPedido(n) {
+        return '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    function formatearFechaPedido(timestamp) {
+        const fecha = new Date(timestamp);
+        if (isNaN(fecha.getTime())) return '';
+
+        const opciones = { day: 'numeric', month: 'long' };
+        // El año solo aparece si el pedido no es de este año
+        if (fecha.getFullYear() !== new Date().getFullYear()) opciones.year = 'numeric';
+        return fecha.toLocaleDateString('es-AR', opciones);
+    }
+
+    function abrirBusquedaPorEmail() {
+        cerrarSheets();
+        const modal = document.getElementById('ultimoPedidoModal');
+        const input = document.getElementById('ultimoPedidoEmailInput');
+        if (!modal) return;
+
+        modal.style.display = 'flex';
+        if (input) {
+            input.value = '';
+            setTimeout(() => input.focus(), 100);
+        }
+    }
+
+    function pintarFichaPedido(pedido) {
+        const cont = document.getElementById('sheetPedidoCuerpo');
+        if (!cont) return;
+
+        cont.innerHTML = '';
+
+        const ficha = document.createElement('div');
+        ficha.className = 'pedido-ficha';
+
+        const fecha = document.createElement('div');
+        fecha.className = 'pedido-ficha-fecha';
+        const fechaTexto = formatearFechaPedido(pedido.timestamp);
+        fecha.innerHTML = '<i class="fas fa-calendar-day" aria-hidden="true"></i>';
+        fecha.appendChild(document.createTextNode(
+            fechaTexto ? 'Pedido del ' + fechaTexto : 'Tu pedido registrado'
+        ));
+        ficha.appendChild(fecha);
+
+        // Unidades y total solo si se conocen: un pedido registrado al abrir el
+        // link del email puede no traerlos.
+        if (pedido.unidades > 0 || pedido.total > 0) {
+            const datos = document.createElement('p');
+            datos.className = 'pedido-ficha-datos';
+            const partes = [];
+            if (pedido.unidades > 0) {
+                partes.push(pedido.unidades + (pedido.unidades === 1 ? ' artículo' : ' artículos'));
+            }
+            datos.textContent = partes.join(' · ');
+            if (pedido.total > 0) {
+                if (partes.length) datos.appendChild(document.createTextNode(' · '));
+                const total = document.createElement('strong');
+                total.textContent = formatearMontoPedido(pedido.total);
+                datos.appendChild(total);
+            }
+            ficha.appendChild(datos);
+        }
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pedido-ficha-btn';
+        btn.innerHTML = '<i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Ver mi pedido</span>';
+        btn.addEventListener('click', function () {
+            const version = typeof PEDIDOS_VERSION !== 'undefined' ? PEDIDOS_VERSION : '';
+            window.open('pedidos.html?id=' + pedido.id + '&v=' + version, '_blank');
+            cerrarSheets();
+        });
+        ficha.appendChild(btn);
+
+        cont.appendChild(ficha);
+
+        const otro = document.createElement('button');
+        otro.type = 'button';
+        otro.className = 'pedido-otro';
+        otro.innerHTML = '<i class="fas fa-search" aria-hidden="true"></i><span>Buscar otro pedido por email</span>';
+        otro.addEventListener('click', abrirBusquedaPorEmail);
+        cont.appendChild(otro);
+    }
+
+    botonesDe('pedidos').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+
+            const pedido = typeof leerUltimoPedidoLocal === 'function' ? leerUltimoPedidoLocal() : null;
+
+            // Sin nada guardado (o con un registro ilegible) el cliente va directo
+            // a la búsqueda por email, que es la única vía que le queda.
+            if (!pedido) {
+                cerrarCarritoSiEstaAbierto();
+                abrirBusquedaPorEmail();
+                return;
+            }
+
+            pintarFichaPedido(pedido);
+            abrirSheet('sheetPedido');
+        });
+    });
+
+    // El punto sobre "Pedidos" avisa que hay un pedido registrado en este
+    // navegador. La llama guardarUltimoPedidoLocal() en mayorista.js para que
+    // aparezca en el momento en que se confirma un pedido, sin recargar.
+    window.refrescarPuntoPedido = function () {
+        const hay = typeof leerUltimoPedidoLocal === 'function' && !!leerUltimoPedidoLocal();
+        document.querySelectorAll('.js-punto-pedido').forEach(p => {
+            p.style.display = hay ? 'block' : 'none';
+        });
+    };
+
+    // Recién acá mayorista.js ya se ejecutó (es defer) y sus funciones existen
+    document.addEventListener('DOMContentLoaded', function () {
+        window.refrescarPuntoPedido();
+    });
+})();
+</script>
+
+</body>
+</html>
