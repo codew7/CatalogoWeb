@@ -42,9 +42,6 @@ function setupPhoneValidation() {
     });
 }
 
-// Placeholder: reemplazar con el ID real del video de YouTube
-const WELCOME_VIDEO_ID = "VIDEO_ID_AQUI";
-
 window.addEventListener("DOMContentLoaded", function () {
     document.getElementById("notification").classList.remove("show");
     loadCategories();
@@ -57,19 +54,7 @@ function showWelcomePopup() {
     if (!overlay) return;
     overlay.style.display = "flex";
 
-    document.getElementById("welcomeVideoBtn").addEventListener("click", function () {
-        const container = document.getElementById("welcomeVideoContainer");
-        const iframe = document.getElementById("welcomeVideoIframe");
-        if (container.style.display === "none" || container.style.display === "") {
-            iframe.src = "https://www.youtube.com/embed/" + WELCOME_VIDEO_ID + "?autoplay=1";
-            container.style.display = "block";
-            this.style.display = "none";
-        }
-    });
-
     document.getElementById("welcomeCloseBtn").addEventListener("click", function () {
-        const iframe = document.getElementById("welcomeVideoIframe");
-        iframe.src = "";
         overlay.style.display = "none";
     });
 }

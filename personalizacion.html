@@ -1104,27 +1104,14 @@
         color: #fff;
     }
 
-    .version-badge {
-        display: inline-block;
-        margin-bottom: 12px;
-        padding: 5px 13px;
-        background: rgba(255,255,255,.14);
-        border-radius: var(--radio-full);
-        font-size: .66rem;
-        font-weight: 700;
-        letter-spacing: .12em;
-    }
-
     .welcome-header h2 {
-        margin-bottom: 6px;
+        margin: 0;
         font-family: var(--display);
         font-size: 1.5rem;
         font-weight: 600;
         letter-spacing: -.025em;
         color: #fff;
     }
-
-    .welcome-header p { margin: 0; font-size: .9rem; color: rgba(255,255,255,.72); }
 
     .welcome-body { padding: 26px 30px 28px; }
 
@@ -1155,7 +1142,6 @@
     .welcome-note i { flex: none; color: var(--verde-600); margin-top: 3px; }
     .welcome-note strong { color: var(--verde-800); }
 
-    .welcome-video-btn,
     .welcome-close-btn {
         width: 100%;
         display: flex;
@@ -1171,27 +1157,6 @@
         cursor: pointer;
         transition: background var(--t), border-color var(--t), transform var(--t);
     }
-
-    .welcome-video-btn {
-        margin-bottom: 10px;
-        background: var(--superficie);
-        border: 1px solid var(--borde-fuerte);
-        color: var(--tinta-900);
-    }
-
-    .welcome-video-btn:hover { background: var(--superficie-2); border-color: var(--tinta-400); }
-    .welcome-video-btn i { color: #ff0000; font-size: 1.15em; }
-
-    .welcome-video-container {
-        display: none;
-        margin-bottom: 12px;
-        border-radius: var(--radio-sm);
-        overflow: hidden;
-        aspect-ratio: 16/9;
-        background: #000;
-    }
-
-    .welcome-video-container iframe { width: 100%; height: 100%; border: none; }
 
     .welcome-close-btn {
         background: var(--verde-600);
@@ -1325,31 +1290,20 @@
     <div id="welcomeOverlay" class="welcome-overlay" style="display: none;">
         <div class="welcome-popup">
             <div class="welcome-header">
-                <div class="version-badge">VERSIÓN 2.0</div>
                 <h2>Bienvenido al catálogo personalizado</h2>
-                <p>Distribuidora HomePoint</p>
             </div>
 
             <div class="welcome-body">
                 <p>
-                    Con esta herramienta podés crear <strong>tu propio catálogo</strong> basado en los productos de Distribuidora HomePoint, personalizado con tus datos y márgenes de ganancia.
+                    Acá creás <strong>tu propio catálogo</strong> con los productos de HomePoint, tu nombre y tus precios.
                 </p>
                 <p>
-                    Los márgenes se asignan por grupo de productos según una escala de valores. Una vez generado, compartí el enlace con tus clientes para que vean los productos y precios, y luego realizá tu pedido a la distribuidora.
+                    Elegís cuánto querés ganar en cada grupo de productos y listo: te damos un enlace para compartir con tus clientes. Cuando te compren, hacés el pedido a la distribuidora.
                 </p>
 
                 <div class="welcome-note">
                     <i class="fas fa-info-circle" aria-hidden="true"></i>
                     <span><strong>Importante:</strong> este catálogo es una herramienta de consulta y venta. No se trata de un sistema de dropshipping ni de compra directa.</span>
-                </div>
-
-                <button class="welcome-video-btn" id="welcomeVideoBtn">
-                    <i class="fab fa-youtube" aria-hidden="true"></i>
-                    Ver video explicativo
-                </button>
-
-                <div class="welcome-video-container" id="welcomeVideoContainer">
-                    <iframe id="welcomeVideoIframe" src="" title="Video explicativo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
 
                 <button class="welcome-close-btn" id="welcomeCloseBtn">
