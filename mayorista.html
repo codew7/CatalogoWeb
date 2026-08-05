@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Actualizamos la web de Distribuidora HomePoint. Te estamos redirigiendo a la nueva versión del sitio.">
+    <title>Redirigiendo… || Distribuidora HomePoint</title>
+
+    <!-- Página puente: vive sólo para rescatar a quien llega a la URL vieja
+         (marcadores, links compartidos, resultados de buscadores) y llevarlo a
+         index.html. No debe indexarse ni competir con la portada, pero sí debe
+         pasar autoridad a través de sus enlaces: de ahí `noindex, follow`. -->
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="index.html">
+
+    <!-- Tema inicial · mismo criterio y misma clave de localStorage que
+         index.html y catalogo.html, para que el tema ya elegido por el usuario
+         viaje también hasta acá y no haya destello de modo claro. Esta página
+         no ofrece interruptor de tema: sólo respeta el que ya está puesto. -->
+    <script>
+        (function () {
+            var guardado = null;
+            try { guardado = localStorage.getItem('theme'); } catch (e) {}
+            var oscuro = guardado
+                ? guardado === 'dark'
+                : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (oscuro) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+
+    <!-- Favicon -->
+    <link rel="icon" href="faviconnegro.png" type="image/png">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <!-- Google Fonts · misma familia que la landing y el catálogo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+
+    <style>
+    /* ==========================================================================
+       HOMEPOINT · PÁGINA PUENTE (mayorista.html → index.html)
+       --------------------------------------------------------------------------
+       Archivo autocontenido y deliberadamente liviano: se ve durante tres
+       segundos, así que no arrastra styles.css ni analítica. Los tokens son un
+       subconjunto de los de index.html — sólo los que esta página usa.
+
+       AL EDITAR: si cambian los tokens de index.html / catalogo.html, replicar
+       acá los que estén presentes (sección 1).
+       ========================================================================== */
+
+    /* ---------- 1 · TOKENS ---------- */
+    :root {
+        --verde-800:#1b5140;
+        --verde-700:#2c5341;
+        --verde-600:#376550;
+
+        --bg:#f8f9fa;
+        --superficie:#ffffff;
+        --superficie-2:#fafafa;
+        --borde:#e8eaed;
+        --borde-fuerte:#dcdfe4;
+
+        --tinta-900:#111827;
+        --tinta-700:#374151;
+        --tinta-600:#4b5563;
+        --tinta-400:#858a94;
+
+        --radio-sm:8px;
+        --radio-md:12px;
+        --radio-lg:16px;
+        --radio-full:999px;
+
+        --sombra-2:0 6px 20px -8px rgba(17,24,39,.14);
+        --sombra-3:0 24px 60px -22px rgba(17,24,39,.34);
+
+        --t:180ms cubic-bezier(.4,0,.2,1);
+
+        --ui:'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+        --display:var(--ui);
+
+        /* Halo de fondo · el mismo recurso del hero de la landing */
+        --halo:rgba(55,101,80,.10);
+
+        color-scheme: light;
+    }
+
+    :root[data-theme="dark"] {
+        --verde-800:#4fae6c;
+        --verde-700:#5cbf7a;
+        --verde-600:#376550;
+
+        --bg:#0c0d0f;
+        --superficie:#17181b;
+        --superficie-2:#1e2023;
+        --borde:#2a2c30;
+        --borde-fuerte:#3a3d42;
+
+        --tinta-900:#f4f5f6;
+        --tinta-700:#cdd0d4;
+        --tinta-600:#a3a7ad;
+        --tinta-400:#73767c;
+
+        --sombra-2:0 6px 20px -8px rgba(0,0,0,.55);
+        --sombra-3:0 24px 60px -22px rgba(0,0,0,.7);
+
+        --halo:rgba(79,174,108,.10);
+
+        color-scheme: dark;
+    }
+
+    /* ---------- 2 · BASE ---------- */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    * { margin: 0; padding: 0; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+        font-family: var(--ui);
+        background-color: var(--bg);
+        color: var(--tinta-900);
+        font-size: 16px;
+        line-height: 1.55;
+        letter-spacing: -.005em;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 28px 20px;
+    }
+
+    img { max-width: 100%; }
+
+    a { color: var(--verde-700); text-decoration: none; }
+
+    h1 {
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: -.015em;
+        color: var(--tinta-900);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--verde-600);
+        outline-offset: 2px;
+    }
+
+    @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(28px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* Halo verde difuso detrás de la tarjeta · da profundidad sin agregar peso */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(ellipse 60% 55% at 50% 45%, var(--halo), transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* ---------- 3 · TARJETA ---------- */
+    .puente {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 520px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-lg);
+        box-shadow: var(--sombra-3);
+        padding: 46px 44px 40px;
+        text-align: center;
+        animation: slideUp 520ms cubic-bezier(.4,0,.2,1) both;
+    }
+
+    /* logo.png es un isotipo oscuro (pensado para fondos claros); en modo
+       oscuro se reemplaza por logoblanco.png. */
+    .puente-logo img {
+        width: 236px;
+        max-width: 74%;
+        height: auto;
+        margin: 0 auto;
+    }
+
+    img.logo-light { display: block; }
+    img.logo-dark  { display: none; }
+    [data-theme="dark"] img.logo-light { display: none; }
+    [data-theme="dark"] img.logo-dark  { display: block; }
+
+    .puente-tag {
+        display: block;
+        margin-top: 8px;
+        font-size: .72rem;
+        font-weight: 600;
+        color: var(--tinta-400);
+        text-transform: uppercase;
+        letter-spacing: .17em;
+    }
+
+    .puente h1 {
+        margin-top: 30px;
+        font-size: 1.6rem;
+        line-height: 1.25;
+    }
+
+    .puente-texto {
+        margin-top: 14px;
+        color: var(--tinta-600);
+        font-size: .97rem;
+    }
+
+    /* ---------- 4 · CUENTA REGRESIVA ---------- */
+    .cuenta {
+        display: grid;
+        place-items: center;
+        margin: 32px auto 0;
+        width: 108px;
+        height: 108px;
+    }
+
+    /* El anillo y el número comparten celda de grid, así quedan superpuestos
+       sin necesidad de posicionamiento absoluto. */
+    .cuenta > * { grid-area: 1 / 1; }
+
+    .cuenta svg {
+        width: 108px;
+        height: 108px;
+        transform: rotate(-90deg); /* el trazo arranca arriba, no a la derecha */
+    }
+
+    .cuenta-pista {
+        fill: none;
+        stroke: var(--borde);
+        stroke-width: 6;
+    }
+
+    .cuenta-progreso {
+        fill: none;
+        stroke: var(--verde-600);
+        stroke-width: 6;
+        stroke-linecap: round;
+        /* Circunferencia de r=48 ≈ 301.6; el JS mueve el dashoffset por paso. */
+        stroke-dasharray: 301.6;
+        stroke-dashoffset: 0;
+        transition: stroke-dashoffset 1s linear;
+    }
+
+    [data-theme="dark"] .cuenta-progreso { stroke: var(--verde-700); }
+
+    .cuenta-numero {
+        font-family: var(--display);
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--tinta-900);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cuenta-leyenda {
+        margin-top: 16px;
+        font-size: .88rem;
+        font-weight: 500;
+        color: var(--tinta-600);
+    }
+
+    /* ---------- 5 · BOTONES ---------- */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        height: 52px;
+        padding: 0 26px;
+        border: 1px solid transparent;
+        border-radius: var(--radio-sm);
+        font-family: var(--ui);
+        font-size: .95rem;
+        font-weight: 700;
+        letter-spacing: -.005em;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background var(--t), border-color var(--t), color var(--t), transform var(--t), box-shadow var(--t);
+    }
+
+    .btn i { font-size: .9em; }
+
+    .btn-primario {
+        background: var(--verde-600);
+        border-color: var(--verde-600);
+        color: #fff;
+        box-shadow: var(--sombra-2);
+    }
+
+    .btn-primario:hover {
+        background: var(--verde-700);
+        border-color: var(--verde-700);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    [data-theme="dark"] .btn-primario:hover { background: #40795e; border-color: #40795e; }
+
+    .btn-primario:active { transform: translateY(0); }
+
+    .puente-acciones { margin-top: 30px; }
+
+    .puente-acciones .btn i.fa-arrow-right { transition: transform var(--t); }
+    .puente-acciones .btn:hover i.fa-arrow-right { transform: translateX(4px); }
+
+    .puente-nota {
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid var(--borde);
+        font-size: .82rem;
+        color: var(--tinta-400);
+    }
+
+    /* ---------- 6 · RESPONSIVE ---------- */
+    @media (max-width: 480px) {
+        .puente { padding: 36px 24px 32px; }
+        .puente h1 { font-size: 1.38rem; }
+        .puente-texto { font-size: .93rem; }
+        .puente-acciones .btn { width: 100%; }
+    }
+
+    /* ---------- 7 · MOVIMIENTO REDUCIDO ---------- */
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .01ms !important;
+        }
+    }
+    </style>
+</head>
+
+<body>
+
+    <main class="puente">
+
+        <div class="puente-logo">
+            <img src="logo.png" alt="HomePoint" class="logo-light">
+            <img src="logoblanco.png" alt="HomePoint" class="logo-dark">
+            <span class="puente-tag">Distribuidora Mayorista</span>
+        </div>
+
+        <h1>Actualizamos nuestra web</h1>
+
+        <p class="puente-texto">
+            Renovamos el sitio para que comprar al por mayor sea más simple y más
+            rápido. Esta sección ahora forma parte de la nueva página principal,
+            así que te estamos llevando hasta allí.
+        </p>
+
+        <!-- El contador se anuncia a lectores de pantalla desde la leyenda, no
+             desde el número: repetir "3, 2, 1" aislado no aporta contexto. -->
+        <div class="cuenta" aria-hidden="true">
+            <svg viewBox="0 0 108 108" focusable="false">
+                <circle class="cuenta-pista" cx="54" cy="54" r="48"></circle>
+                <circle class="cuenta-progreso" id="anillo" cx="54" cy="54" r="48"></circle>
+            </svg>
+            <span class="cuenta-numero" id="contador">5</span>
+        </div>
+
+        <p class="cuenta-leyenda" id="leyenda" role="status" aria-live="polite">
+            Redirigiendo en 5 segundos…
+        </p>
+
+        <div class="puente-acciones">
+            <a class="btn btn-primario" href="index.html">
+                Ir ahora <i class="fas fa-arrow-right" aria-hidden="true"></i>
+            </a>
+        </div>
+
+        <noscript>
+            <p class="puente-nota">
+                Si la redirección automática no funciona,
+                <a href="index.html">entrá a la nueva web desde acá</a>.
+            </p>
+        </noscript>
+
+    </main>
+
+    <script>
+    (function () {
+        /* Cuenta regresiva de 5 segundos hasta index.html.
+           El salto lo dispara este mismo temporizador (y no un
+           <meta http-equiv="refresh">) para que el número que se ve en pantalla
+           y la redirección real no puedan desincronizarse. */
+        var DESTINO  = 'index.html';
+        var TOTAL    = 5;
+        var VUELTA   = 301.6;   /* 2·π·48 · debe coincidir con el stroke-dasharray */
+
+        var contador = document.getElementById('contador');
+        var leyenda  = document.getElementById('leyenda');
+        var anillo   = document.getElementById('anillo');
+
+        var restantes = TOTAL;
+
+        function pintar() {
+            contador.textContent = restantes;
+            leyenda.textContent = 'Redirigiendo en ' + restantes +
+                (restantes === 1 ? ' segundo…' : ' segundos…');
+            /* El anillo se vacía a medida que baja la cuenta. */
+            anillo.style.strokeDashoffset = VUELTA * (1 - restantes / TOTAL);
+        }
+
+        pintar();
+
+        var reloj = setInterval(function () {
+            restantes--;
+
+            if (restantes <= 0) {
+                clearInterval(reloj);
+                contador.textContent = '0';
+                leyenda.textContent = 'Llevándote a la nueva web…';
+                anillo.style.strokeDashoffset = VUELTA;
+                /* replace() en lugar de href: así esta página puente no queda en
+                   el historial y el botón "atrás" del navegador no devuelve al
+                   usuario acá, en un bucle de redirecciones. */
+                window.location.replace(DESTINO);
+                return;
+            }
+
+            pintar();
+        }, 1000);
+    })();
+    </script>
+
+</body>
+</html>
