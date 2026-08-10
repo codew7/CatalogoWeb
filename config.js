@@ -1,1 +1,16 @@
-const _0x1f86ba=_0x31b3;function _0x31b3($,x){let _=_0x50c6();return(_0x31b3=function($,x){return _[$-=371]})($,x)}function _0x50c6(){let $=["5535952TnjPWR","AIzaSyA4fVBCRgkhbTAaOyWg4cAkw7UXokF2uu8","Lista!A2:Z","1:294352872886:web:a5ffe0a214f23dca73cd17","2188925nFmLgy","AIzaSyDwiZWDc66tv4usDIA-IreiJMLFuk0236Q","5977041zrGKek","14843655geCOtQ","294352872886","854083BVawWO","22xuZojN","1cD50d0-oSTogEe9tYo9ABUSP1ONCy3SAV92zsYYIG84","4GtfCkd","146877juroXT","pedidos-87064.firebasestorage.app","pedidos-87064.firebaseapp.com","3595812GaGJuY"];return(_0x50c6=function(){return $})()}!function($,x){let _=_0x31b3,a=$();for(;;)try{let e=-parseInt(_(384))/1+parseInt(_(385))/2*(-parseInt(_(371))/3)+parseInt(_(387))/4*(-parseInt(_(379))/5)+-parseInt(_(374))/6+parseInt(_(381))/7+parseInt(_(375))/8+parseInt(_(382))/9;if(765433===e)break;a.push(a.shift())}catch(t){a.push(a.shift())}}(_0x50c6,765433);const firebaseConfig={apiKey:_0x1f86ba(376),authDomain:_0x1f86ba(373),databaseURL:"https://pedidos-87064-default-rtdb.firebaseio.com",projectId:"pedidos-87064",storageBucket:_0x1f86ba(372),messagingSenderId:_0x1f86ba(383),appId:_0x1f86ba(378)},GOOGLE_SHEETS_CONFIG={API_KEY:_0x1f86ba(380),SPREADSHEET_ID:_0x1f86ba(386),RANGO:_0x1f86ba(377)};
+// ⚠️ Asegúrate de agregar este archivo a .gitignore para evitar subirlo a repositorios públicos.
+const firebaseConfig = {
+  apiKey: "AIzaSyA4fVBCRgkhbTAaOyWg4cAkw7UXokF2uu8",
+  authDomain: "pedidos-87064.firebaseapp.com",
+  databaseURL: "https://pedidos-87064-default-rtdb.firebaseio.com",
+  projectId: "pedidos-87064",
+  storageBucket: "pedidos-87064.firebasestorage.app",
+  messagingSenderId: "294352872886",
+  appId: "1:294352872886:web:a5ffe0a214f23dca73cd17"
+};
+
+const GOOGLE_SHEETS_CONFIG = {
+    API_KEY: 'AIzaSyDFDc_cr4Zw0yGjAugSdIdpmoWy5UPW4rs',
+    SPREADSHEET_ID: '1cD50d0-oSTogEe9tYo9ABUSP1ONCy3SAV92zsYYIG84',
+    RANGO: 'Lista!A2:S'
+};
