@@ -779,7 +779,7 @@ function cargarGrid(data) {
                 if (existe) {
                     existe.cantidad = cantidad;
                 } else {
-                    agregarAlCarrito(articulo.textContent, item[6], cantidad, item[2], item[0], item[7].toString().replace(/[,\.]/g, ''), item[6].toString().replace(/[,\.]/g, ''));
+                    agregarAlCarrito(articulo.textContent, item[6], cantidad, item[2], item[0]);
                     return; // agregarAlCarrito ya guarda en Firebase si es modo edición
                 }
                 actualizarCarrito();
