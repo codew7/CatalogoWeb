@@ -686,6 +686,18 @@
         cursor: pointer;
     }
 
+    /* El menú desplegable del <select> lo dibuja el sistema, y toma sus colores
+       del propio control. Como acá el fondo lo pone .control-field y el select
+       queda transparente, Chrome cae al blanco de su tema por defecto mientras
+       el texto hereda --tinta-900: en modo oscuro eso es casi blanco sobre
+       blanco. Pintar las <option> con los mismos tokens deja la lista dentro
+       del tema sin duplicar colores ni depender de data-theme. */
+    select option,
+    select optgroup {
+        background-color: var(--superficie);
+        color: var(--tinta-900);
+    }
+
     /* Interruptor "Solo disponibles" */
     .switch {
         display: inline-flex;
