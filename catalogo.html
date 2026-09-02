@@ -2281,6 +2281,288 @@
     .btn-secondary { background: var(--superficie); color: var(--tinta-700); border: 1px solid var(--borde-fuerte); }
     .btn-secondary:hover { background: var(--superficie-2); border-color: var(--tinta-400); }
 
+    /* ---------- 13.1 · MODAL DE PEDIDO CONFIRMADO ----------
+       Última pantalla del checkout. La arma mostrarModalPedidoConfirmado()
+       (catalogo.js) sobre .modal / .modal-content, así que ya hereda el velo, el
+       radio, la sombra y la entrada del resto de los modales; acá abajo va sólo
+       su interior.
+       El texto ya no habla del email: el pedido se consulta desde el botón
+       "Pedidos" —barra inferior en móvil, navegación del header en escritorio—.
+       Por eso el mensaje no lo nombra suelto sino que muestra una réplica del
+       botón (.exito-chip): el cliente reconoce el ícono antes que la palabra. Y
+       el modal se despliega desde ese mismo botón y se repliega sobre él al
+       cerrarse, y recién entonces resaltarBotonPedidos() lo enciende con
+       .is-destacado (final de esta sección): la explicación, el gesto y el
+       botón terminan siendo la misma cosa.
+       Todas las animaciones son de entrada y de duración finita: nada queda
+       latiendo en bucle detrás del catálogo. */
+
+    /* El estado base no anima a propósito: pisa el slideUp que .modal-content
+       le daría a cualquier modal y deja la caja sin transformar, que es lo que
+       le permite a anclarModalEnBotonPedidos() (catalogo.js) medirla y escribir
+       el transform-origin sobre la posición real del botón —abajo en móvil,
+       arriba en escritorio—. Elegida la variante, el JS agrega la clase que
+       corresponde: .exito-desde-boton si encontró el botón a la vista,
+       .exito-sin-ancla si no, donde cae la entrada estándar de los modales. */
+    .exito-modal { max-width: 460px; animation: none; }
+
+    .exito-modal.exito-desde-boton { animation: exito-desplegar .46s cubic-bezier(.22,1,.36,1) both; }
+    .exito-modal.exito-sin-ancla   { animation: slideUp .3s ease; }
+
+    /* El cierre hace el camino inverso: el modal se repliega sobre el punto del
+       que salió y el velo se va con él. */
+    .exito-modal.is-cerrando { animation: exito-plegar .26s cubic-bezier(.4,0,1,1) forwards; }
+    .modal.is-cerrando { animation: fadeOut .26s ease forwards; }
+
+    /* El degradado nace del sello y se apaga contra la superficie: da el
+       destello de "listo" sin pintar una banda de color plana. */
+    .exito-cabecera {
+        position: relative;
+        padding: 36px 30px 28px;
+        text-align: center;
+        /* El radio va acá y no como overflow:hidden del contenedor: .modal-content
+           necesita conservar su overflow-y:auto para que el modal siga siendo
+           desplazable en pantallas bajas (un teléfono acostado). */
+        border-radius: var(--radio-lg) var(--radio-lg) 0 0;
+        background: radial-gradient(118% 88% at 50% 0%, var(--verde-050) 0%, var(--superficie) 66%);
+        border-bottom: 1px solid var(--borde);
+    }
+
+    .exito-sello {
+        position: relative;
+        width: 74px;
+        height: 74px;
+        margin: 0 auto 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--verde-600);
+        box-shadow: 0 16px 34px -14px rgba(55,101,80,.6);
+        animation: exito-sello .48s cubic-bezier(.34,1.56,.64,1) both;
+    }
+
+    /* Dos ondas desfasadas que salen del sello una sola vez */
+    .exito-sello::before,
+    .exito-sello::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 2px solid var(--verde-600);
+        opacity: 0;
+        animation: exito-onda 1.25s ease-out .26s both;
+    }
+
+    .exito-sello::after { animation-delay: .52s; }
+
+    .exito-sello svg { width: 36px; height: 36px; }
+
+    /* El tilde se dibuja: aparecer de golpe no transmite que algo se completó.
+       El dasharray cubre el largo del trazo del path (~23 unidades). */
+    .exito-tilde {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 3.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 24;
+        stroke-dashoffset: 24;
+        animation: exito-tilde .42s cubic-bezier(.65,0,.35,1) .3s forwards;
+    }
+
+    .exito-cabecera h2 {
+        margin: 0;
+        font-family: var(--display);
+        font-size: 1.42rem;
+        font-weight: 700;
+        letter-spacing: -.02em;
+        color: var(--tinta-900);
+        animation: exito-entrada .45s cubic-bezier(.4,0,.2,1) .1s both;
+    }
+
+    .exito-cabecera p {
+        margin: 8px 0 0;
+        font-size: .9rem;
+        line-height: 1.5;
+        color: var(--tinta-600);
+        animation: exito-entrada .45s cubic-bezier(.4,0,.2,1) .16s both;
+    }
+
+    .exito-cuerpo { padding: 24px 26px 26px; }
+
+    /* La indicación de dónde queda el pedido · es el mensaje central del modal,
+       así que va en una tarjeta propia y no como una línea más de texto. */
+    .exito-guia {
+        padding: 16px 18px;
+        background: var(--verde-050);
+        border: 1px solid var(--verde-100);
+        border-radius: var(--radio-md);
+        animation: exito-entrada .45s cubic-bezier(.4,0,.2,1) .24s both;
+    }
+
+    .exito-guia-titulo {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: .7rem;
+        font-weight: 800;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+        color: var(--verde-800);
+    }
+
+    .exito-guia p {
+        margin: 10px 0 0;
+        font-size: .88rem;
+        line-height: 1.7;
+        color: var(--tinta-700);
+    }
+
+    /* Réplica del botón "Pedidos" incrustada en la frase. El vertical-align la
+       apoya sobre la línea de texto: sin él el chip cuelga y desalinea el
+       renglón. */
+    .exito-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin: 0 3px;
+        padding: 4px 12px 4px 10px;
+        vertical-align: -4px;
+        background: var(--superficie);
+        border: 1px solid var(--verde-100);
+        border-radius: var(--radio-full);
+        box-shadow: var(--sombra-1);
+        font-size: .82rem;
+        font-weight: 700;
+        color: var(--verde-800);
+        white-space: nowrap;
+    }
+
+    .exito-chip i { font-size: .92em; color: var(--verde-600); }
+
+    /* El punto verde es el mismo aviso que el JS enciende sobre el botón real
+       (.nav-punto): acá va dibujado dentro del chip para que las dos piezas se
+       lean como la misma. */
+    .exito-chip-punto {
+        width: 7px;
+        height: 7px;
+        flex: none;
+        border-radius: 50%;
+        background: var(--verde-600);
+    }
+
+    .exito-donde {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        padding-top: 13px;
+        border-top: 1px dashed var(--verde-100);
+        font-size: .78rem;
+        font-weight: 600;
+        line-height: 1.4;
+        color: var(--tinta-600);
+    }
+
+    /* La flecha apunta al lugar real del botón, que cambia con el ancho: abajo
+       en móvil (barra inferior) y arriba en escritorio (navegación del header).
+       Cinco pulsos y se detiene. */
+    .exito-donde i { flex: none; color: var(--verde-600); font-size: .95em; }
+    .exito-donde .fa-arrow-down-long { animation: exito-flecha-abajo 1.6s ease-in-out 5; }
+    .exito-donde .fa-arrow-up-long   { animation: exito-flecha-arriba 1.6s ease-in-out 5; }
+
+    .exito-solo-escritorio { display: none; }
+
+    .exito-acciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+        animation: exito-entrada .45s cubic-bezier(.4,0,.2,1) .3s both;
+    }
+
+    /* flex-basis en px: por debajo de esa medida los dos botones se apilan
+       solos, sin media query. */
+    .exito-acciones .btn-primary,
+    .exito-acciones .btn-secondary { flex: 1 1 150px; padding: 14px 18px; }
+
+    /* El cierre estándar está pensado para la cabecera oscura de los otros
+       modales; sobre este fondo claro un botón blanco translúcido no se ve. */
+    .exito-modal .modal-close {
+        background: var(--superficie-2);
+        border: 1px solid var(--borde);
+        color: var(--tinta-600);
+    }
+
+    .exito-modal .modal-close:hover { background: var(--borde); color: var(--tinta-900); }
+
+    @keyframes exito-sello {
+        from { transform: scale(.4); opacity: 0; }
+        to   { transform: scale(1);  opacity: 1; }
+    }
+
+    @keyframes exito-onda {
+        0%   { transform: scale(.7); opacity: .7; }
+        70%  { opacity: 0; }
+        100% { transform: scale(1.85); opacity: 0; }
+    }
+
+    @keyframes exito-tilde { to { stroke-dashoffset: 0; } }
+
+    /* El punto de partida no es el centro del modal sino el que le escribe el JS
+       en transform-origin: por eso la misma animación sirve para el botón de
+       abajo y para el de arriba. */
+    @keyframes exito-desplegar {
+        0%   { transform: scale(.06); opacity: 0; }
+        35%  { opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes exito-plegar {
+        from { transform: scale(1);   opacity: 1; }
+        to   { transform: scale(.08); opacity: 0; }
+    }
+
+    @keyframes exito-entrada {
+        from { transform: translateY(9px); opacity: 0; }
+        to   { transform: translateY(0);   opacity: 1; }
+    }
+
+    @keyframes exito-flecha-abajo {
+        0%, 100% { transform: translateY(0); }
+        50%      { transform: translateY(3px); }
+    }
+
+    @keyframes exito-flecha-arriba {
+        0%, 100% { transform: translateY(0); }
+        50%      { transform: translateY(-3px); }
+    }
+
+    /* Señalamiento del botón "Pedidos" real · lo enciende y lo apaga
+       resaltarBotonPedidos() (catalogo.js) al cerrar el modal de confirmación.
+       Tres ondas y se apaga: es un gesto que señala una vez, no un estado.
+       El anillo va como pseudo-elemento del contenedor del ícono —que ya es
+       position:relative porque ancla el globo y el punto (sección 21)— así que
+       no hace falta tocar el markup de la barra ni del header. */
+    .tabbar-item.is-destacado,
+    .header-nav-item.is-destacado { color: var(--verde-800); }
+
+    .tabbar-item.is-destacado .tabbar-icono::after,
+    .header-nav-item.is-destacado .header-nav-icono::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 34px;
+        height: 34px;
+        margin: -17px 0 0 -17px;
+        border: 2px solid var(--verde-600);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: exito-onda 1.3s ease-out 3;
+    }
+
     /* ---------- 14 · MODAL "ÚLTIMO PEDIDO" ---------- */
     .buscar-pedido-icono {
         width: 56px;
@@ -2447,6 +2729,49 @@
     }
 
     .faq-question.active .faq-icon { transform: rotate(180deg); }
+
+    /* Pregunta con video · comparte la caja del resto del listado, pero su
+       gesto no es desplegar un texto sino abrir el reproductor a pantalla casi
+       completa (sección 16.1). El ícono de reproducción en lugar del chevron y
+       la nota bajo el título anticipan ese cambio: esta pregunta nunca recibe
+       .active, así que su ícono tampoco gira. */
+    .faq-question-texto {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .faq-question-nota {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .74rem;
+        font-weight: 600;
+        color: var(--verde-700);
+    }
+
+    .faq-question-nota i { font-size: .9em; }
+
+    .faq-icon-play {
+        width: 30px;
+        height: 30px;
+        background: var(--verde-050);
+        border: 1px solid var(--verde-100);
+        border-radius: 50%;
+        font-size: .62em;
+        color: var(--verde-700);
+        padding-left: 2px;   /* el triángulo mira a la derecha: se centra a ojo */
+        transition: background var(--t), color var(--t), border-color var(--t), transform var(--t);
+    }
+
+    .faq-question-video:hover .faq-icon-play,
+    .faq-question-video:focus-visible .faq-icon-play {
+        background: var(--verde-600);
+        border-color: var(--verde-600);
+        color: #fff;
+        transform: scale(1.06);
+    }
 
     .faq-answer {
         max-height: 0;
@@ -2633,6 +2958,54 @@
     .media-modal-body { position: relative; padding-bottom: 56.25%; height: 0; }
     .media-modal-body.map-modal { padding-bottom: 72%; }
     .media-modal-body iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+    /* ---------- 16.1 · REPRODUCTOR VERTICAL (SHORT) ----------
+       El tutorial de la primera compra es un video vertical 9:16. La caja se
+       calcula con min() sobre los dos ejes para que ocupe el 90% de la pantalla
+       por el lado que primero se queda corto: en escritorio manda el alto, en
+       teléfonos el ancho. Ese mismo cálculo deja el 10% restante como velo
+       alrededor, que es la zona que cierra al tocarla, y por eso el velo del
+       video no lleva el padding de .media-modal. No usa .media-modal-body: esa
+       clase fija la relación 16:9 del mapa. */
+    .video-modal { padding: 0; }
+
+    .video-modal-content {
+        width: min(90vw, calc(90vh * 9 / 16));
+        height: min(90vh, calc(90vw * 16 / 9));
+        max-width: none;
+        border-radius: var(--radio-lg);
+    }
+
+    .video-modal-content iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+    }
+
+    /* Sin encabezado: el cierre se apoya sobre una esquina del video, como en
+       cualquier reproductor a pantalla completa. */
+    .video-modal-close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10,14,20,.62);
+        border: none;
+        border-radius: 50%;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+        z-index: 2;
+        backdrop-filter: blur(4px);
+        transition: background var(--t), transform var(--t);
+    }
+
+    .video-modal-close:hover { background: rgba(10,14,20,.88); transform: scale(1.05); }
 
     /* ---------- 17 · CONTACTO POR WHATSAPP (EN EL HEADER) ----------
        Vive dentro de .header-actions, a la izquierda del selector de tema, en vez
@@ -3413,6 +3786,12 @@
             backdrop-filter: none;
             animation: none;
         }
+
+        /* Modal de pedido confirmado · acá el botón "Pedidos" no está en la
+           barra inferior (que no existe en escritorio) sino en la navegación
+           del header, así que la pista y la flecha se dan vuelta. */
+        .exito-solo-movil { display: none; }
+        .exito-solo-escritorio { display: inline-flex; }
     }
 
     /* ---------- 22 · RESPONSIVE ---------- */
@@ -3518,6 +3897,8 @@
         .faq-answer { font-size: .84rem; padding: 0 14px; }
         .faq-answer.active { padding: 4px 14px 16px; }
         .faq-map-wrapper { height: 190px; }
+        .faq-question-nota { font-size: .7rem; }
+        .faq-icon-play { width: 28px; height: 28px; }
 
         .cart-float-btn { bottom: 20px; left: 16px; width: 54px; height: 54px; }
         .cart-float-btn i { font-size: 19px; }
@@ -3682,7 +4063,7 @@
                             <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
                         </div>
                         <div class="faq-answer">
-                            En nuestro local <strong>NO HAY</strong> requisitos ni minimos de compra. Podés venir y llevarte todo lo que necesites.
+                            En nuestro local <strong>no hay</strong> requisitos ni minimos de compra. Podés venir y llevarte todo lo que necesites.
                             <br>* No aplicable a envios.</div>
                     </div>
 
@@ -3692,9 +4073,21 @@
                             <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
                         </div>
                         <div class="faq-answer">
-                            Sí, enviamos a todo el país por medio de fletes o encomiendas a través de <strong>Expreso Viacargo y Correo Argentino</strong>.
+                            Sí, enviamos a todo el país por medio de <strong>motomensajeria y fletes</strong> o encomiendas a través de <strong>Expreso Viacargo y Correo Argentino</strong>.
                             <br>El costo de las encomiendas es determinado por estas empresas, y varía según el peso y tamaño de la caja.
-                            <br><strong>Los envíos cuentan con un mínimo de compra de $50.000 para fletes cercanos y $100.000 para encomiendas.</strong>
+                            <br><strong>Los envíos cuentan con un mínimo de compra de $50.000</strong>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question faq-question-video" role="button" tabindex="0"
+                             onclick="abrirVideoTutorial(event)"
+                             onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); abrirVideoTutorial(event); }">
+                            <span class="faq-question-texto">
+                                <span>¿Cómo hago mi primera compra con envío?</span>
+                                <span class="faq-question-nota"><i class="fas fa-circle-play"></i> Mirá el paso a paso en video</span>
+                            </span>
+                            <div class="faq-icon faq-icon-play"><i class="fas fa-play"></i></div>
                         </div>
                     </div>
 
@@ -3704,7 +4097,7 @@
                             <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
                         </div>
                         <div class="faq-answer">
-                            Aceptamos pagos en <strong>Efectivo</strong> y <strong>Transferencia Bancaria o de MercadoPago</strong>.
+                            Aceptamos pagos en <strong>Efectivo</strong> y <strong>Transferencia Bancaria</strong> o de <strong>MercadoPago</strong>.
                             <br>Tarjetas únicamente acercandote a nuestro local.
                         </div>
                     </div>
@@ -3737,23 +4130,13 @@
 
                     <div class="faq-item">
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            <span>Hice pedido en la web, ¿me reservan la mercadería?</span>
-                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
-                        </div>
-                        <div class="faq-answer">
-                            La solicitud de pedido es una intención de compra y <strong>no asegura la disponibilidad total de la mercadería</strong>, hasta cerrar la operación.
-                        </div>
-                    </div>
-
-                    <div class="faq-item">
-                        <div class="faq-question" onclick="toggleFAQ(this)">
                             <span>¿Los articulos cuentan con garantia?</span>
                             <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
                         </div>
                         <div class="faq-answer">
                             Sí, los productos cuentan con cambio o reparación por defectos de fabricación a corto plazo, sujeto a evaluación técnica previa.
                             <br>Los tiempos de respuesta pueden variar según el producto en cuestión.
-                            <br>La garantía no cubre costos de envío o despacho.
+                            <br><strong>La garantía no cubre costos de envío o despacho.</strong>
                         </div>
                     </div>
 
@@ -3790,6 +4173,28 @@
                     referrerpolicy="no-referrer-when-downgrade">
                 </iframe>
             </div>
+        </div>
+    </div>
+
+    <!-- Video tutorial de la primera compra · vive fuera del popup de preguntas
+         frecuentes para taparlo sin cerrarlo: al salir del video, el listado
+         sigue donde estaba. El src se escribe recién al abrir (ver
+         abrirVideoTutorial) y se borra al cerrar; si quedara cargado, el video
+         seguiría sonando detrás. -->
+    <div id="videoModal" class="media-modal video-modal" role="dialog" aria-modal="true"
+         aria-label="Video: cómo hacer tu primera compra con envío">
+        <div class="media-modal-content video-modal-content">
+            <button class="video-modal-close" aria-label="Cerrar video" onclick="closeMediaModal('videoModal')">
+                <i class="fas fa-times"></i>
+            </button>
+            <iframe id="videoTutorialFrame"
+                    src=""
+                    data-reset-src
+                    title="Cómo hacer tu primera compra con envío"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen>
+            </iframe>
         </div>
     </div>
 
@@ -5257,8 +5662,29 @@ function openYouTubeVideo(event) {
 // Función para expandir el mapa
 function expandMap(event) {
     event.stopPropagation();
-    const modal = document.getElementById('mapModal');
-    
+    abrirMediaModal('mapModal');
+}
+
+// Video tutorial de la primera compra con envío · el popup de preguntas
+// frecuentes queda abierto por debajo (el modal tiene más z-index), así que al
+// cerrar el video se vuelve al listado tal como estaba. La URL se escribe recién
+// acá para no descargar el reproductor junto con la página y para poder
+// borrarla al cerrar; playsinline evita que iOS se lleve el video a su propia
+// pantalla completa, que sacaría al cliente de la web.
+const VIDEO_TUTORIAL_SRC = 'https://www.youtube.com/embed/0LWrdRS-85I?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+
+function abrirVideoTutorial(event) {
+    if (event) event.stopPropagation();
+    const frame = document.getElementById('videoTutorialFrame');
+    if (frame) frame.src = VIDEO_TUTORIAL_SRC;
+    abrirMediaModal('videoModal');
+}
+
+// Función para abrir modales de media
+function abrirMediaModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+
     modal.classList.add('active');
     document.body.style.overflow = 'hidden'; // Prevenir scroll del body
 }
@@ -5266,33 +5692,46 @@ function expandMap(event) {
 // Función para cerrar modales de media
 function closeMediaModal(modalId) {
     const modal = document.getElementById(modalId);
-    
+    if (!modal) return;
+
     modal.classList.remove('active');
     document.body.style.overflow = ''; // Restaurar scroll del body
+
+    // Ocultar el modal no detiene la reproducción: el video seguiría sonando
+    // detrás del listado. Vaciar el src descarga el reproductor.
+    modal.querySelectorAll('iframe[data-reset-src]').forEach(function (frame) {
+        frame.src = '';
+    });
 }
 
 // Cerrar modales al hacer click fuera del contenido
 document.addEventListener('DOMContentLoaded', function() {
-    const mapModal = document.getElementById('mapModal');
-    
-    if (mapModal) {
-        mapModal.addEventListener('click', function(e) {
-            if (e.target === mapModal) {
-                closeMediaModal('mapModal');
+    document.querySelectorAll('.media-modal').forEach(function (modal) {
+        modal.addEventListener('click', function(e) {
+            // Cierra desde cualquier punto del velo. Dentro de la caja (el video
+            // o el mapa) no cierra, salvo el botón, que llama a la función.
+            if (!e.target.closest('.media-modal-content')) {
+                closeMediaModal(modal.id);
             }
         });
-    }
+    });
 });
 
 // Cerrar modales con la tecla Escape
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const mapModal = document.getElementById('mapModal');
-        
-        if (mapModal && mapModal.classList.contains('active')) {
-            closeMediaModal('mapModal');
-        }
-    }
+    if (e.key !== 'Escape') return;
+
+    const abiertos = document.querySelectorAll('.media-modal.active');
+    if (!abiertos.length) return;
+
+    // El video tapa el listado de preguntas, que sigue abierto detrás: sin
+    // frenar el resto de los handlers de Escape (registrados después sobre el
+    // mismo document), el mismo golpe de tecla cerraría también el popup.
+    e.stopImmediatePropagation();
+
+    abiertos.forEach(function (modal) {
+        closeMediaModal(modal.id);
+    });
 });
 
 // Agregar animación de fadeOut

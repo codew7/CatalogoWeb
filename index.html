@@ -1195,7 +1195,195 @@
 
     .panel .btn { margin-top: auto; align-self: flex-start; }
 
-    /* ---------- 14 · PIE ---------- */
+    /* ---------- 14 · PREGUNTAS FRECUENTES ----------
+       Bloque de cierre, a propósito callado: en vez de tarjetas usa una lista
+       de líneas finas en el ancho de lectura, para no competir con los accesos
+       al catálogo ni con las reseñas. Son <details> nativos, así que el estado
+       abierto/cerrado, el teclado y el lector de pantalla los resuelve el
+       navegador sin una línea de JS; el atributo name deja una sola abierta a
+       la vez donde está soportado (en el resto simplemente se abren varias, que
+       es una degradación aceptable). */
+    .faq-lista {
+        width: min(100%, var(--ancho-texto));
+        margin: 0 auto;
+        border-top: 1px solid var(--borde);
+    }
+
+    .faq-item { border-bottom: 1px solid var(--borde); }
+
+    .faq-pregunta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 20px 4px;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: -.012em;
+        color: var(--tinta-900);
+        cursor: pointer;
+        list-style: none;   /* Firefox: saca el triangulito nativo */
+        transition: color var(--t);
+    }
+
+    /* Safari usa su propio pseudo-elemento para el marcador */
+    .faq-pregunta::-webkit-details-marker { display: none; }
+
+    .faq-pregunta:hover { color: var(--verde-700); }
+
+    .faq-pregunta i {
+        flex: none;
+        font-size: .74rem;
+        color: var(--tinta-400);
+        transition: transform var(--t), color var(--t);
+    }
+
+    .faq-item[open] .faq-pregunta { color: var(--verde-800); }
+    .faq-item[open] .faq-pregunta i { transform: rotate(180deg); color: var(--verde-600); }
+
+    .faq-respuesta {
+        padding: 0 4px 22px;
+        max-width: 660px;
+        color: var(--tinta-600);
+        font-size: .94rem;
+        line-height: 1.75;
+        animation: faq-abrir .26s ease;
+    }
+
+    .faq-respuesta p { margin: 0; }
+    .faq-respuesta strong { color: var(--tinta-900); font-weight: 700; }
+
+    @keyframes faq-abrir { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+    .faq-pie {
+        width: min(100%, var(--ancho-texto));
+        margin: 26px auto 0;
+        text-align: center;
+        font-size: .9rem;
+        line-height: 1.7;
+        color: var(--tinta-600);
+        text-wrap: pretty;
+    }
+
+    .faq-pie a {
+        color: var(--verde-700);
+        font-weight: 600;
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: border-color var(--t);
+    }
+
+    .faq-pie a:hover { border-bottom-color: currentColor; }
+
+    /* ---------- 14.1 · VIDEO DE LA PRIMERA COMPRA ----------
+       Una de las preguntas no despliega texto: abre un short vertical a
+       pantalla casi completa, sin sacar al cliente de la página. Por eso no es
+       un <details> sino un <button> — el teclado y el lector de pantalla lo
+       tratan como lo que es — disfrazado con la misma línea del resto de la
+       lista, con un play en lugar del chevron. */
+    .faq-pregunta-video {
+        width: 100%;
+        background: none;
+        border: none;
+        font-family: inherit;
+        line-height: inherit;   /* el <button> trae la suya y desalinearia la fila */
+        text-align: left;
+    }
+
+    .faq-pregunta-texto {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+    }
+
+    .faq-pregunta-texto small {
+        font-size: .8rem;
+        font-weight: 600;
+        color: var(--verde-700);
+    }
+
+    .faq-pregunta-video .fa-play {
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--verde-050);
+        border: 1px solid var(--verde-100);
+        border-radius: 50%;
+        padding-left: 2px;   /* el triángulo mira a la derecha: se centra a ojo */
+        font-size: .62rem;
+        color: var(--verde-700);
+        transition: background var(--t), color var(--t), border-color var(--t), transform var(--t);
+    }
+
+    .faq-pregunta-video:hover .fa-play {
+        background: var(--verde-600);
+        border-color: var(--verde-600);
+        color: #fff;
+        transform: scale(1.06);
+    }
+
+    .video-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 3000;   /* por encima del header sticky (1000) y los paneles (1200) */
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10,14,20,.94);
+        backdrop-filter: blur(6px);
+        animation: fadeIn .24s ease;
+    }
+
+    .video-overlay.active { display: flex; }
+
+    /* El video es vertical 9:16. El min() sobre los dos ejes hace que ocupe el
+       90% de la pantalla por el lado que primero se queda corto: en escritorio
+       manda el alto, en teléfonos el ancho. Lo que sobra es velo, y tocarlo
+       cierra, así que el overlay no lleva padding propio. */
+    .video-caja {
+        position: relative;
+        width: min(90vw, calc(90vh * 9 / 16));
+        height: min(90vh, calc(90vw * 16 / 9));
+        background: #000;
+        border-radius: var(--radio-lg);
+        overflow: hidden;
+        box-shadow: var(--sombra-3);
+        animation: slideUp .3s ease;
+    }
+
+    .video-caja iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+    }
+
+    .video-cerrar {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10,14,20,.62);
+        border: none;
+        border-radius: 50%;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+        z-index: 2;
+        backdrop-filter: blur(4px);
+        transition: background var(--t), transform var(--t);
+    }
+
+    .video-cerrar:hover { background: rgba(10,14,20,.88); transform: scale(1.05); }
+
+    /* ---------- 15 · PIE ---------- */
     .site-footer {
         width: min(100% - 40px, var(--ancho));
         margin: 44px auto 26px;
@@ -1287,7 +1475,7 @@
         flex-wrap: wrap;
     }
 
-    /* ---------- 15 · CONTACTO POR WHATSAPP (EN EL HEADER) ----------
+    /* ---------- 16 · CONTACTO POR WHATSAPP (EN EL HEADER) ----------
        Mismo componente que en el catálogo, para que la acción de contacto esté
        siempre en el mismo lugar en las dos páginas: dentro de .header-actions, a
        la izquierda del selector de tema. Reusa la caja de .hamburger-button y
@@ -1386,7 +1574,7 @@
     .wsp-option-texto strong { font-size: .85rem; font-weight: 700; color: var(--tinta-900); }
     .wsp-option-texto small { font-size: .72rem; color: var(--tinta-400); }
 
-    /* ---------- 16 · RESPONSIVE ---------- */
+    /* ---------- 17 · RESPONSIVE ---------- */
     @media (max-width: 1180px) {
         .valores-grid,
         .reviews-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1465,6 +1653,10 @@
         .panel { padding: 26px 20px; }
         .panel .btn { width: 100%; }
         .review-card { padding: 22px 20px; }
+        .faq-pregunta { padding: 17px 2px; font-size: .94rem; gap: 14px; }
+        .faq-respuesta { padding: 0 2px 18px; font-size: .9rem; }
+        .faq-pregunta-texto small { font-size: .76rem; }
+        .faq-pregunta-video .fa-play { width: 28px; height: 28px; }
         .review-form-card { padding: 24px 20px; }
         .submit-review-btn { width: 100%; align-self: stretch; }
 
@@ -1486,7 +1678,7 @@
         #whatsappOptions { --wsp-corrimiento: calc(2 * 42px + 2 * 8px); }
     }
 
-    /* ---------- 17 · MOVIMIENTO REDUCIDO ---------- */
+    /* ---------- 18 · MOVIMIENTO REDUCIDO ---------- */
     @media (prefers-reduced-motion: reduce) {
         html { scroll-behavior: auto; }
 
@@ -1500,7 +1692,7 @@
         .acceso:hover, .valor-card:hover, .review-card:hover { transform: none; }
     }
 
-    /* ---------- 18 · MODO OSCURO (excepciones sin variable) ----------
+    /* ---------- 19 · MODO OSCURO (excepciones sin variable) ----------
        Casi toda la página está construida sobre var(--...), así que los tokens
        redefinidos en la sección 1 ya la repintan. Acá van sólo los valores
        sueltos y los cambios de imagen. */
@@ -1608,6 +1800,10 @@
                         <a class="hamburger-dropdown-item" href="#contacto">
                             <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
                             <span>Contacto y showroom</span>
+                        </a>
+                        <a class="hamburger-dropdown-item" href="#faq">
+                            <i class="fas fa-circle-question" aria-hidden="true"></i>
+                            <span>Preguntas frecuentes</span>
                         </a>
                     </div>
                 </div>
@@ -1900,6 +2096,97 @@
         </div>
     </section>
 
+    <!-- === PREGUNTAS FRECUENTES === -->
+    <section class="seccion seccion-alt" id="faq">
+        <div class="contenedor">
+            <div class="seccion-head reveal">
+                <span class="seccion-etiqueta">Preguntas frecuentes</span>
+                <h2>Dudas rápidas antes de comprar</h2>
+                <p>Lo que más nos consultan. Adentro del catálogo mayorista está el listado completo.</p>
+            </div>
+
+            <!-- El name compartido es lo que las vuelve excluyentes: al abrir una
+                 se cierra la anterior, sin JS. -->
+            <div class="faq-lista reveal">
+                <details class="faq-item" name="faq-landing">
+                    <summary class="faq-pregunta">
+                        ¿Cuál es el mínimo de compra?
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="faq-respuesta">
+                        <p>En el local <strong>no hay mínimo ni requisitos</strong>: venís y te llevás lo que necesites. <br> Los envíos cuentan con un mínimo de <strong>$50.000 de compra</strong>.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item" name="faq-landing">
+                    <summary class="faq-pregunta">
+                        ¿Hacen envíos a todo el país?
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="faq-respuesta">
+                        <p>Sí, a todo el país. <strong>Motomensajería y Fletes</strong> para los alrededores. <br> Encomiendas por <strong>Expreso Viacargo y Correo Argentino</strong> para todo el país. <br> El costo de la encomienda lo determinan las empresas según el peso y el tamaño que tenga finalmente el pedido.</p>
+                    </div>
+                </details>
+
+                <!-- Esta no despliega texto: abre el video (ver el script del
+                     final). Va como <button> justamente porque su gesto no es
+                     el mismo que el de los <details> de al lado. -->
+                <div class="faq-item">
+                    <button type="button" class="faq-pregunta faq-pregunta-video" id="faqVideoBtn">
+                        <span class="faq-pregunta-texto">
+                            ¿Cómo hago mi primera compra con envío?
+                            <small>Mirá el paso a paso en video</small>
+                        </span>
+                        <i class="fas fa-play" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <details class="faq-item" name="faq-landing">
+                    <summary class="faq-pregunta">
+                        ¿Cuáles son las formas de pago?
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="faq-respuesta">
+                        <p>Aceptamos <strong>efectivo</strong>, <strong>transferencia bancaria</strong> o de <strong>MercadoPago</strong>. <br> Tarjetas, únicamente acercándote al local.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item" name="faq-landing">
+                    <summary class="faq-pregunta">
+                        ¿Los artículos tienen garantía?
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="faq-respuesta">
+                        <p>Sí, cambio o reparación por defectos de fabricación únicamente (no aplicable a daños estéticos), sujeto a evaluación técnica previa. Los tiempos de respuesta y de garantia varían según el producto. <br> <strong>La garantía no cubre gastos de envío o despacho</strong>.</p>
+                    </div>
+                </details>
+            </div>
+
+            <p class="faq-pie reveal">
+                ¿Te quedó otra duda? <a href="https://api.whatsapp.com/send/?phone=5491121891006" target="_blank" rel="noopener">Escribinos por WhatsApp</a> o mirá todas las preguntas en el <a href="catalogo.html">catálogo</a>.
+            </p>
+        </div>
+    </section>
+
+    <!-- Reproductor del video de la primera compra · vive fuera de la sección
+         para poder taparla entera sin moverla: al cerrarlo, la lista de
+         preguntas queda donde estaba. -->
+    <div class="video-overlay" id="videoOverlay" role="dialog" aria-modal="true"
+         aria-label="Video: cómo hacer tu primera compra con envío">
+        <div class="video-caja">
+            <button type="button" class="video-cerrar" id="videoCerrarBtn" aria-label="Cerrar video">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            <iframe id="videoTutorialFrame"
+                    src=""
+                    title="Cómo hacer tu primera compra con envío"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+
     <!-- === PIE === -->
     <footer class="site-footer">
         <div class="footer-grid">
@@ -2073,7 +2360,7 @@
 
         // === Menú de contacto por WhatsApp (header) ===
         // Abre y cierra por clase, no por style.display: la clase es la que
-        // dispara la transición del panel (ver sección 15 del CSS).
+        // dispara la transición del panel (ver sección 16 del CSS).
         function toggleMenuWsp(event) {
             event.stopPropagation();
             const options = document.getElementById('whatsappOptions');
@@ -2179,6 +2466,50 @@
                 const indice = hermanos.indexOf(el);
                 el.style.transitionDelay = (Math.min(indice, 5) * 70) + 'ms';
                 observer.observe(el);
+            });
+        })();
+
+        // === Video de la primera compra (preguntas frecuentes) ===
+        // El src se escribe recién al abrir: así el reproductor no se descarga
+        // con la página, y al cerrar se borra porque ocultar el overlay no
+        // detiene la reproducción — el video seguiría sonando detrás de la
+        // lista. playsinline evita que iOS se lo lleve a su propia pantalla
+        // completa, que es justamente sacar al cliente de la web.
+        (function () {
+            const overlay = document.getElementById('videoOverlay');
+            const marco = document.getElementById('videoTutorialFrame');
+            const abrirBtn = document.getElementById('faqVideoBtn');
+            const cerrarBtn = document.getElementById('videoCerrarBtn');
+            if (!overlay || !marco || !abrirBtn || !cerrarBtn) return;
+
+            const FUENTE = 'https://www.youtube.com/embed/0LWrdRS-85I?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+
+            function abrir() {
+                marco.src = FUENTE;
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                cerrarBtn.focus();
+            }
+
+            function cerrar() {
+                if (!overlay.classList.contains('active')) return;
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+                marco.src = '';
+                abrirBtn.focus();   // el foco vuelve a la pregunta que lo abrió
+            }
+
+            abrirBtn.addEventListener('click', abrir);
+            cerrarBtn.addEventListener('click', cerrar);
+
+            overlay.addEventListener('click', function (e) {
+                // Cierra desde cualquier punto del velo; dentro de la caja del
+                // video, no.
+                if (!e.target.closest('.video-caja')) cerrar();
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') cerrar();
             });
         })();
 
