@@ -69,8 +69,7 @@ let currentLightboxImages = [];
 let currentImageIndex = 0;
 let datosExtraCliente = {}; // Datos del cliente para el pedido
 let itemsOriginalesPedido = []; // Snapshot de los items originales del pedido (modo edición)
-// 'envio' | 'retiro' - se elige al agregar el primer artículo al carrito y bifurca el flujo del checkout.
-// En Firebase no se registra: solo se guardan pedidos de envío (los de retiro van por WhatsApp).
+// Todos los pedidos se registran como 'envio'
 let tipoEntrega = '';
 
 const TIPO_ENTREGA_STORAGE_KEY = 'tipoEntregaMayorista';
@@ -101,10 +100,9 @@ function limpiarTipoEntrega() {
     }
 }
 
-// El descuento del 10% solo corre para envíos. En modo edición el pedido original siempre
-// es de envío (los de retiro no se registran en Firebase), así que lo mantiene.
+// El descuento del 10% solo corre para envíos. Todos los pedidos son envío.
 function entregaConDescuento() {
-    return modoEdicion || tipoEntrega === 'envio';
+    return true;
 }
 
 // Función para guardar el carrito en localStorage
@@ -180,10 +178,9 @@ function cargarCarritoLocal() {
             carrito = JSON.parse(carritoGuardado);
         }
 
-        // La entrega elegida solo tiene sentido mientras el carrito siga cargado
-        const entregaGuardada = localStorage.getItem(TIPO_ENTREGA_STORAGE_KEY);
-        if (carrito.length > 0 && (entregaGuardada === 'envio' || entregaGuardada === 'retiro')) {
-            tipoEntrega = entregaGuardada;
+        // Todos los pedidos se registran como 'envio'
+        if (carrito.length > 0) {
+            tipoEntrega = 'envio';
         } else {
             limpiarTipoEntrega();
         }
@@ -200,9 +197,7 @@ function cargarCarritoLocal() {
 
 // === Último pedido del cliente (para el acceso rápido de la barra inferior) ===
 // Solo se registran los pedidos de envío: son los únicos que llegan a Firebase y
-// por lo tanto los únicos con un id que pueda abrir pedidos.html. Los de retiro
-// se cierran por WhatsApp y no tienen id, así que no se guardan (el cliente
-// siempre conserva la búsqueda por email del modal #ultimoPedidoModal).
+// por lo tanto todos tienen un id que puede abrir pedidos.html.
 const ULTIMO_PEDIDO_STORAGE_KEY = 'ultimoPedidoMayorista';
 
 function guardarUltimoPedidoLocal({ id, email, unidades, total, timestamp }) {
@@ -1016,14 +1011,12 @@ function reconciliarCarritoConStock() {
     }
 }
 
-// Antes de sumar el primer artículo hay que saber cómo lo va a recibir el cliente.
-// Si cierra el modal sin elegir, no se ejecuta el callback y no se agrega nada al carrito.
+// Todos los pedidos se registran automáticamente como "Envio"
 function pedirTipoEntregaSiHaceFalta(onElegido) {
-    if (modoEdicion || tipoEntrega) {
-        onElegido();
-        return;
+    if (!tipoEntrega) {
+        setTipoEntrega('envio');
     }
-    mostrarModalTipoEntrega(onElegido); // definida en catalogo.html
+    onElegido();
 }
 
 function agregarAlCarrito(nombre, precio, cantidad, codigo, categoria) {
@@ -1965,10 +1958,9 @@ function enviarPedido() {
         return;
     }
 
-    // Respaldo: carritos restaurados de una sesión previa a este cambio, o modal cerrado sin elegir
+    // Asegurar que tipoEntrega esté establecido
     if (!tipoEntrega) {
-        mostrarModalTipoEntrega(continuarCheckout);
-        return;
+        setTipoEntrega('envio');
     }
 
     continuarCheckout();
@@ -1979,12 +1971,6 @@ function enviarPedido() {
 function enviarPedidoFinal() {
     if (carrito.length === 0 && !modoEdicion) {
         alert("El carrito está vacío.");
-        return;
-    }
-
-    // El retiro no valida stock: el representante lo ajusta al responder por WhatsApp
-    if (tipoEntrega === 'retiro') {
-        _enviarPedidoFinalConfirmado();
         return;
     }
 
@@ -2055,16 +2041,9 @@ function _enviarPedidoFinalConfirmado() {
         return;
     }
 
-    // El tipo de entrega se elige al cargar el carrito; sin él no se genera el pedido
+    // Asegurar que tipoEntrega esté establecido
     if (!tipoEntrega) {
-        alert("Elegí cómo querés recibir tu pedido antes de confirmarlo.");
-        return;
-    }
-
-    // Los pedidos de retiro no se registran en Firebase: se cierran por WhatsApp
-    if (tipoEntrega === 'retiro') {
-        mostrarModalPedidoWhatsApp(construirMensajeWhatsAppRetiro());
-        return;
+        setTipoEntrega('envio');
     }
 
     // Primero verificar si el cliente ya está registrado

@@ -2091,106 +2091,6 @@
 
     .info-item span { font-size: .9rem; color: var(--tinta-900); font-weight: 500; }
 
-    /* Tipo de entrega */
-    .entrega-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    .entrega-card {
-        background: var(--superficie);
-        border: 1px solid var(--borde-fuerte);
-        border-radius: var(--radio-md);
-        padding: 20px 14px;
-        text-align: center;
-        cursor: pointer;
-        transition: border-color var(--t), background var(--t), transform var(--t);
-        user-select: none;
-    }
-
-    .entrega-card:hover {
-        border-color: var(--verde-600);
-        background: var(--verde-050);
-        transform: translateY(-2px);
-    }
-
-    .entrega-card i {
-        font-size: 1.7em;
-        color: var(--tinta-400);
-        display: block;
-        margin-bottom: 12px;
-        transition: color var(--t);
-    }
-
-    .entrega-card .entrega-titulo {
-        font-family: var(--ui);
-        font-weight: 700;
-        color: var(--tinta-900);
-        font-size: .95rem;
-        display: block;
-    }
-
-    /* Una línea de contexto bajo cada opción, en el mismo tono secundario que
-       .entrega-resumen-sub (el resumen que aparece después, ya elegida la
-       opción): dice qué implica cada camino sin competir con el título.
-       No necesita alto reservado para igualar las tarjetas: son celdas de un
-       grid y el stretch las deja del mismo alto aunque una envuelva. */
-    /* --tinta-600 y no --tinta-400: a .76rem el gris más claro queda por debajo
-       del contraste mínimo sobre blanco. La jerarquía frente al título la marcan
-       igual el tamaño y el peso. */
-    .entrega-card .entrega-sub {
-        display: block;
-        margin-top: 5px;
-        font-size: .76rem;
-        font-weight: 500;
-        line-height: 1.3;
-        color: var(--tinta-600);
-        transition: color var(--t);
-    }
-
-    .entrega-card:hover .entrega-sub,
-    .entrega-card.selected .entrega-sub { color: var(--tinta-700); }
-
-    .entrega-card.selected {
-        border-color: var(--verde-600);
-        background: var(--verde-050);
-        box-shadow: 0 0 0 3px rgba(55,101,80,.14);
-    }
-
-    .entrega-card.selected i { color: var(--verde-600); }
-
-    .entrega-detalle {
-        margin-top: 15px;
-        background: var(--verde-050);
-        border: 1px solid var(--verde-100);
-        border-radius: var(--radio-sm);
-        padding: 15px;
-        font-size: .9rem;
-        color: var(--tinta-700);
-        line-height: 1.6;
-    }
-
-    .entrega-detalle a { color: var(--verde-700); font-weight: 700; }
-
-    .entrega-resumen {
-        background: var(--superficie-2);
-        border: 1px solid var(--borde);
-        border-radius: var(--radio-md);
-        padding: 16px;
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        color: var(--tinta-900);
-    }
-
-    .entrega-resumen i { font-size: 1.4em; color: var(--verde-600); flex-shrink: 0; }
-    .entrega-resumen strong { font-size: .95rem; }
-
-    .entrega-resumen .entrega-resumen-sub {
-        display: block;
-        font-size: .82rem;
-        color: var(--tinta-600);
-        margin-top: 2px;
-        font-weight: 400;
-    }
-
     /* Detalle de ítems del pedido */
     .pedido-items { display: flex; flex-direction: column; gap: 8px; }
 
@@ -4479,73 +4379,6 @@
         </div>
     </div>
 
-    <!-- === Paso 1: Modal de tipo de entrega === -->
-    <div id="tipoEntregaModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <button id="closeTipoEntregaModal" class="modal-close" aria-label="Cerrar">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="modal-header">
-                <h2><i class="fas fa-dolly"></i> ¿Cómo querés recibir tu pedido?</h2>
-                <p>Elegí una opción para continuar</p>
-            </div>
-
-            <div class="modal-body">
-                <div class="entrega-opciones">
-                    <div class="entrega-card" data-tipo="envio" role="button" tabindex="0">
-                        <i class="fas fa-truck"></i>
-                        <span class="entrega-titulo">Envío</span>
-                        <span class="entrega-sub">Despachamos a todo el país</span>
-                    </div>
-                    <div class="entrega-card" data-tipo="retiro" role="button" tabindex="0">
-                        <i class="fas fa-store"></i>
-                        <span class="entrega-titulo">Retiro</span>
-                        <span class="entrega-sub">Retirá en Munro, Zona Norte</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- === Paso 2 (retiro): datos mínimos de contacto === -->
-    <div id="retiroDatosModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <button id="closeRetiroDatosModal" class="modal-close" aria-label="Cerrar">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="modal-header">
-                <h2><i class="fas fa-store"></i> Retiro en el showroom</h2>
-                <p>Necesitamos tus datos para contactarte</p>
-            </div>
-
-            <div class="modal-body">
-                <div class="info-text">
-                    <i class="fab fa-whatsapp"></i>
-                    <span>Un representante se pondrá en contacto por WhatsApp para finalizar el pedido. Esperá a que te contactemos antes de acercarte a retirar.</span>
-                </div>
-
-                <div class="form-group">
-                    <label for="retiroNombreInput">Nombre y Apellido</label>
-                    <input id="retiroNombreInput" type="text" placeholder="Ingresá tu nombre completo" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="retiroTelefonoInput">Teléfono</label>
-                    <input id="retiroTelefonoInput" type="tel" inputmode="tel" autocomplete="tel"
-                           placeholder="Ej: 11 2345 6789" maxlength="20" required
-                           aria-describedby="retiroTelefonoAyuda">
-                    <small id="retiroTelefonoAyuda" class="form-hint">Código de área + número, sin el 0 ni el 15.</small>
-                    <p id="retiroTelefonoError" class="form-error" role="alert" hidden></p>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button id="retiroContinuarBtn">
-                    <i class="fas fa-check-circle"></i> Continuar con el Pedido
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- === Modal solicitar datos de cliente === -->
     <div id="clienteModal" class="modal">
@@ -5085,36 +4918,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// === Elección del tipo de entrega ===
-// Se pide al agregar el primer artículo al carrito (pedirTipoEntregaSiHaceFalta en mayorista.js),
-// desde el botón "Cambiar" del carrito, y como respaldo al tocar "Enviar Pedido".
-// onElegido solo se ejecuta si el cliente elige una opción: si cierra el modal, se descarta.
-let _onTipoEntregaElegido = null;
-
-function mostrarModalTipoEntrega(onElegido) {
-    _onTipoEntregaElegido = typeof onElegido === 'function' ? onElegido : null;
-
-    const modal = document.getElementById('tipoEntregaModal');
-    if (!modal) return;
-
-    // Marcar la opción vigente (al reabrir para cambiarla)
-    modal.querySelectorAll('.entrega-card').forEach(card => {
-        card.classList.toggle('selected', card.dataset.tipo === tipoEntrega);
-    });
-
-    modal.style.display = 'flex';
-}
-
-// Con la entrega ya elegida, arranca el flujo correspondiente. La invoca enviarPedido() (mayorista.js).
-function continuarCheckout() {
-    if (tipoEntrega === 'retiro') {
-        continuarConRetiro();
-    } else {
-        continuarConEnvio();
-    }
-}
-
+// Todos los pedidos se registran como envío
 // Camino de envío: monto mínimo -> stock -> formulario completo de datos
+function continuarCheckout() {
+    continuarConEnvio();
+}
+
 function continuarConEnvio() {
     // El mínimo de compra solo aplica a los envíos: $90.000 y al menos 3
     // artículos o unidades en total (iguales o distintos)
@@ -5138,25 +4947,6 @@ function continuarConEnvio() {
         const clienteModal = document.getElementById('clienteModal');
         if (clienteModal) clienteModal.style.display = 'flex';
     });
-}
-
-// Camino de retiro: sin monto mínimo ni validación de stock, solo nombre y teléfono
-function continuarConRetiro() {
-    const modal = document.getElementById('retiroDatosModal');
-    if (!modal) return;
-
-    // Arrancar siempre con los campos vacíos y sin el error de la vez anterior
-    document.getElementById('retiroNombreInput').value = '';
-    const telInput = document.getElementById('retiroTelefonoInput');
-    telInput.value = '';
-    telInput.classList.remove('is-invalid');
-    telInput.removeAttribute('aria-invalid');
-    const telError = document.getElementById('retiroTelefonoError');
-    if (telError) {
-        telError.hidden = true;
-        telError.textContent = '';
-    }
-    modal.style.display = 'flex';
 }
 
 // Función global para mostrar el modal de confirmación
@@ -5275,29 +5065,24 @@ function mostrarModalConfirmacion() {
     confirmacionModal.style.display = 'flex';
 }
 
-// Muestra en el modal de confirmación el tipo de entrega elegido en el paso 1 (solo lectura)
+// Muestra en el modal de confirmación el tipo de entrega (siempre Envío)
 function pintarResumenTipoEntrega() {
     const seccion = document.getElementById('tipoEntregaSection');
     const resumen = document.getElementById('tipoEntregaResumen');
     if (!seccion || !resumen) return;
 
-    // En modo edición el pedido original ya define su tipo de entrega
-    if (modoEdicion || !tipoEntrega) {
+    // En modo edición no mostrar la sección
+    if (modoEdicion) {
         seccion.style.display = 'none';
         return;
     }
 
-    const datos = {
-        envio:  { icono: 'fa-truck', titulo: 'Envío a domicilio', sub: 'Coordinamos el despacho con los datos que cargaste.' },
-        retiro: { icono: 'fa-store', titulo: 'Retiro en el local', sub: 'Un representante te va a contactar por WhatsApp.' }
-    }[tipoEntrega];
-
     seccion.style.display = '';
     resumen.innerHTML = `
-        <i class="fas ${datos.icono}"></i>
+        <i class="fas fa-truck"></i>
         <span>
-            <strong>${datos.titulo}</strong>
-            <span class="entrega-resumen-sub">${datos.sub}</span>
+            <strong>Envío a domicilio</strong>
+            <span class="entrega-resumen-sub">Coordinamos el despacho con los datos que cargaste.</span>
         </span>
     `;
 }
@@ -5314,151 +5099,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // El carrito se mantiene intacto
     });
 
-    // === Selector de tipo de entrega ===
-    const tipoEntregaModal = document.getElementById('tipoEntregaModal');
-
-    // Cierre sin elegir: se descarta la acción pendiente (no se agrega el artículo)
-    function cerrarTipoEntregaModal() {
-        _onTipoEntregaElegido = null;
-        tipoEntregaModal.style.display = 'none';
-    }
-
-    document.querySelectorAll('#tipoEntregaModal .entrega-card').forEach(card => {
-        const elegir = () => {
-            setTipoEntrega(card.dataset.tipo); // función del mayorista.js: asigna y persiste
-            tipoEntregaModal.style.display = 'none';
-
-            const continuar = _onTipoEntregaElegido;
-            _onTipoEntregaElegido = null;
-            if (continuar) continuar();
-
-            // Con carrito cargado hay que recalcular: el descuento del 10% solo aplica a envíos
-            if (carrito.length > 0) {
-                actualizarCarrito();
-            } else {
-                pintarEntregaEnCarrito(); // solo la fila "Entrega" del panel del carrito
-            }
-        };
-        card.addEventListener('click', elegir);
-        card.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                elegir();
-            }
-        });
-    });
-
-    document.getElementById('closeTipoEntregaModal').addEventListener('click', cerrarTipoEntregaModal);
-    tipoEntregaModal.addEventListener('mousedown', function(e) {
-        if (e.target === tipoEntregaModal) cerrarTipoEntregaModal();
-    });
-
-    // === Paso 2 (retiro): datos mínimos de contacto ===
-    const retiroDatosModal = document.getElementById('retiroDatosModal');
-
-    function cerrarRetiroDatosModal() {
-        retiroDatosModal.style.display = 'none';
-    }
-    document.getElementById('closeRetiroDatosModal').addEventListener('click', cerrarRetiroDatosModal);
-    retiroDatosModal.addEventListener('mousedown', function(e) {
-        if (e.target === retiroDatosModal) cerrarRetiroDatosModal();
-    });
-
-    // --- Validación del teléfono de retiro ---------------------------------
-    // El pedido se cierra por WhatsApp: si el número no sirve, el pedido se
-    // pierde. Por eso el campo se valida acá y no sólo con el required del HTML
-    // (el modal no es un <form>, así que el navegador nunca lo comprueba solo).
-    const retiroTelefonoInput = document.getElementById('retiroTelefonoInput');
-    const retiroTelefonoError = document.getElementById('retiroTelefonoError');
-
-    // Deja los 10 dígitos nacionales (código de área + abonado) tolerando lo que
-    // la gente escribe de verdad: +54 / 0054, el 9 de los móviles, el 0 de larga
-    // distancia y el 15 intercalado después del código de área (2 a 4 dígitos).
-    function normalizarTelefonoAr(valor) {
-        let d = (valor || '').replace(/\D/g, '');
-        if (d.startsWith('0054')) d = d.slice(4);
-        else if (d.startsWith('54')) d = d.slice(2);
-        if (d.length === 11 && d.startsWith('9')) d = d.slice(1);
-        if (d.startsWith('0')) d = d.slice(1);
-        if (d.length === 12) {
-            for (const corte of [2, 3, 4]) {
-                if (d.slice(corte, corte + 2) === '15') {
-                    d = d.slice(0, corte) + d.slice(corte + 2);
-                    break;
-                }
-            }
-        }
-        return d;
-    }
-
-    function validarTelefonoRetiro(valor) {
-        const bruto = (valor || '').trim();
-        if (!bruto) return { ok: false, mensaje: 'Ingresá tu teléfono para que podamos contactarte.' };
-
-        const d = normalizarTelefonoAr(bruto);
-        if (d.length !== 10) {
-            return { ok: false, mensaje: 'El teléfono debe tener 10 dígitos: código de área + número, sin el 0 ni el 15.' };
-        }
-        // Descarta rellenos obvios (0000000000, 1111111111, 1234567890)
-        if (/^(\d)\1{9}$/.test(d) || d === '1234567890') {
-            return { ok: false, mensaje: 'Ese número no parece válido. Revisalo, por favor.' };
-        }
-        return { ok: true, numero: d };
-    }
-
-    function mostrarErrorTelefonoRetiro(mensaje) {
-        retiroTelefonoError.innerHTML = '<i class="fas fa-circle-exclamation"></i>' +
-            '<span>' + mensaje + '</span>';
-        retiroTelefonoError.hidden = false;
-        retiroTelefonoInput.classList.add('is-invalid');
-        retiroTelefonoInput.setAttribute('aria-invalid', 'true');
-    }
-
-    function limpiarErrorTelefonoRetiro() {
-        retiroTelefonoError.hidden = true;
-        retiroTelefonoError.textContent = '';
-        retiroTelefonoInput.classList.remove('is-invalid');
-        retiroTelefonoInput.removeAttribute('aria-invalid');
-    }
-
-    // Mientras escribe sólo se filtran los caracteres imposibles (se permiten
-    // los separadores de uso corriente) y se retira el error: corregir a cada
-    // tecla molesta más de lo que ayuda. El veredicto llega al salir del campo.
-    retiroTelefonoInput.addEventListener('input', function() {
-        const limpio = this.value.replace(/[^\d\s()+-]/g, '');
-        if (limpio !== this.value) this.value = limpio;
-        limpiarErrorTelefonoRetiro();
-    });
-
-    retiroTelefonoInput.addEventListener('blur', function() {
-        if (!this.value.trim()) return;   // vacío se avisa recién al continuar
-        const r = validarTelefonoRetiro(this.value);
-        if (!r.ok) mostrarErrorTelefonoRetiro(r.mensaje);
-    });
-
-    document.getElementById('retiroContinuarBtn').addEventListener('click', function() {
-        const nombreInput = document.getElementById('retiroNombreInput');
-        const nombre = nombreInput.value.trim();
-
-        if (!nombre) {
-            alert('Por favor completá tu nombre para continuar.');
-            nombreInput.focus();
-            return;
-        }
-
-        const tel = validarTelefonoRetiro(retiroTelefonoInput.value);
-        if (!tel.ok) {
-            mostrarErrorTelefonoRetiro(tel.mensaje);
-            retiroTelefonoInput.focus();
-            return;
-        }
-
-        // Se guarda normalizado: es el número que el representante va a marcar.
-        datosExtraCliente = { nombre: nombre, telefono: tel.numero };
-        limpiarErrorTelefonoRetiro();
-        retiroDatosModal.style.display = 'none';
-        mostrarModalConfirmacion();
-    });
 
     // Botón Confirmar - ejecuta el envío del pedido
     confirmarBtn.addEventListener('click', function() {
