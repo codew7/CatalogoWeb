@@ -2,7 +2,7 @@
 emailjs.init("vcbQsbE2bgLwFAnDr");
 
 // Constants
-const WHATSAPP_URL = "https://api.whatsapp.com/send/?phone=5491121891006";
+const WHATSAPP_URL = "https://api.whatsapp.com/send/?phone=5491176460030";
 const MARQUEE_TEXT = "💲&nbsp; Los valores publicados se encuentran ligados a la cotización del dólar del día &nbsp; 🛒🛍️ &nbsp; Visita nuestro Showroom y comprá sin requisitos minimos de compra &nbsp; 🚚 &nbsp; ENVÍOS A TODO EL PAÍS";
 const VALOR_CONSUMIDOR = "6";
 const OFERTA_INTERIOR = "4";
@@ -1649,7 +1649,7 @@ function mostrarModalPedidoWhatsApp(mensaje) {
                     <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
                 </a>
                 <p style="margin:15px 0 0 0;color:#888;font-size:0.85em;line-height:1.5;">
-                    Si el botón no abre WhatsApp, escribinos al<br><strong>+54 9 11 2189-1006</strong>
+                    Si el botón no abre WhatsApp, escribinos al<br><strong>+54 9 11 7646-0030</strong>
                 </p>
             </div>
         </div>
