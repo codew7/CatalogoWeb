@@ -1359,20 +1359,15 @@ function pintarEntregaEnCarrito() {
     const fila = document.getElementById('cartEntrega');
     if (!fila) return;
 
-    if (modoEdicion || carrito.length === 0 || !tipoEntrega) {
+    if (modoEdicion || carrito.length === 0) {
         fila.style.display = 'none';
         return;
     }
 
-    const datos = {
-        envio:  { icono: 'fa-truck', titulo: 'Envío' },
-        retiro: { icono: 'fa-store', titulo: 'Retiro' }
-    }[tipoEntrega];
-
     const icono = document.getElementById('cartEntregaIcono');
     const texto = document.getElementById('cartEntregaTexto');
-    if (icono) icono.className = `fas ${datos.icono}`;
-    if (texto) texto.textContent = datos.titulo;
+    if (icono) icono.className = 'fas fa-truck';
+    if (texto) texto.textContent = 'Envío';
 
     fila.style.display = 'flex';
 }
@@ -1609,7 +1604,7 @@ function construirMensajeWhatsAppRetiro() {
     return [...encabezado, ...compacto, ...pie].join('\n');
 }
 
-// Modal final del pedido de retiro: ofrece el enlace para enviarlo por WhatsApp.
+// Modal final del pedido: ofrece el enlace para enviarlo por WhatsApp.
 function mostrarModalPedidoWhatsApp(mensaje) {
     // Elimina cualquier modal previo
     let modalExistente = document.getElementById('pedido-whatsapp-modal');

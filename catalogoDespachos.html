@@ -1579,32 +1579,6 @@
     .cart-entrega-label i { color: var(--verde-600); }
     .cart-entrega-label strong { color: var(--tinta-900); font-weight: 700; }
 
-    .cart-container .cart-entrega-cambiar {
-        flex: 0 0 auto;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        background: var(--superficie);
-        color: var(--verde-700);
-        border: 1px solid var(--borde-fuerte);
-        border-radius: var(--radio-full);
-        font-family: var(--ui);
-        font-size: .74rem;
-        font-weight: 700;
-        cursor: pointer;
-        box-shadow: none;
-        transition: background var(--t), border-color var(--t);
-    }
-
-    .cart-container .cart-entrega-cambiar:hover {
-        background: var(--verde-050);
-        border-color: var(--verde-600);
-        box-shadow: none;
-    }
-
-    .cart-container .cart-entrega-cambiar i { font-size: .85em; }
-
     .cart-discount {
         display: flex;
         justify-content: space-between;
@@ -4351,9 +4325,6 @@
                 <i class="fas fa-truck" id="cartEntregaIcono"></i>
                 Entrega: <strong id="cartEntregaTexto">Envío</strong>
             </span>
-            <button type="button" class="cart-entrega-cambiar" onclick="mostrarModalTipoEntrega()">
-                <i class="fas fa-pen"></i> Cambiar
-            </button>
         </div>
         <div class="cart-discount" id="cartDiscount" style="display:none;">
             <span class="cart-discount-label"><i class="fas fa-tags"></i>Descuento (10%)</span>
