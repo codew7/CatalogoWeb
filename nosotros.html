@@ -1,0 +1,2587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HomePoint - Distribuidora Mayorista y Minorista de artículos para el hogar, electrónicos y bienestar personal. Envíos a todo el país.">
+    <meta name="keywords" content="mayorista, venta mayorista, hogar, HomePoint, distribuidora homepoint, productos ganadores, emprendedores, emprendedor, revendedores, reventa de articulos, venta al por mayor, atención personalizada,">
+    <title>Bienvenido || Distribuidora HomePoint</title>
+
+    <!-- Tema inicial · mismo criterio que el catálogo (catalogo.html): corre
+         antes del primer pintado para que no haya destello de modo claro.
+         Prioridad: la elección manual guardada; si el usuario nunca tocó el
+         interruptor, se adopta la preferencia del sistema operativo. La clave
+         de localStorage es la misma ('theme'), así el tema viaja entre la
+         landing y el catálogo sin que el usuario tenga que volver a elegir. -->
+    <script>
+        (function () {
+            var guardado = null;
+            try { guardado = localStorage.getItem('theme'); } catch (e) {}
+            var oscuro = guardado
+                ? guardado === 'dark'
+                : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (oscuro) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+
+    <!-- Favicon -->
+    <link rel="icon" href="faviconnegro.png" type="image/png">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <!-- Google Fonts · misma familia que el catálogo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5P63433D');</script>
+    <!-- End Google Tag Manager -->
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4KVPQ6RYRQ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-4KVPQ6RYRQ');
+    </script>
+
+    <style>
+    /* ==========================================================================
+       HOMEPOINT · PÁGINA DE BIENVENIDA
+       --------------------------------------------------------------------------
+       Este archivo comparte el sistema visual del catálogo (catalogo.html):
+       los mismos tokens, la misma tipografía, los mismos radios, sombras y
+       componentes de encabezado, franja informativa y pie. La landing y el
+       catálogo son la misma pieza: quien pasa de una a otra no debería notar
+       un cambio de lenguaje, sólo de contenido.
+
+       AL EDITAR: si cambian los tokens de catalogo.html, replicarlos acá
+       (sección 1). Los nombres de las clases del bloque de reseñas
+       (.review-card, .review-stars, .review-form, .star-rating, etc.) son
+       contrato con rws.js, que inyecta ese markup: no renombrarlos.
+       Capas: tokens → base → layout → componentes → responsive
+       ========================================================================== */
+
+    /* ---------- 1 · TOKENS ----------
+       Copiados de catalogo.html. El verde queda reservado a acciones y
+       destacados; el resto de la interfaz es neutra. */
+    :root {
+        --verde-900:#111827;   /* superficies oscuras: neutro, no verde */
+        --verde-800:#1b5140;   /* textos de acento sobre fondo claro */
+        --verde-700:#2c5341;   /* hover de acciones */
+        --verde-600:#376550;   /* botones primarios */
+        --verde-100:#d5e2dc;
+        --verde-050:#eef3f0;
+
+        --navy:#12365c;        /* acento frío de la franja informativa */
+
+        --ambar:#b06a12;
+        --ambar-700:#8a5210;
+        --ambar-050:#fdf4e7;
+
+        --rojo:#b42318;
+        --rojo-700:#8f1d15;
+        --rojo-050:#fdeceb;
+
+        --bg:#f8f9fa;
+        --superficie:#ffffff;
+        --superficie-2:#fafafa;
+        --borde:#e8eaed;
+        --borde-fuerte:#dcdfe4;
+
+        --tinta-900:#111827;
+        --tinta-700:#374151;
+        --tinta-600:#4b5563;
+        --tinta-400:#858a94;
+
+        --radio-sm:8px;
+        --radio-md:12px;
+        --radio-lg:16px;
+        --radio-full:999px;
+
+        --sombra-1:0 1px 2px rgba(17,24,39,.04);
+        --sombra-2:0 6px 20px -8px rgba(17,24,39,.14);
+        --sombra-3:0 24px 60px -22px rgba(17,24,39,.34);
+
+        --t:180ms cubic-bezier(.4,0,.2,1);
+        --ancho:1340px;
+        --ancho-texto:820px;   /* medida de lectura para bloques editoriales */
+
+        --ui:'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+        --display:var(--ui);
+
+        color-scheme: light;
+    }
+
+    /* Modo oscuro: redefine los mismos tokens, así toda la página (construida
+       sobre var(--...)) se re-pinta sola. Se activa con data-theme="dark" en
+       <html> (ver script inline del <head> y el toggle del final). */
+    :root[data-theme="dark"] {
+        --verde-900:#1a2230;
+        --verde-800:#4fae6c;
+        --verde-700:#5cbf7a;
+        --verde-600:#376550;
+        --verde-100:#1c3226;
+        --verde-050:#16241c;
+
+        --navy:#4a9b63;
+
+        --ambar:#e0973a;
+        --ambar-700:#f0b45c;
+        --ambar-050:#2b2013;
+
+        --rojo:#ef5350;
+        --rojo-700:#ff8a80;
+        --rojo-050:#2a1512;
+
+        --bg:#0c0d0f;
+        --superficie:#17181b;
+        --superficie-2:#1e2023;
+        --borde:#2a2c30;
+        --borde-fuerte:#3a3d42;
+
+        --tinta-900:#f4f5f6;
+        --tinta-700:#cdd0d4;
+        --tinta-600:#a3a7ad;
+        --tinta-400:#73767c;
+
+        --sombra-1:0 1px 2px rgba(0,0,0,.4);
+        --sombra-2:0 6px 20px -8px rgba(0,0,0,.55);
+        --sombra-3:0 24px 60px -22px rgba(0,0,0,.7);
+
+        color-scheme: dark;
+    }
+
+    /* ---------- 2 · BASE ---------- */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    * { margin: 0; padding: 0; }
+
+    html {
+        -webkit-text-size-adjust: 100%;
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: var(--ui);
+        background-color: var(--bg);
+        color: var(--tinta-900);
+        font-size: 16px;
+        line-height: 1.55;
+        letter-spacing: -.005em;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    img { max-width: 100%; }
+
+    a { color: var(--verde-700); text-decoration: none; }
+
+    h1, h2, h3, h4 {
+        font-family: var(--display);
+        font-weight: 600;
+        letter-spacing: -.015em;
+        color: var(--tinta-900);
+    }
+
+    ul { list-style: none; }
+
+    ::selection { background: var(--verde-050); color: var(--tinta-900); }
+
+    :focus-visible {
+        outline: 2px solid var(--verde-600);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+
+    /* Ancho común de todas las bandas de contenido: el mismo del catálogo,
+       para que las dos páginas compartan márgenes y ritmo. */
+    .contenedor {
+        width: min(100% - 40px, var(--ancho));
+        margin-inline: auto;
+    }
+
+    /* El encabezado es pegajoso, así que los anclas necesitan aire arriba
+       para no quedar tapadas al saltar a una sección. */
+    section[id] { scroll-margin-top: 96px; }
+
+    /* ---------- 3 · ANIMACIONES ---------- */
+    @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(28px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes slideInRight { from { transform: translateX(18px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* Entrada progresiva al hacer scroll · el estado inicial sólo se aplica si
+       hay JS (la clase la pone el script), así sin JS no queda nada invisible. */
+    .js .reveal {
+        opacity: 0;
+        transform: translateY(22px);
+        transition: opacity .6s cubic-bezier(.4,0,.2,1), transform .6s cubic-bezier(.4,0,.2,1);
+    }
+
+    .js .reveal.visible { opacity: 1; transform: none; }
+
+    /* ---------- 4 · ENCABEZADO ---------- */
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: color-mix(in srgb, var(--superficie) 88%, transparent);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--borde);
+    }
+
+    /* Respaldo para navegadores sin color-mix: fondo sólido. */
+    @supports not (background: color-mix(in srgb, white 50%, transparent)) {
+        .site-header { background: var(--superficie); }
+    }
+
+    .site-header-inner {
+        width: min(100% - 40px, var(--ancho));
+        margin-inline: auto;
+        min-height: 92px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 18px 0;
+    }
+
+    .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    .brand img {
+        width: 268px;
+        max-width: 60vw;
+        height: auto;
+        display: block;
+    }
+
+    .brand-tag {
+        font-family: var(--ui);
+        font-size: .74rem;
+        font-weight: 600;
+        color: var(--tinta-400);
+        text-transform: uppercase;
+        letter-spacing: .17em;
+        padding-left: 8px;
+    }
+
+    /* Navegación de escritorio · en móvil se reemplaza por el desplegable */
+    .site-nav { display: flex; align-items: center; gap: 4px; }
+
+    .site-nav a {
+        padding: 9px 14px;
+        border-radius: var(--radio-sm);
+        color: var(--tinta-700);
+        font-size: .88rem;
+        font-weight: 600;
+        transition: background var(--t), color var(--t);
+    }
+
+    .site-nav a:hover { background: var(--superficie-2); color: var(--tinta-900); }
+
+    .header-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+
+    /* Botón cuadrado del header (tema y hamburguesa) */
+    .hamburger-menu { position: relative; flex: none; }
+
+    .hamburger-button {
+        width: 46px;
+        height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--superficie);
+        color: var(--tinta-900);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-sm);
+        font-size: 17px;
+        cursor: pointer;
+        transition: background var(--t), border-color var(--t), transform var(--t);
+    }
+
+    .hamburger-button:hover {
+        background: var(--superficie-2);
+        border-color: var(--borde-fuerte);
+        transform: translateY(-1px);
+    }
+
+    .hamburger-dropdown {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        box-shadow: var(--sombra-3);
+        min-width: 248px;
+        padding: 6px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: opacity var(--t), transform var(--t), visibility var(--t);
+        z-index: 1200;
+    }
+
+    .hamburger-dropdown.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .hamburger-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        color: var(--tinta-700);
+        border-radius: var(--radio-sm);
+        cursor: pointer;
+        transition: background var(--t), color var(--t);
+    }
+
+    .hamburger-dropdown-item:hover,
+    .hamburger-dropdown-item:focus-visible {
+        background: var(--verde-050);
+        color: var(--verde-800);
+    }
+
+    .hamburger-dropdown-item i {
+        font-size: 15px;
+        width: 20px;
+        text-align: center;
+        color: var(--verde-600);
+    }
+
+    .hamburger-dropdown-item span { font-size: .9rem; font-weight: 600; }
+
+    /* El menú desplegable es sólo para pantallas chicas: en escritorio manda
+       la navegación en línea. */
+    .hamburger-menu { display: none; }
+
+    /* ---------- 5 · BOTONES ---------- */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        height: 52px;
+        padding: 0 26px;
+        border: 1px solid transparent;
+        border-radius: var(--radio-sm);
+        font-family: var(--ui);
+        font-size: .95rem;
+        font-weight: 700;
+        letter-spacing: -.005em;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background var(--t), border-color var(--t), color var(--t), transform var(--t), box-shadow var(--t);
+    }
+
+    .btn i { font-size: .9em; }
+
+    .btn-primario {
+        background: var(--verde-600);
+        border-color: var(--verde-600);
+        color: #fff;
+        box-shadow: var(--sombra-2);
+    }
+
+    .btn-primario:hover {
+        background: var(--verde-700);
+        border-color: var(--verde-700);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .btn-primario:active { transform: translateY(0); }
+
+    .btn-secundario {
+        background: var(--superficie);
+        border-color: var(--borde-fuerte);
+        color: var(--tinta-900);
+    }
+
+    .btn-secundario:hover {
+        background: var(--superficie-2);
+        border-color: var(--tinta-400);
+        color: var(--tinta-900);
+        transform: translateY(-2px);
+    }
+
+    /* ---------- 6 · PORTADA ---------- */
+    .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 104px 0 96px;   /* el bajo deja lugar al solape de la franja */
+        background: var(--superficie);
+        border-bottom: 1px solid var(--borde);
+    }
+
+    /* Dos capas de fondo, ambas muy tenues: una retícula de puntos que da
+       textura y un halo verde que empuja la mirada hacia el titular. */
+    .hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle, var(--borde-fuerte) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: .5;
+        -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 20%, transparent 75%);
+        mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 20%, transparent 75%);
+    }
+
+    .hero::after {
+        content: '';
+        position: absolute;
+        top: -220px;
+        left: 50%;
+        width: 900px;
+        height: 520px;
+        transform: translateX(-50%);
+        background: radial-gradient(ellipse at center, rgba(55,101,80,.12), transparent 68%);
+        pointer-events: none;
+    }
+
+    .hero-inner {
+        position: relative;
+        z-index: 1;
+        width: min(100% - 40px, var(--ancho-texto));
+        margin-inline: auto;
+        text-align: center;
+    }
+
+    .hero h1 {
+        font-size: clamp(2.3rem, 5.6vw, 3.9rem);
+        font-weight: 800;
+        line-height: 1.06;
+        letter-spacing: -.035em;
+        text-wrap: balance;
+    }
+
+    .hero h1 .acento { color: var(--verde-800); }
+
+    .hero-sub {
+        margin: 22px auto 0;
+        max-width: 620px;
+        font-size: 1.06rem;
+        line-height: 1.65;
+        color: var(--tinta-600);
+        text-wrap: pretty;
+    }
+
+    .hero-cta {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 36px;
+    }
+
+    /* ---------- 7 · FRANJA INFORMATIVA ----------
+       Es la misma pieza que abre el catálogo. Repetirla acá es lo que hace
+       que el salto entre las dos páginas se sienta continuo. */
+    .info-band {
+        width: min(100% - 40px, var(--ancho));
+        margin: -34px auto 0;
+        position: relative;
+        z-index: 2;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-lg);
+        box-shadow: var(--sombra-2);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        align-items: center;
+    }
+
+    .info-band-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 24px;
+        min-width: 0;
+    }
+
+    /* El divisor se dibuja en los ítems siguientes al primero para no dejar
+       un borde suelto cuando se apilan en móvil. */
+    .info-band-item + .info-band-item { position: relative; }
+
+    .info-band-item + .info-band-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1px;
+        height: 46px;
+        background: var(--borde-fuerte);
+    }
+
+    .info-band-icon {
+        width: 30px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--navy);
+        font-size: 23px;
+    }
+
+    .info-band-text {
+        font-size: .84rem;
+        line-height: 1.45;
+        color: var(--tinta-600);
+        min-width: 0;
+    }
+
+    .info-band-text strong {
+        display: block;
+        font-size: .92rem;
+        font-weight: 700;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+        color: var(--tinta-900);
+    }
+
+    /* ---------- 8 · SECCIONES ---------- */
+    .seccion { padding: 76px 0; }
+
+    .seccion-alt { background: var(--superficie); border-block: 1px solid var(--borde); }
+
+    .seccion-head {
+        width: min(100%, var(--ancho-texto));
+        margin: 0 auto 44px;
+        text-align: center;
+    }
+
+    .seccion-etiqueta {
+        display: block;
+        margin-bottom: 14px;
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+    }
+
+    .seccion-head h2 {
+        font-size: clamp(1.7rem, 3.4vw, 2.35rem);
+        font-weight: 700;
+        line-height: 1.16;
+        letter-spacing: -.028em;
+        text-wrap: balance;
+    }
+
+    .seccion-head p {
+        margin: 16px auto 0;
+        max-width: 620px;
+        font-size: 1rem;
+        line-height: 1.7;
+        color: var(--tinta-600);
+        text-wrap: pretty;
+    }
+
+    /* ---------- 9 · ACCESOS AL CATÁLOGO ----------
+       Las dos puertas de entrada al catálogo. La primera es la principal, por
+       eso lleva el borde de acento y el botón lleno. */
+    .accesos {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+        gap: 20px;
+        align-items: stretch;
+    }
+
+    .acceso {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        padding: 34px 32px 32px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-lg);
+        overflow: hidden;
+        transition: border-color var(--t), box-shadow var(--t), transform var(--t);
+    }
+
+    .acceso:hover {
+        border-color: var(--borde-fuerte);
+        box-shadow: var(--sombra-2);
+        transform: translateY(-3px);
+    }
+
+    .acceso-principal { border-color: var(--verde-100); }
+
+    .acceso-principal::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--verde-600);
+    }
+
+    .acceso-principal:hover { border-color: var(--verde-600); }
+
+    .acceso-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .acceso-icono {
+        width: 52px;
+        height: 52px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--verde-050);
+        border: 1px solid var(--verde-100);
+        border-radius: var(--radio-md);
+        color: var(--verde-700);
+        font-size: 20px;
+        transition: background var(--t), color var(--t);
+    }
+
+    .acceso:hover .acceso-icono { background: var(--verde-600); border-color: var(--verde-600); color: #fff; }
+
+    .acceso-badge {
+        padding: 6px 12px;
+        background: var(--verde-050);
+        border: 1px solid var(--verde-100);
+        border-radius: var(--radio-full);
+        font-size: .66rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--verde-800);
+        white-space: nowrap;
+    }
+
+    .acceso h3 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: -.025em;
+        margin-bottom: 10px;
+    }
+
+    .acceso > p {
+        font-size: .94rem;
+        line-height: 1.65;
+        color: var(--tinta-600);
+        max-width: 46ch;
+    }
+
+    .acceso-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 24px 0 28px;
+        padding-top: 22px;
+        border-top: 1px solid var(--borde);
+    }
+
+    .acceso-lista li {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-size: .88rem;
+        font-weight: 500;
+        color: var(--tinta-700);
+    }
+
+    .acceso-lista i { color: var(--verde-600); font-size: .82rem; flex: none; }
+
+    .acceso-pie { margin-top: auto; }
+
+    .acceso-pie .btn { width: 100%; }
+
+    /* La flecha acompaña el hover de toda la tarjeta, no sólo el del botón */
+    .acceso:hover .btn-primario { background: var(--verde-700); border-color: var(--verde-700); }
+    .acceso:hover .btn-secundario { border-color: var(--verde-600); color: var(--verde-800); }
+
+    /* Acceso todavía no disponible · la tarjeta se sigue mostrando (comunica que
+       la función está en camino) pero pierde todo lo que la hacía leer como
+       clicable: la elevación al pasar el mouse, el realce verde del ícono y el
+       botón activo del pie. Ver el comentario del markup para reactivarla. */
+    .acceso-proximamente { cursor: default; }
+
+    .acceso-proximamente:hover {
+        border-color: var(--borde);
+        box-shadow: none;
+        transform: none;
+    }
+
+    .acceso-proximamente .acceso-icono,
+    .acceso-proximamente:hover .acceso-icono {
+        background: var(--superficie-2);
+        border-color: var(--borde);
+        color: var(--tinta-400);
+    }
+
+    .acceso-badge-proximamente {
+        background: var(--ambar-050);
+        border-color: var(--ambar);
+        color: var(--ambar-700);
+    }
+
+    /* pointer-events:none deja el pie inerte incluso si algún día vuelve a
+       colgar de un <a>: el gris solo no alcanza para impedir el clic. */
+    .btn-deshabilitado,
+    .acceso:hover .btn-deshabilitado {
+        background: var(--superficie-2);
+        border-color: var(--borde);
+        color: var(--tinta-400);
+        cursor: not-allowed;
+        pointer-events: none;
+        box-shadow: none;
+        transform: none;
+    }
+    .acceso .btn i.fa-arrow-right { transition: transform var(--t); }
+    .acceso:hover .btn i.fa-arrow-right { transform: translateX(4px); }
+
+    /* ---------- 10 · VALORES / QUIÉNES SOMOS ---------- */
+    .valores-intro {
+        width: min(100%, var(--ancho-texto));
+        margin: 0 auto 44px;
+        text-align: center;
+        font-size: 1rem;
+        line-height: 1.8;
+        color: var(--tinta-600);
+        text-wrap: pretty;
+    }
+
+    .valores-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .valor-card {
+        padding: 26px 24px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        transition: border-color var(--t), box-shadow var(--t), transform var(--t);
+    }
+
+    .valor-card:hover {
+        border-color: var(--borde-fuerte);
+        box-shadow: var(--sombra-2);
+        transform: translateY(-2px);
+    }
+
+    .valor-icono {
+        width: 44px;
+        height: 44px;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--verde-050);
+        border-radius: var(--radio-sm);
+        color: var(--verde-700);
+        font-size: 17px;
+    }
+
+    .valor-card h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: -.015em;
+        margin-bottom: 8px;
+    }
+
+    .valor-card p {
+        font-size: .88rem;
+        line-height: 1.65;
+        color: var(--tinta-600);
+    }
+
+    /* ---------- 11 · CANAL DE WHATSAPP ---------- */
+    .canal-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 34px;
+        padding: 38px 40px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-lg);
+        box-shadow: var(--sombra-1);
+    }
+
+    .canal-texto { display: flex; align-items: flex-start; gap: 22px; min-width: 0; }
+
+    .canal-icono {
+        width: 58px;
+        height: 58px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--verde-050);
+        border: 1px solid var(--verde-100);
+        border-radius: var(--radio-md);
+        color: var(--verde-700);
+        font-size: 26px;
+    }
+
+    .canal-texto h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -.025em;
+        margin-bottom: 8px;
+    }
+
+    .canal-texto p {
+        font-size: .94rem;
+        line-height: 1.65;
+        color: var(--tinta-600);
+        max-width: 62ch;
+    }
+
+    /* ---------- 12 · RESEÑAS ----------
+       OJO AL MANTENER: rws.js inyecta las tarjetas y el formulario dentro de
+       #reviewsGrid usando estas clases. Si cambia el markup de ese archivo,
+       hay que actualizar este bloque. */
+    .reviews-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        align-items: start;
+    }
+
+    .review-card {
+        position: relative;
+        padding: 26px 24px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        overflow: hidden;
+        transition: border-color var(--t), box-shadow var(--t), transform var(--t);
+    }
+
+    .review-card:hover {
+        border-color: var(--borde-fuerte);
+        box-shadow: var(--sombra-2);
+        transform: translateY(-2px);
+    }
+
+    .review-card.hidden { display: none; }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .review-name {
+        font-size: .96rem;
+        font-weight: 700;
+        color: var(--tinta-900);
+        margin-bottom: 2px;
+    }
+
+    .review-date {
+        font-size: .74rem;
+        font-weight: 500;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+    }
+
+    .review-stars {
+        color: var(--ambar);
+        font-size: .9rem;
+        white-space: nowrap;
+        flex: none;
+    }
+
+    .review-text {
+        position: relative;
+        z-index: 1;
+        color: var(--tinta-700);
+        line-height: 1.7;
+        font-size: .92rem;
+    }
+
+    /* Comilla decorativa: bien apagada, sólo textura de fondo */
+    .review-icon {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        font-size: 3.4rem;
+        color: var(--tinta-900);
+        opacity: .05;
+        pointer-events: none;
+    }
+
+    .reviews-cta { display: flex; justify-content: center; margin-top: 34px; }
+
+    .show-more-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        height: 48px;
+        padding: 0 26px;
+        background: var(--superficie);
+        color: var(--tinta-900);
+        border: 1px solid var(--borde-fuerte);
+        border-radius: var(--radio-sm);
+        font-family: var(--ui);
+        font-size: .88rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background var(--t), border-color var(--t), color var(--t);
+    }
+
+    .show-more-btn:hover {
+        background: var(--verde-050);
+        border-color: var(--verde-600);
+        color: var(--verde-800);
+    }
+
+    .show-more-btn.hidden { display: none; }
+
+    /* --- Formulario de reseña (lo inyecta rws.js) --- */
+    .review-form-card {
+        grid-column: 1 / -1;
+        padding: 30px 28px;
+        background: var(--superficie-2);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+    }
+
+    .new-review-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 24px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--borde);
+    }
+
+    .new-review-header i {
+        width: 42px;
+        height: 42px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--verde-050);
+        border-radius: var(--radio-sm);
+        color: var(--verde-700);
+        font-size: 17px;
+    }
+
+    .new-review-header h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: -.02em;
+    }
+
+    .review-form { display: flex; flex-direction: column; gap: 18px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: .74rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: var(--tinta-700);
+    }
+
+    .form-group label i { color: var(--verde-600); }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 13px 15px;
+        background: var(--superficie);
+        border: 1px solid var(--borde-fuerte);
+        border-radius: var(--radio-sm);
+        font-family: var(--ui);
+        font-size: .92rem;
+        color: var(--tinta-900);
+        transition: border-color var(--t), box-shadow var(--t);
+    }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder { color: var(--tinta-400); }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--verde-600);
+        box-shadow: 0 0 0 3px rgba(55,101,80,.14);
+    }
+
+    .form-group textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
+
+    .star-rating {
+        display: flex;
+        gap: 8px;
+        font-size: 1.6rem;
+        cursor: pointer;
+    }
+
+    .star-rating i {
+        color: var(--ambar);
+        transition: transform var(--t);
+    }
+
+    .star-rating i:hover,
+    .star-rating i.hover { transform: scale(1.16); }
+
+    .char-counter {
+        text-align: right;
+        font-size: .76rem;
+        color: var(--tinta-400);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .submit-review-btn {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        height: 50px;
+        padding: 0 28px;
+        background: var(--verde-600);
+        color: #fff;
+        border: none;
+        border-radius: var(--radio-sm);
+        font-family: var(--ui);
+        font-size: .92rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background var(--t), transform var(--t);
+    }
+
+    .submit-review-btn:hover:not(:disabled) { background: var(--verde-700); transform: translateY(-2px); }
+    .submit-review-btn:disabled { background: var(--superficie); border: 1px solid var(--borde); color: var(--tinta-400); cursor: not-allowed; }
+
+    .success-message {
+        grid-column: 1 / -1;
+        padding: 40px 28px;
+        background: var(--superficie);
+        border: 1px solid var(--verde-100);
+        border-radius: var(--radio-md);
+        text-align: center;
+        animation: slideUp .34s ease;
+    }
+
+    .success-message i {
+        display: block;
+        margin-bottom: 16px;
+        font-size: 2.6rem;
+        color: var(--verde-700);
+    }
+
+    .success-message h4 { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+    .success-message p { color: var(--tinta-600); font-size: .95rem; line-height: 1.65; }
+
+    /* ---------- 13 · CONTACTO Y SHOWROOM ---------- */
+    .contacto-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+        gap: 20px;
+        align-items: stretch;
+    }
+
+    .panel {
+        display: flex;
+        flex-direction: column;
+        padding: 32px 30px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-lg);
+    }
+
+    .panel-titulo {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 22px;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+    }
+
+    .panel-titulo i { color: var(--verde-600); font-size: 1.15em; }
+
+    .contacto-lista { display: flex; flex-direction: column; gap: 10px; }
+
+    .contacto-lista a,
+    .contacto-lista .contacto-dato {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px 16px;
+        background: var(--superficie-2);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-sm);
+        color: var(--tinta-900);
+        transition: border-color var(--t), background var(--t), transform var(--t);
+    }
+
+    .contacto-lista a:hover {
+        background: var(--verde-050);
+        border-color: var(--verde-100);
+        transform: translateX(4px);
+    }
+
+    .contacto-lista i {
+        width: 38px;
+        height: 38px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-sm);
+        color: var(--verde-700);
+        font-size: 15px;
+    }
+
+    .contacto-texto { display: flex; flex-direction: column; min-width: 0; }
+
+    .contacto-texto small {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+    }
+
+    .contacto-texto span {
+        font-size: .92rem;
+        font-weight: 600;
+        color: var(--tinta-900);
+        overflow-wrap: anywhere;
+    }
+
+    .showroom-datos {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .showroom-dato {
+        padding: 18px;
+        background: var(--superficie-2);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-sm);
+    }
+
+    .showroom-dato i {
+        display: block;
+        margin-bottom: 12px;
+        color: var(--verde-600);
+        font-size: 17px;
+    }
+
+    .showroom-dato strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+    }
+
+    .showroom-dato span {
+        font-size: .92rem;
+        font-weight: 600;
+        color: var(--tinta-900);
+        line-height: 1.5;
+    }
+
+    .panel .btn { margin-top: auto; align-self: flex-start; }
+
+    /* ---------- 14 · PREGUNTAS FRECUENTES ----------
+       Bloque de cierre, a propósito callado: en vez de tarjetas usa una lista
+       de líneas finas en el ancho de lectura, para no competir con los accesos
+       al catálogo ni con las reseñas. Son <details> nativos, así que el estado
+       abierto/cerrado, el teclado y el lector de pantalla los resuelve el
+       navegador sin una línea de JS; el atributo name deja una sola abierta a
+       la vez donde está soportado (en el resto simplemente se abren varias, que
+       es una degradación aceptable). */
+    .faq-lista {
+        width: min(100%, var(--ancho-texto));
+        margin: 0 auto;
+        border-top: 1px solid var(--borde);
+    }
+
+    .faq-item { border-bottom: 1px solid var(--borde); }
+
+    .faq-pregunta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 20px 4px;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: -.012em;
+        color: var(--tinta-900);
+        cursor: pointer;
+        list-style: none;   /* Firefox: saca el triangulito nativo */
+        transition: color var(--t);
+    }
+
+    /* Safari usa su propio pseudo-elemento para el marcador */
+    .faq-pregunta::-webkit-details-marker { display: none; }
+
+    .faq-pregunta:hover { color: var(--verde-700); }
+
+    .faq-pregunta i {
+        flex: none;
+        font-size: .74rem;
+        color: var(--tinta-400);
+        transition: transform var(--t), color var(--t);
+    }
+
+    .faq-item[open] .faq-pregunta { color: var(--verde-800); }
+    .faq-item[open] .faq-pregunta i { transform: rotate(180deg); color: var(--verde-600); }
+
+    .faq-respuesta {
+        padding: 0 4px 22px;
+        max-width: 660px;
+        color: var(--tinta-600);
+        font-size: .94rem;
+        line-height: 1.75;
+        animation: faq-abrir .26s ease;
+    }
+
+    .faq-respuesta p { margin: 0; }
+    .faq-respuesta strong { color: var(--tinta-900); font-weight: 700; }
+
+    @keyframes faq-abrir { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+    .faq-pie {
+        width: min(100%, var(--ancho-texto));
+        margin: 26px auto 0;
+        text-align: center;
+        font-size: .9rem;
+        line-height: 1.7;
+        color: var(--tinta-600);
+        text-wrap: pretty;
+    }
+
+    .faq-pie a {
+        color: var(--verde-700);
+        font-weight: 600;
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: border-color var(--t);
+    }
+
+    .faq-pie a:hover { border-bottom-color: currentColor; }
+
+    /* ---------- 14.1 · VIDEO DE LA PRIMERA COMPRA ----------
+       Una de las preguntas no despliega texto: abre un short vertical a
+       pantalla casi completa, sin sacar al cliente de la página. Por eso no es
+       un <details> sino un <button> — el teclado y el lector de pantalla lo
+       tratan como lo que es — disfrazado con la misma línea del resto de la
+       lista, con un play en lugar del chevron. */
+    .faq-pregunta-video {
+        width: 100%;
+        background: none;
+        border: none;
+        font-family: inherit;
+        line-height: inherit;   /* el <button> trae la suya y desalinearia la fila */
+        text-align: left;
+    }
+
+    .faq-pregunta-texto {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+    }
+
+    .faq-pregunta-texto small {
+        font-size: .8rem;
+        font-weight: 600;
+        color: var(--verde-700);
+    }
+
+    .faq-pregunta-video .fa-play {
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--verde-050);
+        border: 1px solid var(--verde-100);
+        border-radius: 50%;
+        padding-left: 2px;   /* el triángulo mira a la derecha: se centra a ojo */
+        font-size: .62rem;
+        color: var(--verde-700);
+        transition: background var(--t), color var(--t), border-color var(--t), transform var(--t);
+    }
+
+    .faq-pregunta-video:hover .fa-play {
+        background: var(--verde-600);
+        border-color: var(--verde-600);
+        color: #fff;
+        transform: scale(1.06);
+    }
+
+    .video-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 3000;   /* por encima del header sticky (1000) y los paneles (1200) */
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10,14,20,.94);
+        backdrop-filter: blur(6px);
+        animation: fadeIn .24s ease;
+    }
+
+    .video-overlay.active { display: flex; }
+
+    /* El video es vertical 9:16. El min() sobre los dos ejes hace que ocupe el
+       90% de la pantalla por el lado que primero se queda corto: en escritorio
+       manda el alto, en teléfonos el ancho. Lo que sobra es velo, y tocarlo
+       cierra, así que el overlay no lleva padding propio. */
+    .video-caja {
+        position: relative;
+        width: min(90vw, calc(90vh * 9 / 16));
+        height: min(90vh, calc(90vw * 16 / 9));
+        background: #000;
+        border-radius: var(--radio-lg);
+        overflow: hidden;
+        box-shadow: var(--sombra-3);
+        animation: slideUp .3s ease;
+    }
+
+    .video-caja iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+    }
+
+    .video-cerrar {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10,14,20,.62);
+        border: none;
+        border-radius: 50%;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+        z-index: 2;
+        backdrop-filter: blur(4px);
+        transition: background var(--t), transform var(--t);
+    }
+
+    .video-cerrar:hover { background: rgba(10,14,20,.88); transform: scale(1.05); }
+
+    /* ---------- 15 · PIE ---------- */
+    .site-footer {
+        width: min(100% - 40px, var(--ancho));
+        margin: 44px auto 26px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-lg);
+        box-shadow: var(--sombra-1);
+        padding: 38px 34px 32px;
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, .8fr);
+        gap: 34px;
+        align-items: start;
+    }
+
+    .footer-marca img { width: 190px; height: auto; display: block; }
+
+    .footer-marca p {
+        margin: 14px 0 0;
+        font-size: .84rem;
+        color: var(--tinta-600);
+        line-height: 1.6;
+        max-width: 30ch;
+    }
+
+    .footer-titulo {
+        font-family: var(--ui);
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .11em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+        margin: 0 0 14px;
+    }
+
+    .footer-lista { display: flex; flex-direction: column; gap: 11px; }
+
+    .footer-lista a,
+    .footer-lista span {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--tinta-700);
+        font-size: .88rem;
+        transition: color var(--t);
+    }
+
+    .footer-lista a:hover { color: var(--verde-700); }
+
+    .footer-lista i {
+        color: var(--verde-600);
+        width: 17px;
+        text-align: center;
+        flex: none;
+    }
+
+    .footer-social { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .footer-social a {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px 16px;
+        border: 1px solid var(--borde-fuerte);
+        border-radius: var(--radio-full);
+        color: var(--tinta-700);
+        font-size: .84rem;
+        font-weight: 600;
+        transition: border-color var(--t), color var(--t), background var(--t);
+    }
+
+    .footer-social a:hover { background: var(--superficie-2); border-color: var(--tinta-400); }
+    .footer-social a i { font-size: 1.05rem; }
+    .footer-social .red-instagram:hover { color: #E1306C; border-color: #E1306C; }
+    .footer-social .red-facebook:hover { color: #1877F2; border-color: #1877F2; }
+    .footer-social .red-tiktok:hover { color: var(--tinta-900); border-color: var(--tinta-900); }
+
+    .footer-legal {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid var(--borde);
+        font-size: .76rem;
+        color: var(--tinta-400);
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    /* ---------- 16 · CONTACTO POR WHATSAPP (EN EL HEADER) ----------
+       Mismo componente que en el catálogo, para que la acción de contacto esté
+       siempre en el mismo lugar en las dos páginas: dentro de .header-actions, a
+       la izquierda del selector de tema. Reusa la caja de .hamburger-button y
+       sólo cambia el color. */
+    .wsp-menu { position: relative; flex: none; }
+
+    .wsp-button {
+        background: var(--verde-050);
+        border-color: var(--verde-100);
+        color: var(--verde-700);
+        font-size: 20px;
+    }
+
+    .wsp-button:hover,
+    .wsp-button[aria-expanded="true"] {
+        background: var(--verde-600);
+        border-color: var(--verde-600);
+        color: #fff;
+        box-shadow: 0 8px 18px -10px var(--verde-800);
+    }
+
+    /* Se despliega desde el header igual que .hamburger-dropdown. El corrimiento
+       alinea el borde derecho del panel con el borde derecho del header: en
+       escritorio sólo tiene al lado el botón de tema (el hamburguesa está oculto
+       hasta 1024px, ver responsive). */
+    #whatsappOptions {
+        --wsp-corrimiento: calc(46px + 10px);
+        position: absolute;
+        top: calc(100% + 12px);
+        right: calc(-1 * var(--wsp-corrimiento));
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: opacity var(--t), transform var(--t), visibility var(--t);
+        z-index: 1200;
+    }
+
+    #whatsappOptions.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    /* El max-width es el que evita que en pantallas angostas el panel se salga
+       por la izquierda, porque queda anclado por su borde derecho. */
+    .wsp-panel {
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio-md);
+        box-shadow: var(--sombra-3);
+        padding: 6px;
+        width: 264px;
+        max-width: calc(100vw - 28px);
+    }
+
+    .wsp-panel-titulo {
+        display: block;
+        padding: 10px 12px 8px;
+        font-size: .62rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--tinta-400);
+    }
+
+    .wsp-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: var(--radio-sm);
+        cursor: pointer;
+        transition: background var(--t);
+    }
+
+    .wsp-option:hover,
+    .wsp-option:focus-visible { background: var(--verde-050); }
+
+    .wsp-option > i {
+        width: 34px;
+        height: 34px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--verde-050);
+        color: var(--verde-700);
+        border-radius: 50%;
+        font-size: 13px;
+        transition: background var(--t), color var(--t);
+    }
+
+    .wsp-option:hover > i { background: var(--verde-600); color: #fff; }
+
+    .wsp-option-texto { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+    .wsp-option-texto strong { font-size: .85rem; font-weight: 700; color: var(--tinta-900); }
+    .wsp-option-texto small { font-size: .72rem; color: var(--tinta-400); }
+
+    /* ---------- 17 · RESPONSIVE ---------- */
+    @media (max-width: 1180px) {
+        .valores-grid,
+        .reviews-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .footer-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    }
+
+    @media (max-width: 1024px) {
+        .site-nav { display: none; }
+        .hamburger-menu { display: block; }
+
+        /* Aparece el hamburguesa a la derecha del selector de tema: el panel de
+           WhatsApp se corre lo que ocupan los dos. */
+        #whatsappOptions { --wsp-corrimiento: calc(2 * 46px + 2 * 10px); }
+
+        .accesos { grid-template-columns: 1fr; }
+        .contacto-grid { grid-template-columns: 1fr; }
+        .canal-card { grid-template-columns: 1fr; gap: 26px; }
+    }
+
+    @media (max-width: 760px) {
+        .site-header-inner { min-height: 76px; padding: 14px 0; }
+        .brand img { width: 210px; }
+        .brand-tag { font-size: .66rem; letter-spacing: .14em; }
+
+        .hero { padding: 72px 0 82px; }
+        .hero-sub { font-size: 1rem; }
+        .hero-cta .btn { width: 100%; }
+
+        .info-band { grid-template-columns: 1fr; }
+        .info-band-item { padding: 15px 18px; gap: 13px; }
+        .info-band-item + .info-band-item::before {
+            left: 16px;
+            right: 16px;
+            top: 0;
+            transform: none;
+            width: auto;
+            height: 1px;
+        }
+        .info-band-icon { width: 26px; font-size: 20px; }
+        .info-band-text { font-size: .78rem; }
+        .info-band-text strong { font-size: .84rem; }
+
+        .seccion { padding: 56px 0; }
+        .seccion-head { margin-bottom: 32px; }
+
+        .valores-grid,
+        .reviews-grid { grid-template-columns: 1fr; }
+
+        .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+        .site-footer { padding: 30px 24px 26px; }
+    }
+
+    @media (max-width: 600px) {
+        body { font-size: 15px; }
+
+        .contenedor,
+        .site-header-inner,
+        .info-band,
+        .site-footer { width: min(100% - 24px, var(--ancho)); }
+
+        /* Con el botón de catálogo y los dos cuadrados a la derecha, el logo
+           necesita achicarse para que la bajada no se parta en dos líneas. */
+        .brand img { width: 176px; }
+        .brand-tag { font-size: .6rem; letter-spacing: .12em; white-space: nowrap; padding-left: 4px; }
+
+        .hero-inner { width: min(100% - 24px, var(--ancho-texto)); }
+
+        .acceso { padding: 26px 22px 24px; }
+        .acceso h3 { font-size: 1.2rem; }
+        .valor-card { padding: 22px 20px; }
+        .canal-card { padding: 28px 22px; }
+        .canal-texto { flex-direction: column; gap: 16px; }
+        .canal-texto h2 { font-size: 1.28rem; }
+        .canal-card .btn { width: 100%; }
+
+        .panel { padding: 26px 20px; }
+        .panel .btn { width: 100%; }
+        .review-card { padding: 22px 20px; }
+        .faq-pregunta { padding: 17px 2px; font-size: .94rem; gap: 14px; }
+        .faq-respuesta { padding: 0 2px 18px; font-size: .9rem; }
+        .faq-pregunta-texto small { font-size: .76rem; }
+        .faq-pregunta-video .fa-play { width: 28px; height: 28px; }
+        .review-form-card { padding: 24px 20px; }
+        .submit-review-btn { width: 100%; align-self: stretch; }
+
+        .site-footer { padding: 26px 20px 22px; border-radius: var(--radio-md); }
+        .footer-legal { flex-direction: column; gap: 6px; }
+    }
+
+    @media (max-width: 400px) {
+        .brand img { width: 150px; }
+        .brand-tag { font-size: .56rem; }
+        .hero h1 { font-size: 2.05rem; }
+
+        /* Con el CTA del catálogo y tres cuadrados a la derecha no queda aire en
+           360px: los botones y el gap se achican, y el panel de WhatsApp sigue
+           las medidas nuevas. */
+        .header-actions { gap: 8px; }
+        .hamburger-button { width: 42px; height: 42px; font-size: 16px; }
+        .wsp-button { font-size: 18px; }
+        #whatsappOptions { --wsp-corrimiento: calc(2 * 42px + 2 * 8px); }
+    }
+
+    /* ---------- 18 · MOVIMIENTO REDUCIDO ---------- */
+    @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+
+        *, *::before, *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .01ms !important;
+        }
+
+        .js .reveal { opacity: 1; transform: none; }
+        .acceso:hover, .valor-card:hover, .review-card:hover { transform: none; }
+    }
+
+    /* ---------- 19 · MODO OSCURO (excepciones sin variable) ----------
+       Casi toda la página está construida sobre var(--...), así que los tokens
+       redefinidos en la sección 1 ya la repintan. Acá van sólo los valores
+       sueltos y los cambios de imagen. */
+    [data-theme="dark"] .site-header { border-bottom: 2px solid var(--verde-600); }
+
+    [data-theme="dark"] .hero::after {
+        background: radial-gradient(ellipse at center, rgba(79,174,108,.10), transparent 68%);
+    }
+
+    [data-theme="dark"] .hero::before { opacity: .35; }
+
+    [data-theme="dark"] .acceso-icono,
+    [data-theme="dark"] .canal-icono { border-color: var(--borde-fuerte); }
+
+    [data-theme="dark"] .review-icon { color: #fff; opacity: .06; }
+
+    [data-theme="dark"] .btn-primario { background: var(--verde-600); border-color: var(--verde-600); }
+    [data-theme="dark"] .btn-primario:hover { background: #40795e; border-color: #40795e; }
+
+    /* logo.png es un isotipo oscuro (pensado para fondos claros); en modo
+       oscuro se reemplaza por logoblanco.png. El selector lleva el tipo `img`
+       a propósito: sin él lo pisa `.brand img { display:block }`. */
+    img.logo-dark { display: none; }
+    [data-theme="dark"] img.logo-light { display: none; }
+    [data-theme="dark"] img.logo-dark { display: block; }
+    </style>
+</head>
+
+<body>
+
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5P63433D"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <!-- === ENCABEZADO === -->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <a class="brand" href="index.html" aria-label="HomePoint · Inicio">
+                <img src="logo.png" alt="HomePoint" class="logo-light">
+                <img src="logoblanco.png" alt="HomePoint" class="logo-dark">
+                <span class="brand-tag">Distribuidora Mayorista</span>
+            </a>
+
+            <nav class="site-nav" aria-label="Navegación principal">
+                <a href="#catalogos">Catálogos</a>
+                <a href="#nosotros">Nosotros</a>
+                <a href="#resenas">Reseñas</a>
+                <a href="#contacto">Contacto</a>
+            </nav>
+
+            <div class="header-actions">
+                <!-- Contacto por WhatsApp · antes era un botón flotante sobre el
+                     contenido; ahora acompaña al resto de las acciones globales
+                     y su menú baja del header como el de la hamburguesa. -->
+                <div class="wsp-menu" id="wspMenu">
+                    <button type="button" id="whatsappFloatBtn" class="hamburger-button wsp-button"
+                            onclick="toggleMenuWsp(event)" aria-label="Contactar por WhatsApp"
+                            title="Contactar por WhatsApp" aria-haspopup="true" aria-expanded="false">
+                        <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                    </button>
+
+                    <div id="whatsappOptions">
+                        <div class="wsp-panel">
+                            <span class="wsp-panel-titulo">¿Con quién querés hablar?</span>
+                            <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491121891006', '_blank'); cerrarMenuWsp();">
+                                <i class="fas fa-store" aria-hidden="true"></i>
+                                <span class="wsp-option-texto">
+                                    <strong>Atención al cliente</strong>
+                                    <small>Consultas y retiros</small>
+                                </span>
+                            </div>
+                            <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491176460030', '_blank'); cerrarMenuWsp();">
+                                <i class="fas fa-truck" aria-hidden="true"></i>
+                                <span class="wsp-option-texto">
+                                    <strong>Envíos & Despachos</strong>
+                                    <small>Información y pedidos</small>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="themeToggleBtn" class="hamburger-button" aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro">
+                    <i class="fas fa-moon" aria-hidden="true"></i>
+                </button>
+
+                <div class="hamburger-menu">
+                    <button id="hamburgerBtn" class="hamburger-button" aria-label="Abrir menú" aria-expanded="false">
+                        <i class="fas fa-bars" aria-hidden="true"></i>
+                    </button>
+                    <div id="hamburgerDropdown" class="hamburger-dropdown">
+                        <a class="hamburger-dropdown-item" href="#catalogos">
+                            <i class="fas fa-layer-group" aria-hidden="true"></i>
+                            <span>Catálogos</span>
+                        </a>
+                        <a class="hamburger-dropdown-item" href="#nosotros">
+                            <i class="fas fa-users" aria-hidden="true"></i>
+                            <span>Quiénes somos</span>
+                        </a>
+                        <a class="hamburger-dropdown-item" href="#resenas">
+                            <i class="fas fa-star" aria-hidden="true"></i>
+                            <span>Reseñas</span>
+                        </a>
+                        <a class="hamburger-dropdown-item" href="#contacto">
+                            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                            <span>Contacto y showroom</span>
+                        </a>
+                        <a class="hamburger-dropdown-item" href="#faq">
+                            <i class="fas fa-circle-question" aria-hidden="true"></i>
+                            <span>Preguntas frecuentes</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- === PORTADA === -->
+    <section class="hero">
+        <div class="hero-inner">
+            <h1>Tu socio mayorista en <span class="acento">artículos para el hogar</span></h1>
+
+            <p class="hero-sub">
+                Hogar, electrónica y bienestar personal con precios mayoristas actualizados,
+                stock real y atención personalizada. Todo lo que tu negocio necesita, en un solo lugar.
+            </p>
+
+            <div class="hero-cta">
+                <a href="catalogoDespachos.html" class="btn btn-primario">
+                    Ingresar al catálogo
+                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </a>
+                <a href="#catalogos" class="btn btn-secundario">
+                    <i class="fas fa-sliders" aria-hidden="true"></i>
+                    Personalizar mi catálogo
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Franja informativa · misma pieza que abre el catálogo -->
+    <div class="info-band">
+        <div class="info-band-item">
+            <span class="info-band-icon"><i class="fas fa-truck" aria-hidden="true"></i></span>
+            <span class="info-band-text">
+                <strong>Envíos a todo el país</strong>
+                Fletes y Encomiendas
+            </span>
+        </div>
+        <div class="info-band-item">
+            <span class="info-band-icon"><i class="fas fa-store" aria-hidden="true"></i></span>
+            <span class="info-band-text">
+                <strong>Local en Munro</strong>
+                Lunes a Sábados de 10 a 19 hs
+            </span>
+        </div>
+        <div class="info-band-item">
+            <span class="info-band-icon"><i class="fas fa-user-friends" aria-hidden="true"></i></span>
+            <span class="info-band-text">
+                <strong>Atención personalizada</strong>
+                Empresa familiar, trato directo
+            </span>
+        </div>
+    </div>
+
+    <!-- === ACCESOS AL CATÁLOGO === -->
+    <section class="seccion" id="catalogos">
+        <div class="contenedor">
+            <div class="seccion-head reveal">
+                <span class="seccion-etiqueta">Catálogo online</span>
+                <h2>Elegí cómo querés comprar</h2>
+                <p>Todos nuestros artículos con precio de lista y precio mayorista, o tu propio catálogo con el margen que definas vos.</p>
+            </div>
+
+            <div class="accesos">
+                <a href="catalogoDespachos.html" class="acceso acceso-principal nav-button mayorista reveal">
+                    <div class="acceso-top">
+                        <span class="acceso-icono"><i class="fas fa-shopping-cart" aria-hidden="true"></i></span>
+                        <span class="acceso-badge">Precios actualizados</span>
+                    </div>
+
+                    <h3>Catálogo mayorista</h3>
+                    <p>El listado completo de nuestros artículos, con stock y precios siempre al día. Armá tu pedido y envialo en un clic.</p>
+
+                    <ul class="acceso-lista">
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Precio de lista y precio mayorista</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Disponibilidad de stock a la vista</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Pedido Online</li>
+                    </ul>
+
+                    <span class="acceso-pie">
+                        <span class="btn btn-primario">
+                            Ingresar al catálogo
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </span>
+                    </span>
+                </a>
+
+                <!-- Personalización de catálogo · deshabilitada hasta que la función
+                     esté publicada. La tarjeta deja de ser un <a> y pasa a <div>:
+                     así no navega, no entra en el orden de tabulación y no dispara
+                     la analítica de .nav-button. El resto del contenido queda igual
+                     para poder reactivarla devolviéndole
+                     <a href="personalizacion.html" class="acceso nav-button personalizacion reveal">
+                     y quitando .acceso-proximamente. -->
+                <div class="acceso acceso-proximamente reveal" aria-disabled="true">
+                    <div class="acceso-top">
+                        <span class="acceso-icono"><i class="fas fa-sliders" aria-hidden="true"></i></span>
+                        <span class="acceso-badge acceso-badge-proximamente">Próximamente</span>
+                    </div>
+
+                    <h3>Personalizá tu catálogo</h3>
+                    <p>Creá tu propio enlace con tu nombre y el porcentaje de ganancia que elijas, y compartilo con tus clientes.</p>
+
+                    <ul class="acceso-lista">
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Tu nombre y tu margen de ganancia</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Enlace propio para compartir</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Precios calculados automáticamente</li>
+                    </ul>
+
+                    <span class="acceso-pie">
+                        <span class="btn btn-secundario btn-deshabilitado" role="button" aria-disabled="true">
+                            <i class="fas fa-clock" aria-hidden="true"></i>
+                            Próximamente
+                        </span>
+                    </span>
+                </div>
+
+                <a href="minorista.html" class="acceso nav-button" style="display: none;">
+                    <div class="acceso-top">
+                        <span class="acceso-icono"><i class="fas fa-store" aria-hidden="true"></i></span>
+                    </div>
+                    <h3>Catálogo consumidor final</h3>
+                    <p>Para compras personales minoristas.</p>
+                    <span class="acceso-pie">
+                        <span class="btn btn-secundario">
+                            Ingresar
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </span>
+                    </span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- === QUIÉNES SOMOS === -->
+    <section class="seccion seccion-alt" id="nosotros">
+        <div class="contenedor">
+            <div class="seccion-head reveal">
+                <span class="seccion-etiqueta">Quiénes somos</span>
+                <h2>Una empresa familiar detrás de cada pedido</h2>
+            </div>
+
+            <p class="valores-intro reveal">
+                Somos una empresa familiar comprometida con la excelencia en la distribución mayorista y minorista
+                de artículos de uso personal y para el hogar. Con envíos a todo el país, nuestro objetivo es construir
+                vínculos comerciales sólidos y duraderos a través de una atención personalizada y el compromiso
+                directo de sus propietarios.
+            </p>
+
+            <div class="valores-grid">
+                <div class="valor-card reveal">
+                    <span class="valor-icono"><i class="fas fa-heart" aria-hidden="true"></i></span>
+                    <h3>Empresa familiar</h3>
+                    <p>Con valores sólidos y compromiso personal en cada transacción, donde cada cliente es parte de nuestra familia comercial.</p>
+                </div>
+
+                <div class="valor-card reveal">
+                    <span class="valor-icono"><i class="fas fa-handshake" aria-hidden="true"></i></span>
+                    <h3>Vínculos duraderos</h3>
+                    <p>Creemos en relaciones comerciales a largo plazo, basadas en confianza, calidad y servicio excepcional.</p>
+                </div>
+
+                <div class="valor-card reveal">
+                    <span class="valor-icono"><i class="fas fa-rocket" aria-hidden="true"></i></span>
+                    <h3>Impulsamos emprendedores</h3>
+                    <p>Apoyamos a quienes desean iniciar o hacer crecer su negocio, porque sabemos que cada venta, grande o pequeña, es importante.</p>
+                </div>
+
+                <div class="valor-card reveal">
+                    <span class="valor-icono"><i class="fas fa-shipping-fast" aria-hidden="true"></i></span>
+                    <h3>Cobertura nacional</h3>
+                    <p>Llegamos a todo el país con la ayuda del servicio logístico de Expreso ViaCargo y Correo Argentino.</p>
+                </div>
+
+                <div class="valor-card reveal">
+                    <span class="valor-icono"><i class="fas fa-user-friends" aria-hidden="true"></i></span>
+                    <h3>Atención personalizada</h3>
+                    <p>Cada cliente recibe un trato único y personalizado, con la participación directa de sus propietarios.</p>
+                </div>
+
+                <div class="valor-card reveal">
+                    <span class="valor-icono"><i class="fas fa-award" aria-hidden="true"></i></span>
+                    <h3>Calidad garantizada</h3>
+                    <p>Seleccionamos cuidadosamente nuestros productos para asegurar calidad y satisfacción del cliente, a un buen precio.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- === CANAL DE WHATSAPP === -->
+    <section class="seccion">
+        <div class="contenedor">
+            <div class="canal-card reveal">
+                <div class="canal-texto">
+                    <span class="canal-icono"><i class="fab fa-whatsapp" aria-hidden="true"></i></span>
+                    <div>
+                        <h2>Unite a nuestro canal de WhatsApp</h2>
+                        <p>No te pierdas las novedades, ofertas especiales y lanzamientos de productos. Enterate primero de todo lo que tenemos para vos y tu negocio.</p>
+                    </div>
+                </div>
+
+                <a href="https://whatsapp.com/channel/0029VbBfYTaAe5VuS59i8v0i" target="_blank" rel="noopener" class="btn btn-primario">
+                    <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                    Unirme al canal
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- === RESEÑAS === -->
+    <section class="seccion seccion-alt" id="resenas">
+        <div class="contenedor">
+            <div class="seccion-head reveal">
+                <span class="seccion-etiqueta">Reseñas más recientes</span>
+                <h2>Lo que dicen nuestros clientes</h2>
+                <p>Opiniones de comercios y emprendedores que ya compran con nosotros.</p>
+            </div>
+
+            <div class="reviews-grid" id="reviewsGrid">
+                <!-- Las reseñas se cargan dinámicamente desde rws.js -->
+            </div>
+
+            <div class="reviews-cta">
+                <button class="show-more-btn" id="showMoreBtn" onclick="toggleReviews()">
+                    <i class="fas fa-chevron-down" aria-hidden="true"></i> Ver más reseñas
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- === CONTACTO Y LOCAL === -->
+    <section class="seccion" id="contacto">
+        <div class="contenedor">
+            <div class="seccion-head reveal">
+                <span class="seccion-etiqueta">Contacto</span>
+                <h2>Escribinos o visitanos</h2>
+                <p>Te respondemos por el canal que prefieras y te esperamos en el local para que veas los productos en persona.</p>
+            </div>
+
+            <div class="contacto-grid">
+                <div class="panel reveal">
+                    <h3 class="panel-titulo"><i class="fas fa-headset" aria-hidden="true"></i> Hablemos</h3>
+
+                    <div class="contacto-lista">
+                        <a href="https://api.whatsapp.com/send/?phone=5491121891006" target="_blank" rel="noopener">
+                            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                            <span class="contacto-texto">
+                                <small>Atención al cliente</small>
+                                <span>+54 9 11 2189-1006</span>
+                            </span>
+                        </a>
+
+                        <a href="https://api.whatsapp.com/send/?phone=5491176460030" target="_blank" rel="noopener">
+                            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                            <span class="contacto-texto">
+                                <small>Coordinación de Envíos</small>
+                                <span>+54 9 11 7646-0030</span>
+                            </span>
+                        </a>
+
+                        <a href="mailto:distribuidorahomepoint@gmail.com">
+                            <i class="fas fa-envelope" aria-hidden="true"></i>
+                            <span class="contacto-texto">
+                                <small>Email</small>
+                                <span>distribuidorahomepoint@gmail.com</span>
+                            </span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="panel reveal">
+                    <h3 class="panel-titulo"><i class="fas fa-store" aria-hidden="true"></i> Nuestro showroom</h3>
+
+                    <div class="showroom-datos">
+                        <div class="showroom-dato">
+                            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                            <strong>Dirección</strong>
+                            <span>Vélez Sarsfield 4127, Munro</span>
+                            <br>
+                            <span>Buenos Aires, Argentina</span>
+                        </div>
+                        <div class="showroom-dato">
+                            <i class="fas fa-clock" aria-hidden="true"></i>
+                            <strong>ATENCIÓN</strong>
+                            <span>Lunes a Sábados</span>
+                            <br>
+                            <span>Horario de 10 a 19 hs</span>
+                        </div>
+                    </div>
+
+                    <a href="https://maps.app.goo.gl/L7QhZ11dmPc7LjWn7" target="_blank" rel="noopener" class="btn btn-secundario">
+                        <i class="fas fa-diamond-turn-right" aria-hidden="true"></i>
+                        Cómo llegar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- === PREGUNTAS FRECUENTES === -->
+    <section class="seccion seccion-alt" id="faq">
+        <div class="contenedor">
+            <div class="seccion-head reveal">
+                <span class="seccion-etiqueta">Preguntas frecuentes</span>
+                <h2>Dudas rápidas antes de comprar</h2>
+                <p>Lo que más nos consultan. Adentro del catálogo mayorista está el listado completo.</p>
+            </div>
+
+            <!-- El name compartido es lo que las vuelve excluyentes: al abrir una
+                 se cierra la anterior, sin JS. -->
+            <div class="faq-lista reveal">
+                <details class="faq-item" name="faq-landing">
+                    <summary class="faq-pregunta">
+                        ¿Cuál es el mínimo de compra?
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="faq-respuesta">
+                        <p>En el local <strong>no hay mínimo ni requisitos</strong>: venís y te llevás lo que necesites. <br> Los envíos cuentan con un mínimo de <strong>$50.000 de compra</strong>.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item" name="faq-landing">
+                    <summary class="faq-pregunta">
+                        ¿Hacen envíos a todo el país?
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="faq-respuesta">
+                        <p>Sí, a todo el país. <strong>Motomensajería y Fletes</strong> para los alrededores. <br> Encomiendas por <strong>Expreso Viacargo y Correo Argentino</strong> para todo el país. <br> El costo de la encomienda lo determinan las empresas según el peso y el tamaño que tenga finalmente el pedido.</p>
+                    </div>
+                </details>
+
+                <!-- Esta no despliega texto: abre el video (ver el script del
+                     final). Va como <button> justamente porque su gesto no es
+                     el mismo que el de los <details> de al lado. -->
+                <div class="faq-item">
+                    <button type="button" class="faq-pregunta faq-pregunta-video" id="faqVideoBtn">
+                        <span class="faq-pregunta-texto">
+                            ¿Cómo hago mi primera compra con envío?
+                            <small>Mirá el paso a paso en video</small>
+                        </span>
+                        <i class="fas fa-play" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <details class="faq-item" name="faq-landing">
+                    <summary class="faq-pregunta">
+                        ¿Cuáles son las formas de pago?
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="faq-respuesta">
+                        <p>Aceptamos <strong>efectivo</strong>, <strong>transferencia bancaria</strong> o de <strong>MercadoPago</strong>. <br> Tarjetas, únicamente acercándote al local.</p>
+                    </div>
+                </details>
+
+                <details class="faq-item" name="faq-landing">
+                    <summary class="faq-pregunta">
+                        ¿Los artículos tienen garantía?
+                        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="faq-respuesta">
+                        <p>Sí, cambio o reparación por defectos de fabricación únicamente (no aplicable a daños estéticos), sujeto a evaluación técnica previa. Los tiempos de respuesta y de garantia varían según el producto. <br> <strong>La garantía no cubre gastos de envío o despacho</strong>.</p>
+                    </div>
+                </details>
+            </div>
+
+            <p class="faq-pie reveal">
+                ¿Te quedó otra duda? <a href="https://api.whatsapp.com/send/?phone=5491121891006" target="_blank" rel="noopener">Escribinos por WhatsApp</a> o mirá todas las preguntas en el <a href="catalogoDespachos.html">catálogo</a>.
+            </p>
+        </div>
+    </section>
+
+    <!-- Reproductor del video de la primera compra · vive fuera de la sección
+         para poder taparla entera sin moverla: al cerrarlo, la lista de
+         preguntas queda donde estaba. -->
+    <div class="video-overlay" id="videoOverlay" role="dialog" aria-modal="true"
+         aria-label="Video: cómo hacer tu primera compra con envío">
+        <div class="video-caja">
+            <button type="button" class="video-cerrar" id="videoCerrarBtn" aria-label="Cerrar video">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            <iframe id="videoTutorialFrame"
+                    src=""
+                    title="Cómo hacer tu primera compra con envío"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+
+    <!-- === PIE === -->
+    <footer class="site-footer">
+        <div class="footer-grid">
+            <div class="footer-marca">
+                <img src="logo.png" alt="HomePoint" class="logo-light">
+                <img src="logoblanco.png" alt="HomePoint" class="logo-dark">
+                <p>Distribuidora mayorista de artículos para el hogar y uso personal.</p>
+            </div>
+
+            <div>
+                <h4 class="footer-titulo">Contacto</h4>
+                <div class="footer-lista">
+                    <a href="https://api.whatsapp.com/send/?phone=5491121891006&text&type=phone_number&app_absent=0" target="_blank" rel="noopener">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>+54 9 11 2189-1006</span>
+                    </a>
+                    <a href="mailto:distribuidorahomepoint@gmail.com">
+                        <i class="fas fa-envelope"></i>
+                        <span>distribuidorahomepoint@gmail.com</span>
+                    </a>
+                    <a href="https://maps.app.goo.gl/L7QhZ11dmPc7LjWn7" target="_blank" rel="noopener">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Vélez Sarsfield 4127, Munro, Buenos Aires</span>
+                    </a>
+                    <span>
+                        <i class="fas fa-clock"></i>
+                        <span>Lunes a sábados de 10 a 19 hs</span>
+                    </span>
+                    <a href="catalogoDespachos.html">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Catálogo Envios</span>
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="footer-titulo">Seguinos</h4>
+                <div class="footer-social">
+                    <a class="red-instagram" href="https://www.instagram.com/distribuidora.homepoint/" target="_blank" rel="noopener">
+                        <i class="fab fa-instagram"></i>
+                        <span>Instagram</span>
+                    </a>
+                    <a class="red-facebook" href="https://www.facebook.com/distribuidora.homepoint/" target="_blank" rel="noopener">
+                        <i class="fab fa-facebook"></i>
+                        <span>Facebook</span>
+                    </a>
+                    <a class="red-tiktok" href="https://www.tiktok.com/@distribuidora.homepoint/" target="_blank" rel="noopener">
+                        <i class="fab fa-tiktok"></i>
+                        <span>TikTok</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-legal">
+            <span>&copy; 2025 Distribuidora HomePoint · Todos los derechos reservados.</span>
+        </div>
+    </footer>
+
+    <!-- Script de reseñas -->
+    <script type="module" src="rws.js"></script>
+
+    <script>
+        // Marca de que hay JS: habilita los estados iniciales de las animaciones
+        // de entrada. Sin JS nada queda invisible.
+        document.documentElement.classList.add('js');
+
+        // === Modo oscuro ===
+        // Mismo comportamiento que el catálogo (mayorista.js): el tema del primer
+        // pintado ya lo resolvió el script inline del <head>; acá sólo se
+        // sincroniza el ícono, se atiende el interruptor manual y se sigue al
+        // sistema en vivo mientras el usuario no haya elegido a mano.
+        (function () {
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            if (!themeToggleBtn) return;
+
+            const themeToggleIcon = themeToggleBtn.querySelector('i');
+            const THEME_STORAGE_KEY = 'theme';
+            const consultaTemaSistema = window.matchMedia
+                ? window.matchMedia('(prefers-color-scheme: dark)')
+                : null;
+
+            function temaGuardado() {
+                try {
+                    return localStorage.getItem(THEME_STORAGE_KEY);
+                } catch (e) {
+                    console.error('Error al leer el tema desde localStorage:', e);
+                    return null;
+                }
+            }
+
+            function aplicarIconoTema(tema) {
+                themeToggleIcon.classList.toggle('fa-moon', tema !== 'dark');
+                themeToggleIcon.classList.toggle('fa-sun', tema === 'dark');
+                const etiqueta = tema === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+                themeToggleBtn.setAttribute('aria-label', etiqueta);
+                themeToggleBtn.setAttribute('title', etiqueta);
+            }
+
+            // El modo claro es la ausencia del atributo, no un valor propio: así
+            // los selectores [data-theme="dark"] siguen siendo el único interruptor.
+            function aplicarTema(tema) {
+                if (tema === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                }
+                aplicarIconoTema(tema);
+            }
+
+            aplicarIconoTema(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+
+            themeToggleBtn.addEventListener('click', function () {
+                const nuevoTema = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                aplicarTema(nuevoTema);
+                try {
+                    localStorage.setItem(THEME_STORAGE_KEY, nuevoTema);
+                } catch (e) {
+                    console.error('Error al guardar el tema en localStorage:', e);
+                }
+            });
+
+            // Si el usuario nunca eligió a mano, la página acompaña al sistema en
+            // tiempo real. Una vez que tocó el interruptor, su elección manda.
+            if (consultaTemaSistema) {
+                const alCambiarTemaSistema = function (evento) {
+                    if (temaGuardado()) return;
+                    aplicarTema(evento.matches ? 'dark' : 'light');
+                };
+
+                if (typeof consultaTemaSistema.addEventListener === 'function') {
+                    consultaTemaSistema.addEventListener('change', alCambiarTemaSistema);
+                } else if (typeof consultaTemaSistema.addListener === 'function') {
+                    // Safari < 14 (iOS 13 y anteriores) sólo tiene la API vieja.
+                    consultaTemaSistema.addListener(alCambiarTemaSistema);
+                }
+            }
+        })();
+
+        // === Menú hamburguesa (sólo visible en pantallas chicas) ===
+        (function () {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const hamburgerDropdown = document.getElementById('hamburgerDropdown');
+            if (!hamburgerBtn || !hamburgerDropdown) return;
+
+            function cerrarMenu() {
+                hamburgerDropdown.classList.remove('active');
+                hamburgerBtn.setAttribute('aria-expanded', 'false');
+            }
+
+            hamburgerBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const abierto = hamburgerDropdown.classList.toggle('active');
+                hamburgerBtn.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!hamburgerBtn.contains(e.target) && !hamburgerDropdown.contains(e.target)) {
+                    cerrarMenu();
+                }
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') cerrarMenu();
+            });
+
+            hamburgerDropdown.querySelectorAll('.hamburger-dropdown-item').forEach(function (item) {
+                item.addEventListener('click', cerrarMenu);
+            });
+        })();
+
+        // === Menú de contacto por WhatsApp (header) ===
+        // Abre y cierra por clase, no por style.display: la clase es la que
+        // dispara la transición del panel (ver sección 16 del CSS).
+        function toggleMenuWsp(event) {
+            event.stopPropagation();
+            const options = document.getElementById('whatsappOptions');
+            const abierto = options.classList.toggle('active');
+            document.getElementById('whatsappFloatBtn').setAttribute('aria-expanded', abierto ? 'true' : 'false');
+
+            // Los dos paneles cuelgan del header y se superponen: queda uno solo.
+            if (abierto) {
+                const hamburguesa = document.getElementById('hamburgerDropdown');
+                const btnHamburguesa = document.getElementById('hamburgerBtn');
+                if (hamburguesa) hamburguesa.classList.remove('active');
+                if (btnHamburguesa) btnHamburguesa.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        function cerrarMenuWsp() {
+            document.getElementById('whatsappOptions').classList.remove('active');
+            document.getElementById('whatsappFloatBtn').setAttribute('aria-expanded', 'false');
+        }
+
+        document.addEventListener('click', function (e) {
+            const menu = document.getElementById('wspMenu');
+            if (menu && !menu.contains(e.target)) {
+                cerrarMenuWsp();
+            }
+        });
+
+        // El toggle del hamburguesa frena la propagación, así que el click
+        // externo de arriba no llega: se cierra desde acá el caso inverso.
+        const btnHamburguesaHeader = document.getElementById('hamburgerBtn');
+        if (btnHamburguesaHeader) btnHamburguesaHeader.addEventListener('click', cerrarMenuWsp);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') cerrarMenuWsp();
+        });
+
+        // Las opciones son divs con role="button": el teclado tiene que poder
+        // activarlas igual que el mouse.
+        document.querySelectorAll('.wsp-option').forEach(function (opcion) {
+            opcion.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    opcion.click();
+                }
+            });
+        });
+
+        // === Reseñas ===
+        // rws.js es quien puebla #reviewsGrid y, si define su propia versión de
+        // toggleReviews, la suya pisa a esta al cargarse (es un módulo, corre
+        // después). Esta queda como respaldo para que el botón nunca falle.
+        function toggleReviews() {
+            const ocultas = document.querySelectorAll('#reviewsGrid .review-card.hidden');
+            const btn = document.getElementById('showMoreBtn');
+
+            if (ocultas.length) {
+                ocultas.forEach(function (card) { card.classList.remove('hidden'); });
+                if (btn) btn.classList.add('hidden');
+            }
+        }
+
+        // Si pasados unos segundos rws.js no cargó ninguna reseña (falla de red,
+        // módulo ausente o todavía sin opiniones), se retira la sección entera
+        // junto con sus enlaces: mejor eso que un título con un vacío debajo.
+        window.addEventListener('load', function () {
+            setTimeout(function () {
+                const grid = document.getElementById('reviewsGrid');
+                const seccion = document.getElementById('resenas');
+                if (!grid || !seccion) return;
+                if (grid.children.length) return;
+
+                seccion.style.display = 'none';
+                document.querySelectorAll('a[href="#resenas"]').forEach(function (a) {
+                    a.style.display = 'none';
+                });
+            }, 5000);
+        });
+
+        // === Entrada progresiva al hacer scroll ===
+        (function () {
+            const elementos = document.querySelectorAll('.reveal');
+            if (!elementos.length) return;
+
+            if (!('IntersectionObserver' in window)) {
+                elementos.forEach(function (el) { el.classList.add('visible'); });
+                return;
+            }
+
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                });
+            }, { threshold: .12, rootMargin: '0px 0px -40px 0px' });
+
+            // El escalonado se calcula por grupo de hermanos, así las tarjetas de
+            // una misma grilla entran una detrás de otra y no todas juntas.
+            elementos.forEach(function (el) {
+                const hermanos = Array.prototype.filter.call(el.parentElement.children, function (n) {
+                    return n.classList.contains('reveal');
+                });
+                const indice = hermanos.indexOf(el);
+                el.style.transitionDelay = (Math.min(indice, 5) * 70) + 'ms';
+                observer.observe(el);
+            });
+        })();
+
+        // === Video de la primera compra (preguntas frecuentes) ===
+        // El src se escribe recién al abrir: así el reproductor no se descarga
+        // con la página, y al cerrar se borra porque ocultar el overlay no
+        // detiene la reproducción — el video seguiría sonando detrás de la
+        // lista. playsinline evita que iOS se lo lleve a su propia pantalla
+        // completa, que es justamente sacar al cliente de la web.
+        (function () {
+            const overlay = document.getElementById('videoOverlay');
+            const marco = document.getElementById('videoTutorialFrame');
+            const abrirBtn = document.getElementById('faqVideoBtn');
+            const cerrarBtn = document.getElementById('videoCerrarBtn');
+            if (!overlay || !marco || !abrirBtn || !cerrarBtn) return;
+
+            const FUENTE = 'https://www.youtube.com/embed/0LWrdRS-85I?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+
+            function abrir() {
+                marco.src = FUENTE;
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                cerrarBtn.focus();
+            }
+
+            function cerrar() {
+                if (!overlay.classList.contains('active')) return;
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+                marco.src = '';
+                abrirBtn.focus();   // el foco vuelve a la pregunta que lo abrió
+            }
+
+            abrirBtn.addEventListener('click', abrir);
+            cerrarBtn.addEventListener('click', cerrar);
+
+            overlay.addEventListener('click', function (e) {
+                // Cierra desde cualquier punto del velo; dentro de la caja del
+                // video, no.
+                if (!e.target.closest('.video-caja')) cerrar();
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') cerrar();
+            });
+        })();
+
+        // === Precarga de las páginas de destino ===
+        ['catalogoDespachos.html', 'minorista.html'].forEach(function (page) {
+            const link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.href = page;
+            document.head.appendChild(link);
+        });
+
+        // === Analítica de clics en los accesos ===
+        document.querySelectorAll('.nav-button').forEach(function (button) {
+            button.addEventListener('click', function () {
+                let buttonType = 'Minorista';
+                if (this.classList.contains('mayorista')) {
+                    buttonType = 'Mayorista';
+                } else if (this.classList.contains('personalizacion')) {
+                    buttonType = 'Personalización';
+                }
+                if (typeof gtag === 'function') {
+                    gtag('event', 'select_catalogo', { catalogo: buttonType });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

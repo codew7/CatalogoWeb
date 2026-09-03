@@ -29,7 +29,7 @@
     <link rel="icon" href="faviconnegro.png" type="image/png">
 
     
-    <title>Catálogo Mayorista</title>
+    <title>Catálogo Envíos</title>
             
         <!-- EmailJS Script v4 -->
         <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -313,6 +313,11 @@
         cursor: pointer;
         transition: background var(--t), color var(--t), border-color var(--t);
     }
+
+    /* El ítem "Acerca de Nosotros" es un enlace real (navega a otra página) y no
+       un botón como el resto: hay que apagarle el subrayado y el color de <a>
+       para que quede idéntico a sus vecinos. */
+    a.header-nav-item { text-decoration: none; color: var(--tinta-700); }
 
     .header-nav-item:hover {
         background: var(--superficie-2);
@@ -4042,6 +4047,11 @@
                  el mismo código (ver el script del final). El CSS muestra unos u
                  otros según el ancho. -->
             <div class="header-nav" id="headerNav">
+                <a href="nosotros.html" class="header-nav-item">
+                    <i class="fas fa-users" aria-hidden="true"></i>
+                    <span>Acerca de Nosotros</span>
+                </a>
+
                 <button type="button" class="header-nav-item" data-accion="categorias" aria-haspopup="dialog" aria-expanded="false">
                     <i class="fas fa-layer-group" aria-hidden="true"></i>
                     <span>Categorías</span>
