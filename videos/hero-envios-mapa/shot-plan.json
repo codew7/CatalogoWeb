@@ -1,0 +1,42 @@
+{
+  "category": "maps",
+  "duration_s": 7,
+  "fps": 30,
+  "canvas": { "w": 1600, "h": 320, "aspect": "5:1" },
+  "style": "Clean, brand-forward broadcast map for a wholesale-appliance catalog hero banner. Light/neutral surface (#f8f9fa bg, #ffffff/#fafafa panel), NOT a dark map — Argentina rendered as a soft neutral silhouette (#ffffff/#fafafa fill, #e8eaed 1-2px stroke) sitting on the #f8f9fa canvas so it reads as an inset card element, not a full-bleed dark basemap. Restraint per maps module: no glow/particles/bloom — the only motion carriers are the route draw-on and the van glyph. Color carries meaning only: navy (#12365c) for the van + route line (matches the site's existing envíos/truck icon color), green (#376550/#1b5140) reserved for the headline text + a single accent pulse on the origin pin, amber (#b06a12) as a single tiny highlight (destination pin ping) — never decorative. Typography: Plus Jakarta Sans, headline in #111827, sub-detail in #4b5563. Border-radius 16px baked into the composition frame so it matches the card it will be embedded in.",
+  "palette": ["#f8f9fa", "#ffffff", "#fafafa", "#e8eaed", "#376550", "#2c5341", "#1b5140", "#12365c", "#b06a12", "#111827", "#4b5563"],
+  "font": "Plus Jakarta Sans",
+  "beats": [0, 0.5, 2.6, 4.8, 6.6],
+  "export": "mp4",
+  "brief": "A 7s seamless-loop hero banner (1600x320, 5:1) for HomePoint's wholesale catalog. A softly-styled Argentina silhouette sits center-right on a pale neutral field; a navy route line draws on from a pulsing origin pin at Buenos Aires and forks to two destination pins (e.g. Córdoba, Salta) while a small navy delivery-van glyph travels the drawn path, banking gently into curves. The headline 'Envíos rápidos a todo el país' sets in on the left in the first 0.5s (the hook) in bold Plus Jakarta Sans navy/ink text with the sub-detail 'Despachos diarios a todo el territorio' fading in just beneath it a beat later, both held legible for the full loop. Pattern-interrupt at ~2.6s: the route forks and a second destination pin/pulse activates (the one dominant change on an otherwise continuous motif) so the piece doesn't feel like a single static traverse. For the seamless loop: the whole scene (map, route, van, pins, text) crossfades out to the flat #f8f9fa/#ffffff background over the final ~0.4s and back in from that same flat color at t=0 — since the destination panel/background will already be that color, the dip-to-background reads as invisible, giving a true seamless <video loop> with no visible jump-cut of the van snapping back to origin. Motion is continuous and organic (eased draw-on + eased van travel along the path via getPointAtLength, no linear/robotic steps) — this is a 'map hit' motif, not a carousel.",
+  "asset_needs": [],
+  "content": {
+    "lane": "vector",
+    "shot": "flow",
+    "regions": [
+      {
+        "name": "Argentina",
+        "fill": "#ffffff",
+        "stroke": "#e8eaed",
+        "source_note": "GAP: Argentina is not one of the existing catalog map families (us-map/world-map/spain-map). Resolve at BUILD TIME (not render time): take the same bundled world-atlas TopoJSON (countries-110m or countries-50m, whichever the existing world-map block already vendors) already used by the world-map block, filter it offline to the Argentina feature (ISO3 ARG / numeric id 32) with a small Node/D3 script, simplify if needed, and write the resulting GeoJSON/path data as a static JSON asset checked into this project's compositions folder (e.g. compositions/data/argentina.json). The Builder must NOT fetch this at render time (HF forbids render-time network + requires determinism) — it is a one-time offline extraction, same pattern as the maps module's country-bbox filtering guidance. Keep mainland + Tierra del Fuego; the Falklands/Islas Malvinas are a sensitive/contested territory in Argentine cartography — default to omitting them from this decorative brand map (it is not a political/choropleth map) to sidestep the issue entirely; flag this choice back to the user if it matters for their brand."
+      }
+    ],
+    "points": [
+      { "name": "Buenos Aires", "role": "origin", "pulse": true, "accent": "#376550" },
+      { "name": "Córdoba", "role": "destination", "accent": "#12365c" },
+      { "name": "Salta", "role": "destination-secondary", "accent": "#b06a12", "activates_at_s": 2.6 }
+    ],
+    "vehicle": {
+      "kind": "hand-authored-svg",
+      "note": "No external asset fetch needed — author a small flat-style delivery van/pickup SVG glyph directly in the composition (2-3 simple shapes: body + cab + wheels), filled #12365c to match the site's existing envíos/truck icon color. Animate it along the route path with GSAP MotionPathPlugin or manual getPointAtLength() sampling driven off the seek clock (per HF determinism rules — no tl.call), with a slight rotation to face the path tangent so it reads as 'driving' rather than sliding."
+    },
+    "overlays": [
+      { "type": "label", "role": "headline", "text": "Envíos rápidos a todo el país", "color": "#111827" },
+      { "type": "label", "role": "sub-detail", "text": "Despachos diarios a todo el territorio", "color": "#4b5563" }
+    ],
+    "loop": {
+      "technique": "dip-to-background-crossfade",
+      "note": "Crossfade the entire scene to flat #f8f9fa (matching the destination card's surface) over the last ~0.4s and back in from the same flat color at t=0, so the <video autoplay muted loop> shows no visible seam or van position jump."
+    }
+  }
+}

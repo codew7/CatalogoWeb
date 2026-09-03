@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1600, height=320">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1600px;
+        height: 320px;
+        overflow: hidden;
+        background: #f8f9fa;
+      }
+      body {
+        font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+      }
+      #root {
+        position: relative;
+        width: 1600px;
+        height: 320px;
+        background: #f8f9fa;
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      #scene {
+        position: absolute;
+        inset: 0;
+        width: 1600px;
+        height: 320px;
+      }
+      svg#map {
+        position: absolute;
+        inset: 0;
+        display: block;
+      }
+      .text-col {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1600px;
+        height: 320px;
+      }
+      #headline {
+        position: absolute;
+        left: 56px;
+        top: 100px;
+        width: 664px;
+        margin: 0;
+        font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+        font-size: 36px;
+        font-weight: 700;
+        line-height: 1.18;
+        color: #111827;
+        will-change: filter, opacity, transform;
+      }
+      #subdetail {
+        position: absolute;
+        left: 56px;
+        top: 158px;
+        width: 664px;
+        margin: 0;
+        font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+        font-size: 19px;
+        font-weight: 500;
+        line-height: 1.3;
+        color: #4b5563;
+        will-change: filter, opacity, transform;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-95l4" id="root" data-composition-id="hero-envios-mapa" data-start="0" data-duration="7" data-fps="30" data-width="1600" data-height="320">
+      <div data-hf-id="hf-31ev" id="scene">
+        <svg data-hf-id="hf-b1ua" id="map" width="1600" height="320" viewBox="0 0 1600 320">
+          <!-- Argentina silhouette: mainland + Tierra del Fuego + Islas Malvinas (same shared
+               projection space, so Malvinas inherits the exact relative position/scale), tilted
+               -25deg. FIXED vs. the original build: a bare rotate() does not shrink a portrait
+               bbox at a shallow angle like -25deg (it briefly GROWS it -- the rotated mainland was
+               overflowing the 320px-tall canvas by ~92px top/bottom). The added scale(0.6927) is the
+               missing piece, computed from the real polygon's rotated bounding box, not the naive
+               rectangle math: 296px height budget / 427.3px actual rotated height. -->
+          <g data-hf-id="hf-1433" id="silhouette" data-layout-allow-overflow="" transform="translate(1196,154) rotate(-25) scale(0.6927) translate(-130,-240)">
+            <path data-hf-id="hf-mmba" id="ar-mainland" fill="#ffffff" stroke="#e8eaed" stroke-width="1.5" />
+            <path data-hf-id="hf-qasw" id="ar-malvinas" fill="#ffffff" stroke="#e8eaed" stroke-width="1.2" />
+          </g>
+
+          <!-- Route + pins: recomputed to the ACTUAL Buenos Aires / Cordoba / Salta positions,
+               projected through the same fit + rotate(-25) + scale(0.6927) pipeline as the
+               silhouette above, so they land on the corrected (smaller, no-longer-overflowing) map
+               instead of the old fixed guesses (which assumed the pre-fix, oversized silhouette). -->
+          <path data-hf-id="hf-pvht" id="route-trunk" d="M1224.4,102.7 Q1203.45,86 1182.5,100.0" fill="none" stroke="#12365c" stroke-width="3" stroke-linecap="round" />
+          <path data-hf-id="hf-8p3f" id="route-cordoba" d="M1182.5,100.0 Q1173.55,90 1164.6,98.8" fill="none" stroke="#12365c" stroke-width="3" stroke-linecap="round" />
+          <path data-hf-id="hf-tbqw" id="route-salta" d="M1182.5,100.0 Q1135,88 1129.1,49.1" fill="none" stroke="#12365c" stroke-width="3" stroke-linecap="round" />
+
+          <!-- Origin pin: Buenos Aires (continuous pulse) -->
+          <g data-hf-id="hf-pq8n" id="pin-origin">
+            <circle data-hf-id="hf-xsdb" id="origin-pulse" cx="1224.4" cy="102.7" r="6" fill="none" stroke="#376550" stroke-width="2" />
+            <circle data-hf-id="hf-ux1x" cx="1224.4" cy="102.7" r="4.5" fill="#376550" />
+          </g>
+
+          <!-- Destination pin: Cordoba (one-time navy activation ping) -->
+          <g data-hf-id="hf-2ebn" id="pin-cordoba">
+            <circle data-hf-id="hf-vgi8" id="cordoba-ping" cx="1164.6" cy="98.8" r="8" fill="none" stroke="#12365c" stroke-width="2" />
+            <circle data-hf-id="hf-qr9k" cx="1164.6" cy="98.8" r="4" fill="#12365c" />
+          </g>
+
+          <!-- Destination pin: Salta (one-time amber activation ping, the pattern-interrupt accent) -->
+          <g data-hf-id="hf-9zqi" id="pin-salta">
+            <circle data-hf-id="hf-f7ms" id="salta-ping" cx="1129.1" cy="49.1" r="8" fill="none" stroke="#b06a12" stroke-width="2" />
+            <circle data-hf-id="hf-5ntt" cx="1129.1" cy="49.1" r="4" fill="#b06a12" />
+          </g>
+
+          <!-- Van glyph: outer group carries position+heading (raw transform), inner group carries the
+               settle-bounce scale (GSAP-owned) so the two never fight over the same transform. -->
+          <g data-hf-id="hf-d0cm" id="van">
+            <g data-hf-id="hf-gx0f" id="van-body">
+              <rect data-hf-id="hf-3ohd" x="-8" y="-5" width="16" height="7" rx="1.5" fill="#12365c" />
+              <rect data-hf-id="hf-6zva" x="5" y="-3.5" width="6.5" height="5.5" rx="1" fill="#12365c" />
+              <circle data-hf-id="hf-p82q" cx="-4" cy="2.6" r="2.2" fill="#12365c" />
+              <circle data-hf-id="hf-zxsj" cx="6" cy="2.6" r="2.2" fill="#12365c" />
+            </g>
+          </g>
+        </svg>
+
+        <div data-hf-id="hf-sa0c" class="text-col">
+          <h1 style="font-size: 56px" data-hf-id="hf-sa44" id="headline">Envíos rápidos</h1>
+          <p data-hf-id="hf-cpyh" id="subdetail"> Despachamos a todo el país</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ---- Argentina outline data (baked at build time from world-atlas countries-50m.json,
+      // filtered offline to ISO numeric 032 / 238 via topojson-client + d3-geo geoPath;
+      // see compositions/data/argentina.json for the same data + provenance note).
+      // Embedded inline (not fetched) so the composition never touches the network at render time. ----
+      var ARG_MAINLAND = {
+        path: "M208.52,132.53L208.05,133.03L208,133.92L207.15,135.1L205.6,136.55L205.09,137.79L205.79,139.38L205.88,141.29L205.6,142.06L204.9,142.31L204.76,142.81L205.13,143.53L205.13,144.5L204.8,145.68L204.1,147.04L202.97,148.56L202.73,149.61L203.3,150.1L203.58,150.65L203.58,151.24L203.34,152.08L202.88,153.19L202.17,154L201.23,154.53L200.95,155.21L201.32,156.02L201.37,156.86L201.09,157.75L201.28,158.61L201.84,159.45L201.79,160.4L200.81,162.35L200.52,163.55L201.18,168.72L200.81,169.44L200.15,170.28L199.4,170.33L198.5,170.19L197.89,170.71L197.47,172.98L196.29,177.92L196.48,179.08L197.47,180.98L197.8,182.19L198.08,183.12L198.31,184.84L197.75,185.61L197.23,185.75L196.57,186.18L197.33,188.28L197.94,189.26L199.72,191.23L206.5,194L209.32,195.63L212.51,197.83L214.25,200.1L214.39,201.98L211.85,204.79L211.57,207.13L212.09,208.78L213.03,210.32L215.48,212.32L217.31,213.04L219.75,212.95L220.18,213.52L220.41,214L220.79,218.03L220.74,219.55L220.04,220.93L215.34,227.33L211.29,231.23L209.83,233.36L209.32,235.67L208.05,236.76L201.09,240.25L190.28,243.35L181.53,244.97L179.56,245.51L165.5,247.28L162.77,247.53L159.24,247.37L156.38,247.59L153.18,247.12L150.31,246.55L148.71,245.17L146.78,245.01L146.27,245.69L147.21,247.46L146.78,249.57L147.3,250.79L148.43,251.04L149.51,251.65L150.5,252.49L148.85,252.58L149.47,253.24L150.17,253.65L150.08,255.03L149.47,258.39L147.87,259.11L147.44,259.29L146.93,260.02L145.94,263.24L145.61,265.32L146.03,266.66L147.96,269.47L147.25,271.31L146.03,272.31L140.77,274.35L138.65,275.16L135.36,275.73L130,275.82L128.03,275.69L123.47,273.83L120.03,272.72L116.93,271.83L113.92,271.31L114.34,271.04L114.53,270.56L113.69,270.29L113.07,270.22L111.1,271.2L110.25,272.17L110.02,273.03L109.97,275.12L110.35,276.84L111.76,281.13L111.9,283.46L111.24,286.41L112.18,288.13L113.31,288.9L115.94,289.68L116.93,290.2L118.06,290.13L118.39,290.33L118.2,290.69L117.54,291.44L117.59,292.24L119.56,292.46L121.58,292.31L123.75,291.94L124.26,291.4L124.26,290.26L121.77,290.06L122.05,289.65L123.98,289.18L126.47,288.43L127.74,288.27L128.59,288.79L129.15,289.27L129.91,290.49L130.33,292.1L130.38,294.05L130.05,295.89L129.72,296.52L129.06,297.31L124.59,298.29L123.37,298.04L122.19,296.66L121.82,295.23L120.83,294.28L118.67,293.51L116.55,293.73L114.44,295.07L112.37,295.5L111.66,296.7L116.83,298.65L119.28,299.2L120.08,299.2L120.88,299.45L120.17,300.17L119.42,300.63L115.71,301.62L114.11,302.33L112.18,303.69L109.5,306.68L108.7,307.31L108.28,308.08L108,310.15L108.89,313.55L107.95,314.98L108.51,316.56L108.23,317.63L107.29,319.15L103.53,321.55L102.87,323.32L104.19,324.34L104.09,325.25L103.67,326.06L102.12,326.06L96.48,325.52L94.41,326.4L92.48,327.51L91.96,328.04L91.31,328.35L87.4,328.94L86.65,329.33L82.51,333.5L80.73,336.11L78.61,338.65L78.05,339.71L77.91,341.21L78.23,342.55L78.52,343.54L79.27,344.81L80.82,346.26L88.81,352.16L90.46,352.68L98.97,353.31L100.85,354.13L101.93,355.45L102.35,356.6L101.88,359.5L101.37,360.43L100.43,361.25L98.41,362.32L96.01,362.88L96.67,363.29L97.65,363.25L99.82,362.88L100.71,363.25L101.41,364.38L100.1,364.86L99.67,365.4L98.73,366.26L93.8,369.62L91.17,370.64L88.72,371.97L85.43,373.36L84.16,374.13L82.42,375.78L79.79,377.57L76.92,381.43L76.83,382.18L77.25,382.68L75.65,389.43L75.08,390.23L73.96,391.06L70.9,392.47L69.44,392.63L67.52,391.83L66.43,390.97L65.4,389.55L64.08,388.05L64.04,388.57L64.46,389.48L64.18,390.43L60.89,390.86L60.04,391.31L63,391.11L65.02,391.4L65.87,391.74L66.62,392.47L67.33,393.33L66.76,393.81L65.12,394.22L63.05,394.94L60.56,396.26L59.19,397.8L58.58,398.89L57.92,401.11L57.74,402.56L56.7,403.69L55.06,404.69L55.15,404.94L56.28,404.42L57.13,404.26L57.88,405.6L58.91,408.3L59.38,410.15L59.29,410.72L59.01,411.47L56.89,411.65L55.06,411.63L53.69,411.97L54.4,412.31L55.67,412.17L57.41,412.99L59.34,412.65L60.23,413.17L60.84,413.67L63.8,417.57L66.39,419.97L67.66,421.4L67.05,422.06L66.81,421.2L65.12,420.97L63.47,420.72L60.74,420.11L57.08,419.18L53.36,419.18L50.45,418.38L47.2,417.5L40.39,417.43L34.37,417.36L28.21,417.32L24.26,417.27L21.63,417.25L20.97,416.93L21.2,415.82L20.22,415.03L18.81,414.05L17.07,413.35L16.22,412.44L15.23,411.4L15.8,410.47L16.6,408.23L16.64,407.25L15.89,406.55L15.66,405.57L15.89,405.12L16.55,404.76L16.97,403.15L16.64,401.58L16.13,400.18L15.47,399.57L14.57,399.27L13.92,399.2L12.46,399.73L10.06,399.59L9.26,399.79L8.09,400.36L6.44,401.2L5.5,400.9L5.22,400.02L4.61,399.25L4.23,398.57L3.95,397.44L3.43,396.01L2.49,394.28L0.99,392.9L0.89,391.68L0.61,390.11L1.36,388.59L0.94,387.32L0,385.83L0.28,384.26L1.22,383.4L1.5,382.31L5.74,382.13L5.59,380.66L6.3,379.48L7.1,378.39L7.76,377.91L9.26,377.48L11.05,376.85L12.08,376.15L12.55,375.51L12.84,374.67L12.93,373.81L12.65,371.93L12.98,371.36L14.06,370.61L15.94,369.93L16.74,368.14L16.32,366.58L15.23,365.35L13.92,364.81L13.82,363.54L14.43,362.34L15.19,361.05L16.13,359.57L16.08,358.53L16.88,357.92L19.23,356.56L20.03,355.24L20.88,354.88L21.82,354.72L21.86,353.97L21.16,353.23L21.06,352.3L21.16,351.27L21.34,349.89L22.47,349.37L24.07,348.26L24.5,347.53L24.54,346.58L24.07,344.61L23.7,343.2L23.46,342.68L22.76,341.73L22.19,341.12L23.09,340.37L24.68,339.58L25.39,338.42L24.78,337.44L23.84,336.92L23.55,335.43L23.88,333.52L24.59,332.96L26.99,332.66L27.22,331.69L29.06,330.3L29.01,328.99L27.83,328.17L26.7,326.86L25.86,325.7L23.04,325.07L20.03,324.73L19.65,323.64L19.75,323L21.16,323.25L23.41,323.02L25.11,322.98L26.33,322.87L27.69,322.71L28.96,323.16L30.23,322.87L30.75,321.14L31.55,320.24L31.69,319.38L30.84,318.67L29.39,318.47L22.94,317.92L22.76,317.22L22.8,316.06L23.04,314.89L23.04,314.3L23.6,313.77L24.31,312.71L24.78,311.98L24.31,311.05L23.27,309.69L24.02,309.06L24.07,308.29L23.84,307.56L22.76,306.75L21.82,305.59L21.82,304.39L22.94,304.07L23.65,303.71L23.84,302.96L23.41,302.03L21.91,301.76L19.89,301.19L19.23,300.72L18.66,299.72L19.09,296.93L18.9,295.25L18.71,294.32L19.18,293.62L19.89,292.96L19.56,291.47L18.95,290.69L19.18,290.08L19.75,289.47L20.22,288.72L20.69,288.54L21.3,288.97L22.38,288.72L23.7,288.11L23.84,287.41L23.6,286.39L22.61,283.82L21.72,282.21L21.91,281.65L22.24,281.06L22,278.86L22.05,277.55L22.14,273.67L22.24,272.33L21.34,270.97L21.49,269.7L22.1,268.77L22.71,267.52L23.13,266.41L23.6,265.91L24.4,265.67L24.54,265.05L24.21,264.58L23.18,263.87L22.94,262.99L23.18,262.31L23.65,261.9L24.45,261.9L25.01,260.95L25.2,259.75L25.3,259.2L24.87,258.5L24.54,256.85L24.21,255.92L24.59,255.51L25.11,255.37L25.95,255.6L26.61,255.49L26.7,254.99L26.75,254.44L26.99,254.08L27.55,252.88L28.16,251.36L28.3,250.29L28.07,247.41L28.4,246.76L29.01,246.17L29.9,245.6L31.08,245.12L32.49,244.44L34.27,244.19L34.98,243.45L35.5,242.45L35.64,241.63L34.93,241.04L34.04,240.38L33.62,238.66L33.38,237.07L33.29,235.08L32.39,233.38L31.45,231.45L31.22,229.73L31.5,228.8L31.88,227.3L31.5,226.62L31.03,225.42L31.5,224.47L32.11,223L32.02,222.22L31.55,220.46L31.13,219.46L31.55,218.37L32.25,217.37L32.77,216.85L32.68,215.99L32.91,215.26L33.95,214.79L34.89,213.93L35.54,213.81L36.39,213.81L36.91,213.56L37.14,212.88L37.28,212.14L38.6,211.21L39.35,210.34L40.72,210.16L41.42,209.23L41.42,208.06L41.28,206.85L41.75,205.45L41.23,203.34L41.28,202.21L40.72,201.28L40.86,200.28L40.58,199.62L39.73,199.39L39.45,198.6L39.82,198.19L40.62,197.9L41.56,197.29L42.27,194.36L42.64,193.48L42.97,192.43L42.93,191.89L43.4,191.1L43.96,189.9L44.85,188.74L45.37,187.94L45.89,186.88L46.03,186.24L46.64,185.93L47.39,185.84L48.29,185.63L48.62,185.25L48.57,184.68L48.52,183.41L48.24,181.39L48.1,178.81L48.24,177.11L48.8,175.38L49.32,174.46L49.18,173.75L49.04,172.96L48.05,172.53L47.11,172.89L46.45,172.8L45.61,171.89L45.32,170.92L45.47,169.6L46.17,168.79L46.41,167.74L46.03,167.43L45.18,166.75L44.38,164.37L44.48,162.35L43.68,161.83L43.35,160.24L42.5,159.67L42.22,158.49L41.94,157.29L42.03,156.75L42.88,156.59L43.4,155.64L43.02,155.09L42.36,154.64L41.56,154.69L40.81,154.12L39.82,151.83L39.07,150.56L39.31,148.72L39.45,147.27L39.78,146.05L39.92,145.07L40.53,144.6L41.09,144.82L41.61,144.71L42.13,143.92L42.64,143.44L42.64,143.03L42.31,142.6L42.17,141.85L42.55,140.97L43.16,138.93L44.15,136.66L44.57,135.82L44.48,135.12L44.71,134.78L45.37,135.14L47.25,134.76L47.91,133.76L48.15,132.85L48.76,132.35L48.47,131.65L47.67,131.42L47.2,131.11L47.39,130.29L47.67,128.43L47.63,127.05L46.92,124.15L46.36,121.24L46.73,120.27L48,118.95L48.94,118.36L49.13,117.62L50.07,114.19L50.17,112.33L50.78,111.29L51.2,109.36L52.89,107.69L53.36,106.58L54.07,106.46L54.4,106.12L55.29,104.87L56.47,103.61L57.5,102.97L57.74,101.97L58.21,100.61L59.19,98.34L59.76,96.76L60.51,96.19L61.4,94.11L61.78,92.9L62.77,92.41L63.57,92.27L64.32,92.83L65.07,92.72L65.82,92L67.52,91.52L68.31,91.25L68.64,90.55L68.64,89.3L67.94,88.37L66.48,86.58L65.21,84.61L65.07,83.97L65.07,83.29L65.31,82.43L65.92,81.45L67.42,79.84L67.23,78.69L66.15,74.45L65.73,73.29L64.98,71.11L65.07,70.25L65.78,67.87L66.34,66.9L67.19,66.72L67.66,66.4L67.8,65.97L67.23,65.45L67,64.77L66.72,63.79L65.92,63.45L65.49,62.66L65.49,61.48L66.2,59.94L67,59.51L67.28,58.83L68.13,58.22L68.93,57.72L69.54,56.83L72.22,55.74L74.29,54.88L78.42,53.27L81.24,52.16L81.48,51.39L81.71,50.87L83.03,46.92L84.72,41.85L85.76,38.67L83.31,36.31L83.78,35.7L85.15,34.09L85.43,32.8L85.99,32.26L88.48,30.94L88.91,30.08L89.14,29.1L89.66,28.42L90.6,28.27L92.34,27.65L94.17,27.09L94.74,26.29L95.25,24.91L95.72,23.37L96.05,23L96.67,23.05L97.65,23.44L98.17,24.02L100.76,25.86L101.93,26.91L103.06,27.04L105.22,26.84L105.65,26.88L111.24,26.93L112.09,27.02L114.06,27.47L115.14,27.83L115.89,28.02L117.17,28.58L118.2,30.44L118.81,31.94L119.23,33.23L120.17,35.54L120.83,36.4L121.02,35.97L121.58,33.48L122.34,32.01L123.32,30.37L125.39,26.54L126.1,25.98L126.9,25.68L127.41,25.66L127.98,25.95L128.78,25.95L129.29,25.66L134.61,25.59L140.16,25.57L140.3,25.59L140.53,26.25L141.47,27.68L142.51,28.45L142.69,28.65L143.02,29.01L143.02,29.38L144.1,30.17L146.31,31.33L148.38,33.59L150.31,36.95L152.1,39.42L153.79,41.03L155.34,42.16L156.8,42.82L157.55,43.37L157.65,43.77L158.96,44.63L161.5,45.93L163.15,47.22L163.81,48.51L166.34,49.85L170.72,51.23L173.87,51.89L175.84,51.84L178.71,52.93L182.42,55.2L184.68,56.76L185.48,57.65L187.92,59.05L193.94,61.98L196.62,62.73L197.89,63.38L198.64,64.25L199.4,64.5L200.1,64.18L201.65,64.47L203.96,65.42L205.74,66.56L208.05,69.05L208.8,70.07L209.13,70.96L209.03,71.75L208.28,72.59L207.01,73.5L206.64,73.88L206.59,74.24L206.26,75.02L205.18,76.63L204.9,77.37L204.85,77.92L204.15,78.53L202.36,79.64L201.98,80.18L201.89,80.77L201.65,81.11L201.42,81.27L201.04,81.84L200.76,82.81L200.76,84.06L200.95,85.58L200.9,86.06L200.52,86.33L200.29,86.67L200.19,87.37L199.87,87.89L199.25,88.23L199.07,88.6L199.21,89.03L198.78,89.46L197.7,89.86L197.09,90.48L196.86,91.27L196.25,92L195.35,92.61L195.02,93.45L195.54,94.99L201.23,94.47L205.88,95.03L211.38,96.51L215,97.03L216.84,96.58L218.16,96.64L219,97.23L220.18,97.35L221.63,97.01L222.86,97.26L223.84,98.12L224.69,97.91L225.49,96.62L226.38,95.69L227.42,95.1L228.64,94.92L230.19,95.15L231.37,95.62L232.26,96.33L233.25,96.3L234.33,95.56L234.85,94.65L234.8,93.61L235.22,92.86L236.12,92.41L236.73,91.79L237.01,91.02L238.09,90.55L239.88,90.36L240.82,90L240.91,89.41L241.43,88.87L242.42,88.37L243.07,87.76L243.45,87.01L244.06,86.53L244.86,86.35L245.8,84.79L246.79,81.86L247.4,77.92L247.63,72.29L248.62,72.29L249.09,72.72L249.84,72.93L250.64,72.45L251.3,72.25L252.38,72.23L252.95,71.68L253.65,71.61L254.12,71.89L254.55,72.25L255.49,72.32L256.24,73.22L257.08,73.52L257.41,74.56L257.98,77.31L258.97,78.92L259.95,80.77L260,81.59L259.44,82.43L259.34,83.63L259.01,86.53L258.87,87.62L259.2,88.35L259.34,89.37L258.82,90.61L257.79,92.47L256.76,92.97L256.52,92.99L255.16,94.08L254.17,94.49L253.61,94.22L253,94.67L252.24,95.87L251.4,96.42L249.8,96.73L249.33,96.87L248.43,96.83L247.63,97.12L246.98,97.78L246.27,98L245.52,97.85L244.81,98.07L244.2,98.71L243.87,99.41L243.78,100.16L243.17,100.66L242.09,100.93L241.71,101.29L241.76,101.81L241.29,102.22L239.41,102.63L238.09,103.38L237.24,104.44L236.35,105.12L234.99,105.53L233.11,106.62L232.87,107.3L233.58,107.91L233.81,108.46L233.62,108.93L233.06,109L232.07,108.66L231.37,108.57L230.99,108.8L230.76,109.18L230.8,109.75L230.43,110.13L229.72,110.34L229.3,110.81L229.11,111.54L228.22,112.47L226.57,113.58L225.35,115.08L224.41,116.98L223.33,118.23L222.1,118.82L221.21,119.66L220.79,120.77L219.47,122.47L217.26,124.78L215.34,126.37L213.55,127.23L212.56,128.2L212.32,129.29L211.2,130.52L209.13,131.9ZM64.27,454.66L64.36,451.71L64.46,447.75L64.51,444.21L64.51,440.76L64.51,437.18L64.55,433.62L64.55,429.79L64.6,425.91L65.35,426.48L68.41,429.15L69.21,430.24L69.68,431.51L68.46,430.72L67.19,431.17L66.58,431.94L66.01,432.76L66.01,433.35L66.43,433.87L67.7,434.3L70.71,434.46L70.95,434.62L72.69,437.81L73.58,438.54L74.61,439.11L77.01,440.74L79.32,442.49L82.04,444.16L84.96,445.45L87.64,446.41L90.18,447.61L92.9,449.26L95.87,450.49L99.02,451.33L102.26,452.05L107.2,451.76L108.7,451.85L109.64,452.37L108.7,453.82L107.48,454.98L105.83,455.45L104.14,455.63L102.54,455.61L100.99,455.38L99.53,455.52L98.17,456L96.71,456.25L95.21,456.29L93.75,456.7L92.25,457L90.74,456.75L86.79,455.59L84.21,455.32L75.51,454.86L72.73,454.59L69.96,454.18L68.5,454.18L66.39,454.43L64.74,454.41ZM117.87,452.87L119.33,453.16L122.19,452.94L123.7,452.94L124.36,453.05L124.64,453.21L126.61,452.96L127.46,452.98L127.23,453.55L125.44,454.09L124.69,453.87L120.83,453.91L119.14,454.48L118.43,454.48L116.74,455.29L115.52,454.77L115.19,454.3L116.04,453.64L116.88,453.62L117.45,453.35ZM152.8,249.86L152.94,250.68L152.24,250.59L150.64,249.79L150.08,249.05L149.98,248.73L151.63,249.07L152.38,249.39Z",
+        width: 260,
+        height: 480
+      };
+      // Falklands/Islas Malvinas (ISO numeric 238), projected through the SAME Argentina-fitted
+      // projection as the mainland (not re-fit to its own bbox) -- so this path is already in the
+      // mainland's shared 0..260 x 23..457 coordinate space, and inheriting the mainland <g>'s
+      // transform places it at its true position/scale relative to the coast automatically
+      // (previously it was pinned to an arbitrary fixed canvas anchor that no longer matched the
+      // corrected, smaller silhouette). No route is drawn to it -- scenery, not a destination.
+      var ARG_MALVINAS_PATH =
+        "M192.297,407.864L194.318,408.612L196.81,408.363L197.844,408.567L198.456,409.202L198.127,409.791L197.327,409.701L196.622,409.859L196.763,410.653L197.233,410.97L199.866,411.832L200.336,411.877L200.289,411.537L199.819,410.948L199.631,410.313L200.054,409.769L200.712,409.61L203.722,409.361L204.427,409.61L205.931,411.106L204.521,411.31L203.957,411.945L205.179,412.217L206.119,412.648L205.602,413.283L205.508,413.6L203.345,414.031L201.465,414.326L200.571,415.074L199.02,415.618L194.506,416.548L195.024,417.319L195.071,417.681L194.882,418.679L188.629,417.5L187.783,417.613L189.476,419.654L188.253,420.017L187.031,419.79L185.902,419.949L185.197,421.422L183.41,420.47L181.906,419.155L181.859,418.407L183.363,417.001L182.893,416.412L186.325,414.53L186.937,413.963L188.018,413.646L189.099,413.532L189.57,413.283L189.523,412.83L189.052,412.036L189.099,410.744L191.826,408.998L191.45,407.887ZM173.537,410.358L175.465,410.608L177.204,409.701L178.38,409.406L179.367,409.61L180.072,410.154L181.06,410.064L183.928,409.497L184.304,409.701L185.291,409.043L186.184,409.338L186.843,409.905L186.514,410.585L185.714,411.016L185.244,411.605L184.633,412.081L183.646,412.512L182.893,413.215L181.013,414.87L178.333,417.001L177.439,417.183L175.559,417.319L174.759,417.16L174.101,417.205L173.537,418.361L172.691,419.223L172.268,419.404L171.374,419.495L170.998,419.608L170.669,419.926L168.318,419.858L166.673,419.314L164.745,418.135L167.331,416.684L169.588,416.752L171.421,415.777L172.926,415.301L173.537,414.802L174.195,414.417L174.195,413.918L173.678,413.691L173.02,413.714L172.362,413.94L170.763,414.213L169.682,413.646L170.387,413.419L171.186,413.442L173.631,412.898L174.101,412.671L173.349,411.923L171.892,411.447L170.669,410.676L170.481,410.381L170.528,409.927L169.87,408.998L170.575,408.953L171.468,409.542ZM163.993,414.598L164.933,414.779L165.873,414.711L165.356,416.049L164.933,416.684L163.805,416.638L162.723,415.754L162.347,415.301L163.57,414.961ZM197.703,417.545L197.75,418.679L196.716,418.316L196.34,417.772L196.904,417.387L197.421,417.409ZM175.841,409.497L174.054,409.497L173.678,409.066L173.725,408L175.042,407.91L176.405,408.363L176.311,408.817ZM181.436,420.425L180.59,420.674L180.354,420.561L180.119,420.062L180.072,419.427L179.978,419.155L180.542,419.246L181.483,419.744Z";
+
+      document.getElementById("ar-mainland").setAttribute("d", ARG_MAINLAND.path);
+      document.getElementById("ar-malvinas").setAttribute("d", ARG_MALVINAS_PATH);
+
+      // ---- Timeline ----
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      var trunkPath = document.getElementById("route-trunk");
+      var cordobaPath = document.getElementById("route-cordoba");
+      var saltaPath = document.getElementById("route-salta");
+      var van = document.getElementById("van");
+      var vanBody = document.getElementById("van-body");
+
+      var Ltrunk = trunkPath.getTotalLength();
+      var Lc = cordobaPath.getTotalLength();
+      var Ls = saltaPath.getTotalLength();
+
+      function clamp(v, lo, hi) {
+        return Math.max(lo, Math.min(hi, v));
+      }
+
+      function headingAt(sampleFn, d, range, eps) {
+        var d1 = clamp(d, 0, range);
+        var d2 = clamp(d + eps, 0, range);
+        var p1 = sampleFn(d1);
+        var p2 = sampleFn(d2);
+        var dx = p2.x - p1.x;
+        var dy = p2.y - p1.y;
+        if (dx === 0 && dy === 0) return null;
+        return (Math.atan2(dy, dx) * 180) / Math.PI;
+      }
+
+      function setVan(x, y, heading) {
+        van.setAttribute("transform", "translate(" + x + "," + y + ") rotate(" + heading + ")");
+      }
+
+      // --- Pre-hold hidden state (build-time gsap.set) ---
+      gsap.set("#scene", { opacity: 0 });
+      gsap.set("#headline", { opacity: 0, filter: "blur(10px)", y: 8 });
+      gsap.set("#subdetail", { opacity: 0, filter: "blur(10px)", y: 8 });
+      gsap.set("#origin-pulse", { opacity: 0, scale: 1, transformOrigin: "50% 50%" });
+      gsap.set("#cordoba-ping", { scale: 0, transformOrigin: "50% 50%" });
+      gsap.set("#salta-ping", { scale: 0, transformOrigin: "50% 50%" });
+      gsap.set(vanBody, { scale: 1, transformOrigin: "50% 50%" });
+      trunkPath.setAttribute("stroke-dasharray", Ltrunk);
+      trunkPath.setAttribute("stroke-dashoffset", Ltrunk);
+      cordobaPath.setAttribute("stroke-dasharray", Lc);
+      cordobaPath.setAttribute("stroke-dashoffset", Lc);
+      saltaPath.setAttribute("stroke-dasharray", Ls);
+      saltaPath.setAttribute("stroke-dashoffset", Ls);
+
+      // Van parked at Buenos Aires, facing the trunk's initial tangent.
+      var trunkSample = function (d) {
+        return trunkPath.getPointAtLength(clamp(d, 0, Ltrunk));
+      };
+      var initHeading = headingAt(trunkSample, 0, Ltrunk, 2) || -145;
+      var baStart = trunkPath.getPointAtLength(0);
+      setVan(baStart.x, baStart.y, initHeading);
+
+      // --- Loop-in / loop-out scene crossfade (dip to flat background) ---
+      tl.to("#scene", { opacity: 1, duration: 0.3, ease: "power1.out" }, 0);
+      tl.to("#scene", { opacity: 0, duration: 0.4, ease: "power1.in" }, 6.6);
+
+      // --- Text reveal (fade_blur) ---
+      tl.to("#headline", { opacity: 1, filter: "blur(0px)", y: 0, duration: 0.55, ease: "sine.out" }, 0.0);
+      tl.to("#subdetail", { opacity: 1, filter: "blur(0px)", y: 0, duration: 0.4, ease: "sine.out" }, 0.5);
+
+      // --- Origin pulse: continuous radial ping from ~0.3s for the rest of the loop.
+      // Finite repeat count (not -1) per the HF contract's "finite repeats only" rule; 7 cycles
+      // at 1.1s each comfortably covers the 0.3s-6.6s window it needs to animate through. ---
+      tl.fromTo(
+        "#origin-pulse",
+        { scale: 1, opacity: 0.6 },
+        { scale: 2.2, opacity: 0, duration: 1.1, ease: "sine.out", repeat: 7 },
+        0.3
+      );
+
+      // --- Phase 1: trunk draw-on + van travel, Buenos Aires -> fork (0.5s - 2.0s) ---
+      var headingP1 = initHeading;
+      var proxy1 = { p: 0 };
+      tl.to(
+        proxy1,
+        {
+          p: 1,
+          duration: 1.5,
+          ease: "power2.inOut",
+          onUpdate: function () {
+            var len = proxy1.p * Ltrunk;
+            var pos = trunkPath.getPointAtLength(len);
+            var h = headingAt(trunkSample, len, Ltrunk, 2);
+            if (h !== null) headingP1 = lerp(headingP1, h, 0.35);
+            setVan(pos.x, pos.y, headingP1);
+            trunkPath.setAttribute("stroke-dashoffset", Ltrunk * (1 - proxy1.p));
+          }
+        },
+        0.5
+      );
+
+      // --- Phase 2: branch-cordoba draw-on + van travel, fork -> Cordoba (2.0s - 2.4s) ---
+      var cordobaSample = function (d) {
+        return cordobaPath.getPointAtLength(clamp(d, 0, Lc));
+      };
+      var headingP2 = headingAt(cordobaSample, 0, Lc, 2) || headingP1;
+      var proxy2 = { p: 0 };
+      tl.to(
+        proxy2,
+        {
+          p: 1,
+          duration: 0.4,
+          ease: "power2.inOut",
+          onUpdate: function () {
+            var len = proxy2.p * Lc;
+            var pos = cordobaPath.getPointAtLength(len);
+            var h = headingAt(cordobaSample, len, Lc, 2);
+            if (h !== null) headingP2 = lerp(headingP2, h, 0.35);
+            setVan(pos.x, pos.y, headingP2);
+            cordobaPath.setAttribute("stroke-dashoffset", Lc * (1 - proxy2.p));
+          }
+        },
+        2.0
+      );
+
+      // --- Cordoba arrival: one-time navy pin ping + van settle bounce (2.4s - ~2.65s) ---
+      tl.to("#cordoba-ping", { scale: 1.3, duration: 0.2, ease: "back.out(1.6)" }, 2.4);
+      tl.to("#cordoba-ping", { scale: 1, duration: 0.15, ease: "power2.out" }, 2.61);
+      tl.to(vanBody, { scale: 1.15, duration: 0.1, ease: "power2.out" }, 2.4);
+      tl.to(vanBody, { scale: 1, duration: 0.15, ease: "power2.inOut" }, 2.5);
+
+      // --- Pattern-interrupt beat @2.6s: branch-salta draws on fast + amber ping fires ---
+      tl.to(saltaPath, { attr: { strokeDashoffset: 0 }, duration: 0.4, ease: "power2.inOut" }, 2.6);
+      tl.to("#salta-ping", { scale: 1.3, duration: 0.2, ease: "back.out(1.6)" }, 2.6);
+      tl.to("#salta-ping", { scale: 1, duration: 0.15, ease: "power2.out" }, 2.81);
+
+      // --- Phase 3: van departs Cordoba, back through the fork, on to Salta (2.6s - 4.5s) ---
+      var Ltotal3 = Lc + Ls;
+      var reverseSample = function (d) {
+        d = clamp(d, 0, Ltotal3);
+        if (d <= Lc) {
+          return cordobaPath.getPointAtLength(Lc - d);
+        }
+        return saltaPath.getPointAtLength(d - Lc);
+      };
+      var headingP3 = headingAt(reverseSample, 0, Ltotal3, 2) || headingP2 + 180;
+      var proxy3 = { p: 0 };
+      tl.to(
+        proxy3,
+        {
+          p: 1,
+          duration: 1.9,
+          ease: "power2.inOut",
+          onUpdate: function () {
+            var len = proxy3.p * Ltotal3;
+            var pos = reverseSample(len);
+            var h = headingAt(reverseSample, len, Ltotal3, 2);
+            if (h !== null) headingP3 = lerp(headingP3, h, 0.35);
+            setVan(pos.x, pos.y, headingP3);
+          }
+        },
+        2.6
+      );
+
+      // --- Salta arrival: van settle bounce (4.5s - ~4.75s); the amber ping already fired at 2.6s ---
+      tl.to(vanBody, { scale: 1.15, duration: 0.1, ease: "power2.out" }, 4.5);
+      tl.to(vanBody, { scale: 1, duration: 0.15, ease: "power2.inOut" }, 4.6);
+
+      // Held parked at Salta 4.8s - 6.6s (only the origin pulse keeps animating), then loop-out crossfade.
+
+      window.__timelines["hero-envios-mapa"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
