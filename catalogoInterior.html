@@ -45,7 +45,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <script src="config.js"></script>
-    <script src="catalogoDespachos.js" defer></script>
+    <script src="catalogoInterior.js" defer></script>
     
     <style>
     /* ==========================================================================
@@ -939,7 +939,7 @@
     /* Precio de lista (primer <p>): precio anterior, tachado.
        Es el valor que agregarAlCarrito() suma al total, por eso sigue siendo el
        que toma el JS, aunque visualmente ya no sea el protagonista.
-       El JS (catalogoDespachos.js) lo imprime como
+       El JS (catalogoInterior.js) lo imprime como
        "<strong>Valor $</strong> <span class="precio-anterior-cifra">11.210</span>":
        el tachado va SOLO sobre ese span, nunca sobre el <p> completo, para que
        el signo $ (repuesto por strong::after, igual que en el precio con
@@ -4047,7 +4047,7 @@
                  el mismo código (ver el script del final). El CSS muestra unos u
                  otros según el ancho. -->
             <div class="header-nav" id="headerNav">
-                <a href="nosotros.html" class="header-nav-item">
+                <a href="interior.html" class="header-nav-item">
                     <i class="fas fa-users" aria-hidden="true"></i>
                     <span>Acerca de Nosotros</span>
                 </a>

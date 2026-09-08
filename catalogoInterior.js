@@ -2075,6 +2075,10 @@ function _enviarPedidoFinalConfirmado() {
                 adminViewed: false,
                 createdby: "web",
                 status: 'ABIERTO',
+                // Origen del pedido: 'int' = catálogo del interior (catalogoInterior.html).
+                // Permite separar en el panel los pedidos de esta página de los que
+                // entran por los otros catálogos.
+                cat: 'int',
 
                 cliente: {
                     nombre: datosExtraCliente.nombre || '',
