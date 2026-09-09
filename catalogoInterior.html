@@ -2594,12 +2594,87 @@
 
     .welcome-header p { margin: 0; font-size: .9rem; color: rgba(255,255,255,.72); }
 
-    .welcome-header-mensaje {
-        margin: 0 0 14px !important;
-        font-size: .92rem !important;
-        line-height: 1.55;
-        color: rgba(255,255,255,.88) !important;
+    /* Los dos pasos ocupan el mismo lugar; se alternan con el atributo hidden
+       nativo, por eso acá NO puede declararse display: cualquier valor le
+       ganaría a [hidden] y los dos quedarían visibles a la vez. Las clases de
+       entrada las pone y saca mostrarPasoWelcome(); los keyframes que usan son
+       los de la sección 3, compartidos con el resto del sitio. */
+    .welcome-paso.entra-derecha  { animation: slideInRight .28s ease; }
+    .welcome-paso.entra-izquierda { animation: slideInLeft .28s ease; }
+
+    /* El encabezado del paso 2 suma la flecha de volver a la izquierda del
+       título, así que ahí el bloque pasa a ser una fila. */
+    .welcome-header-faq {
+        display: flex;
+        align-items: center;
+        gap: 14px;
     }
+
+    .welcome-header-textos { min-width: 0; }
+
+    /* Mismo gesto que .cart-close y .modal-close: círculo translúcido, que es
+       lo que se usa en todas las superficies oscuras del sitio. */
+    .welcome-volver {
+        width: 38px;
+        height: 38px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,.14);
+        border: none;
+        border-radius: 50%;
+        color: #fff;
+        font-size: .95rem;
+        cursor: pointer;
+        padding: 0;
+        transition: background var(--t);
+    }
+
+    .welcome-volver:hover { background: rgba(255,255,255,.3); }
+
+    /* Cuerpo del paso 1 · el mensaje salió del header oscuro y se lee acá, en
+       tinta sobre superficie clara: son cuatro renglones y en blanco al 88%
+       sobre verde se leían con esfuerzo. */
+    .welcome-mensaje {
+        margin: 0 0 16px;
+        font-size: .95rem;
+        line-height: 1.6;
+        color: var(--tinta-700);
+    }
+
+    .welcome-mensaje strong { color: var(--tinta-900); }
+
+    .welcome-firma {
+        margin: 16px 0 0;
+        font-size: .95rem;
+        font-weight: 700;
+        color: var(--verde-800);
+    }
+
+    /* Variante clickeable de .info-text (sección 13): el recuadro entero es el
+       enlace. margin-bottom en 0 porque acá no abre un formulario como en los
+       modales, sino que lo sigue la firma. */
+    .info-text.info-text-link {
+        margin-bottom: 0;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background var(--t), border-color var(--t), transform var(--t);
+    }
+
+    .info-text.info-text-link:hover {
+        background: var(--verde-100);
+        border-color: var(--verde-600);
+        transform: translateY(-1px);
+    }
+
+    .info-text-flecha {
+        margin-left: auto;
+        flex: none;
+        transition: transform var(--t);
+    }
+
+    .info-text.info-text-link:hover .info-text-flecha { transform: translateX(3px); }
 
     .welcome-body { padding: 18px 30px 20px; }
 
@@ -2815,6 +2890,60 @@
 
     .welcome-btn:hover { background: var(--verde-700); }
     .welcome-btn:active { transform: translateY(1px); }
+
+    /* --- Pestaña lateral de preguntas frecuentes ---
+       El acceso permanente una vez cerrada la bienvenida. Vive pegada al borde
+       derecho y centrada en el alto: abajo está la barra de navegación y el
+       carrito, arriba el header sticky.
+       El z-index queda por debajo de --sheet-z a propósito (ver el comentario
+       del markup): cuando se abre un panel o un modal, la pestaña desaparece
+       detrás en vez de flotar sobre él. */
+    .faq-tab {
+        position: fixed;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        background: var(--superficie);
+        color: var(--verde-800);
+        border: 1px solid var(--borde);
+        border-right: none;
+        border-radius: var(--radio-md) 0 0 var(--radio-md);
+        box-shadow: var(--sombra-2);
+        font-family: var(--ui);
+        font-size: .78rem;
+        font-weight: 700;
+        cursor: pointer;
+        z-index: calc(var(--tabbar-z) - 1);
+        transition: background var(--t), color var(--t), border-color var(--t);
+    }
+
+    .faq-tab:hover,
+    .faq-tab:focus-visible {
+        background: var(--verde-600);
+        border-color: var(--verde-600);
+        color: #fff;
+    }
+
+    .faq-tab i {
+        font-size: 1.15rem;
+        color: var(--verde-600);
+        transition: color var(--t);
+    }
+
+    .faq-tab:hover i,
+    .faq-tab:focus-visible i { color: #fff; }
+
+    /* En móvil sólo queda el ícono: la grilla llega a tres columnas y una
+       pestaña con texto se comería media tarjeta. La etiqueta vuelve en
+       escritorio (sección 21). */
+    .faq-tab-label { display: none; }
 
     /* ---------- 16 · MODAL MULTIMEDIA ---------- */
     .media-modal {
@@ -3636,6 +3765,24 @@
            del header, así que la pista y la flecha se dan vuelta. */
         .exito-solo-movil { display: none; }
         .exito-solo-escritorio { display: inline-flex; }
+
+        /* Con la grilla de cinco columnas y sin barra inferior sobra lugar para
+           que la pestaña se anuncie con texto. La etiqueta gira 90°: se lee de
+           abajo hacia arriba, como cualquier pestaña lateral. */
+        .faq-tab {
+            width: auto;
+            height: auto;
+            flex-direction: column;
+            padding: 16px 11px;
+        }
+
+        .faq-tab-label {
+            display: block;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            letter-spacing: .04em;
+            white-space: nowrap;
+        }
     }
 
     /* ---------- 22 · RESPONSIVE ---------- */
@@ -3735,6 +3882,9 @@
         .welcome-popup { max-height: 90vh; }
         .welcome-header { padding: 22px; }
         .welcome-header h2 { font-size: 1.32rem; }
+        .welcome-header-faq { gap: 11px; }
+        .welcome-volver { width: 34px; height: 34px; }
+        .welcome-mensaje, .welcome-firma { font-size: .89rem; }
         .welcome-body { padding: 14px 22px 16px; }
         .welcome-footer { padding: 16px 22px 20px; }
         .faq-question { font-size: .82rem; padding: 12px 14px; }
@@ -3797,6 +3947,8 @@
         }
         .card:hover { transform: none; }
         .card:hover > img { transform: none; }
+        .info-text.info-text-link:hover { transform: none; }
+        .info-text.info-text-link:hover .info-text-flecha { transform: none; }
     }
 
     /* ---------- 24 · MODO OSCURO (excepciones sin variable) ----------
@@ -3888,113 +4040,160 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5P63433D"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
-    <!-- === POPUP DE BIENVENIDA === -->
+    <!-- === POPUP DE BIENVENIDA · DOS PASOS ===
+         Paso 1: el mensaje de bienvenida solo, sin ruido alrededor. Paso 2: las
+         preguntas frecuentes. Van uno detrás del otro y no lado a lado a
+         propósito: el paso 2 es el único camino hacia el catálogo, así que el
+         cliente no puede saltearse las condiciones de compra (mínimo, envío por
+         encomienda, formas de pago) sin haberlas visto al menos una vez.
+         Los dos pasos son <section> hermanas dentro del mismo .welcome-popup y
+         se alternan con el atributo hidden; mostrarPasoWelcome() (script del
+         final) es quien las cambia. Después del cierre, las preguntas siguen a
+         mano en la pestaña lateral #faqTab y en el link del pie. -->
     <div id="welcomeOverlay" class="welcome-overlay" style="display: none;">
-        <div class="welcome-popup">
-            <div class="welcome-header">
-                <h2>Bienvenido al catálogo</h2>
-                <p class="welcome-header-mensaje">¡Qué alegría tenerte por acá! Te damos la bienvenida a nuestro <strong>catálogo exclusivo</strong> , pensado especialmente para quienes compran desde al interior del país. Acá vas a encontrar ofertas especiales y únicas, disponibles solo para quienes necesiten un envío por fuera de Buenos Aires.</p>
-                <p>PREGUNTAS FRECUENTES</p>
-            </div>
+        <div class="welcome-popup" role="dialog" aria-modal="true" aria-labelledby="welcomePaso1Titulo">
 
-            <div class="welcome-body">
+            <!-- ---- Paso 1 · bienvenida ---- -->
+            <section class="welcome-paso" id="welcomePaso1">
+                <div class="welcome-header">
+                    <h2 id="welcomePaso1Titulo">¡Bienvenido a nuestro catálogo exclusivo para envíos al Interior del País!</h2>
+                </div>
 
-                <div class="faq-section">
+                <div class="welcome-body">
+                    <p class="welcome-mensaje">Aquí vas a encontrar los mismos productos que en nuestro catálogo general, con <strong>precios exclusivos</strong> para quienes compran desde <strong>fuera del Gran Buenos Aires</strong> y necesitan resolver el envío por expreso o encomienda.</p>
 
-                    <div class="faq-item">
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            <span>¿Cuál es el mínimo de compra?</span>
-                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
-                        </div>
-                        <div class="faq-answer">
-                            El minimo de compra es de $90.000 y deben ser al menos 3 articulos (iguales o distintos) para poder realizar un pedido con envío.
-                        </div>
+                    <!-- Desvío para quien no es del interior. Va como bloque
+                         clickeable entero (y no como un "aquí" suelto dentro del
+                         párrafo) porque en el teléfono un link de cinco letras
+                         es imposible de acertar. Reutiliza .info-text, el mismo
+                         recuadro de los avisos de los modales. -->
+                    <a class="info-text info-text-link" href="index.html">
+                        <i class="fas fa-location-dot" aria-hidden="true"></i>
+                        <span><strong>¿Estás dentro del Gran Buenos Aires?</strong> Entonces te conviene visitar nuestra página general, donde puedes comprar sin restricciones.</span>
+                        <i class="fas fa-arrow-right info-text-flecha" aria-hidden="true"></i>
+                    </a>
+
+                    <p class="welcome-firma">¡Gracias por elegirnos y confiar!</p>
+                </div>
+
+                <div class="welcome-footer">
+                    <button type="button" class="welcome-btn" data-welcome-paso="2">
+                        Continuar <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ---- Paso 2 · preguntas frecuentes ---- -->
+            <section class="welcome-paso" id="welcomePaso2" hidden>
+                <div class="welcome-header welcome-header-faq">
+                    <button type="button" class="welcome-volver" data-welcome-paso="1" aria-label="Volver a la bienvenida">
+                        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                    </button>
+                    <div class="welcome-header-textos">
+                        <h2 id="welcomePaso2Titulo">Antes de empezar</h2>
+                        <p>Preguntas frecuentes</p>
                     </div>
+                </div>
 
-                    <div class="faq-item">
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            <span>¿Como se hacen los envíos?</span>
-                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
-                        </div>
-                        <div class="faq-answer">
-                            Enviamos a todo el país por medio de encomiendas a través de <strong>Expreso Viacargo y Correo Argentino</strong>.
-                            <br>El costo de las encomiendas es determinado por estas empresas, y varía según el peso y tamaño que tenga finalmente el pedido.
-                        </div>
-                    </div>
+                <div class="welcome-body">
 
-                    <div class="faq-item">
-                        <div class="faq-question faq-question-video" role="button" tabindex="0"
-                             onclick="abrirVideoTutorial(event)"
-                             onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); abrirVideoTutorial(event); }">
-                            <span class="faq-question-texto">
-                                <span>¿Cómo hago mi primera compra con envío?</span>
-                                <span class="faq-question-nota"><i class="fas fa-circle-play"></i> Mirá el paso a paso en video</span>
-                            </span>
-                            <div class="faq-icon faq-icon-play"><i class="fas fa-play"></i></div>
-                        </div>
-                    </div>
+                    <div class="faq-section">
 
-                    <div class="faq-item">
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            <span>¿Cuáles son las formas de pago?</span>
-                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
-                        </div>
-                        <div class="faq-answer">
-                            Por el momento y para poder ofrecer el mejor precio posible, podes abonar mediante <strong>Transferencia Bancaria</strong> o de <strong>MercadoPago</strong>.
-                            <br>No contamos con opciones de financiación.
-                        </div>
-                    </div>
-
-                    <div class="faq-item">
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            <span>¿Donde estan ubicados?</span>
-                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
-                        </div>
-                        <div class="faq-answer">
-                            Estamos en Vélez Sarsfield 4127, Munro, Vicente López (Zona Norte).<br>
-                            <strong>Horario de atención:</strong> Lunes a Sábados de 10 a 19 hs.
-                            <div class="faq-map-container">
-                                <div class="faq-map-wrapper">
-                                    <iframe
-                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3287.6582398598877!2d-58.5471906!3d-34.5298700!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb7e9e3e3e3e3%3A0x3e3e3e3e3e3e3e3e!2sVélez%20Sarsfield%204127%2C%20Munro%2C%20Vicente%20López%2C%20Provincia%20de%20Buenos%20Aires!5e0!3m2!1ses-419!2sar!4v1700000000000!5m2!1ses-419!2sar"
-                                        title="Mapa de la ubicación"
-                                        allowfullscreen=""
-                                        loading="lazy"
-                                        referrerpolicy="no-referrer-when-downgrade">
-                                    </iframe>
-                                </div>
-                                <button class="expand-btn" onclick="expandMap(event)">
-                                    <i class="fas fa-expand"></i>
-                                    <span>Ver mapa completo</span>
-                                </button>
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="toggleFAQ(this)">
+                                <span>¿Cuál es el mínimo de compra?</span>
+                                <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                            </div>
+                            <div class="faq-answer">
+                                El minimo de compra es de $90.000 y deben ser al menos 3 articulos (iguales o distintos) para poder realizar un pedido con envío.
                             </div>
                         </div>
-                    </div>
 
-                    <div class="faq-item">
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            <span>¿Los articulos cuentan con garantia?</span>
-                            <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="toggleFAQ(this)">
+                                <span>¿Como se hacen los envíos?</span>
+                                <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                            </div>
+                            <div class="faq-answer">
+                                Enviamos a todo el país por medio de encomiendas a través de <strong>Expreso Viacargo y Correo Argentino</strong>.
+                                <br>El costo de las encomiendas es determinado por estas empresas, y varía según el peso y tamaño que tenga finalmente el pedido.
+                            </div>
                         </div>
-                        <div class="faq-answer">
-                            Sí, los productos cuentan con cambio o reparación por defectos de fabricación a corto plazo, sujeto a evaluación técnica previa.
-                            <br>Los tiempos de respuesta pueden variar según el producto en cuestión.
-                            <br><strong>La garantía no cubre costos de envío o despacho.</strong>
+
+                        <div class="faq-item">
+                            <div class="faq-question faq-question-video" role="button" tabindex="0"
+                                 onclick="abrirVideoTutorial(event)"
+                                 onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); abrirVideoTutorial(event); }">
+                                <span class="faq-question-texto">
+                                    <span>¿Cómo hago mi primera compra con envío?</span>
+                                    <span class="faq-question-nota"><i class="fas fa-circle-play"></i> Mirá el paso a paso en video</span>
+                                </span>
+                                <div class="faq-icon faq-icon-play"><i class="fas fa-play"></i></div>
+                            </div>
                         </div>
+
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="toggleFAQ(this)">
+                                <span>¿Cuáles son las formas de pago?</span>
+                                <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                            </div>
+                            <div class="faq-answer">
+                                Por el momento y para poder ofrecer el mejor precio posible, podes abonar mediante <strong>Transferencia Bancaria</strong> o de <strong>MercadoPago</strong>.
+                                <br>No contamos con opciones de financiación.
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="toggleFAQ(this)">
+                                <span>¿Donde estan ubicados?</span>
+                                <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                            </div>
+                            <div class="faq-answer">
+                                Estamos en Vélez Sarsfield 4127, Munro, Vicente López (Zona Norte).<br>
+                                <strong>Horario de atención:</strong> Lunes a Sábados de 10 a 19 hs.
+                                <div class="faq-map-container">
+                                    <div class="faq-map-wrapper">
+                                        <iframe
+                                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3287.6582398598877!2d-58.5471906!3d-34.5298700!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb7e9e3e3e3e3%3A0x3e3e3e3e3e3e3e3e!2sVélez%20Sarsfield%204127%2C%20Munro%2C%20Vicente%20López%2C%20Provincia%20de%20Buenos%20Aires!5e0!3m2!1ses-419!2sar!4v1700000000000!5m2!1ses-419!2sar"
+                                            title="Mapa de la ubicación"
+                                            allowfullscreen=""
+                                            loading="lazy"
+                                            referrerpolicy="no-referrer-when-downgrade">
+                                        </iframe>
+                                    </div>
+                                    <button class="expand-btn" onclick="expandMap(event)">
+                                        <i class="fas fa-expand"></i>
+                                        <span>Ver mapa completo</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="toggleFAQ(this)">
+                                <span>¿Los articulos cuentan con garantia?</span>
+                                <div class="faq-icon"><i class="fas fa-chevron-down"></i></div>
+                            </div>
+                            <div class="faq-answer">
+                                Sí, los productos cuentan con cambio o reparación por defectos de fabricación a corto plazo, sujeto a evaluación técnica previa.
+                                <br>Los tiempos de respuesta pueden variar según el producto en cuestión.
+                                <br><strong>La garantía no cubre costos de envío o despacho.</strong>
+                            </div>
+                        </div>
+
                     </div>
-
                 </div>
-            </div>
 
-            <div class="welcome-footer">
-                <div class="no-show-again" onclick="document.getElementById('noShowCheckbox').click();">
-                    <input type="checkbox" id="noShowCheckbox" onclick="event.stopPropagation();">
-                    <label for="noShowCheckbox" onclick="event.stopPropagation();">No volver a mostrar este mensaje</label>
+                <div class="welcome-footer">
+                    <div class="no-show-again" onclick="document.getElementById('noShowCheckbox').click();">
+                        <input type="checkbox" id="noShowCheckbox" onclick="event.stopPropagation();">
+                        <label for="noShowCheckbox" onclick="event.stopPropagation();">No volver a mostrar este mensaje</label>
+                    </div>
+                    <button type="button" class="welcome-btn" onclick="closeWelcomePopup()">
+                        Entendido, ver el catálogo <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    </button>
                 </div>
-                <button class="welcome-btn" onclick="closeWelcomePopup()">
-                    <i class="fas fa-arrow-right"></i> Comenzar
-                </button>
-            </div>
+            </section>
         </div>
     </div>
 
@@ -4305,6 +4504,18 @@
         </button>
     </nav>
 
+    <!-- === PESTAÑA LATERAL DE PREGUNTAS FRECUENTES ===
+         El acceso permanente a las preguntas una vez cerrada la bienvenida.
+         Abre directo el paso 2 del popup, sin volver a mostrar el mensaje: quien
+         busca las preguntas ya leyó la bienvenida.
+         Queda por debajo de --sheet-z, así los paneles de categorías, el carrito
+         y los modales la tapan en vez de convivir con ella. -->
+    <button type="button" class="faq-tab" id="faqTab" onclick="openWelcomePopup(2)"
+            aria-haspopup="dialog" aria-label="Ver preguntas frecuentes">
+        <i class="fas fa-circle-question" aria-hidden="true"></i>
+        <span class="faq-tab-label">Preguntas frecuentes</span>
+    </button>
+
     <!-- Fondo compartido por los dos paneles inferiores -->
     <div class="sheet-backdrop" id="sheetBackdrop"></div>
 
@@ -4579,7 +4790,7 @@
                         <i class="fas fa-clock"></i>
                         <span>Lunes a sábados de 10 a 19 hs</span>
                     </span>
-                    <a id="faqFooterLink" onclick="openWelcomePopup()">
+                    <a id="faqFooterLink" onclick="openWelcomePopup(2)">
                         <i class="fas fa-question-circle"></i>
                         <span>Preguntas Frecuentes</span>
                     </a>
@@ -5166,6 +5377,9 @@ function toggleFAQ(questionElement) {
     }
 }
 
+// Temporizador del cierre animado del popup (ver closeWelcomePopup)
+let temporizadorCierreWelcome = null;
+
 // Función para cerrar el popup de bienvenida
 function closeWelcomePopup() {
     const overlay = document.getElementById('welcomeOverlay');
@@ -5176,26 +5390,87 @@ function closeWelcomePopup() {
         localStorage.setItem('hideWelcomePopup', 'true');
     }
     
-    // Cerrar el popup con animación
+    // Cerrar el popup con animación. El id del temporizador se guarda porque
+    // ahora el popup se puede reabrir en cualquier momento desde la pestaña
+    // lateral: si alguien cierra y toca la pestaña dentro de esos 300 ms, el
+    // timeout pendiente volvería a esconder un popup recién abierto.
     overlay.style.animation = 'fadeOut 0.3s ease';
-    setTimeout(() => {
+    temporizadorCierreWelcome = setTimeout(() => {
         overlay.style.display = 'none';
         overlay.style.animation = '';
+        temporizadorCierreWelcome = null;
     }, 300);
 }
 
-// Función para abrir el popup desde el footer
-function openWelcomePopup() {
-    const overlay = document.getElementById('welcomeOverlay');
-    if (overlay) {
-        overlay.style.display = 'flex';
-        // Desmarcar el checkbox cuando se abre manualmente
-        const checkbox = document.getElementById('noShowCheckbox');
-        if (checkbox) {
-            checkbox.checked = false;
-        }
+// Cambia entre los dos pasos del popup (1 = bienvenida, 2 = preguntas).
+// El sentido de la animación acompaña al del recorrido: avanzar entra desde la
+// derecha, volver desde la izquierda.
+// El scrollTop va sobre .welcome-popup y no sobre la sección: es el popup el que
+// tiene overflow-y (ver sección 15 del CSS), así que si el paso 1 quedó
+// scrolleado, el paso 2 arrancaría por la mitad de las preguntas.
+function mostrarPasoWelcome(paso) {
+    const secciones = {
+        1: document.getElementById('welcomePaso1'),
+        2: document.getElementById('welcomePaso2')
+    };
+    const destino = secciones[paso];
+    if (!destino) return;
+
+    const avanza = !secciones[1].hidden && paso === 2;
+
+    Object.keys(secciones).forEach(function (n) {
+        const seccion = secciones[n];
+        if (!seccion) return;
+        seccion.hidden = Number(n) !== Number(paso);
+        seccion.classList.remove('entra-derecha', 'entra-izquierda');
+    });
+
+    // Reiniciar la animación: sin el reflow, volver al mismo paso no la repite.
+    void destino.offsetWidth;
+    destino.classList.add(avanza ? 'entra-derecha' : 'entra-izquierda');
+
+    const popup = document.querySelector('.welcome-popup');
+    if (popup) {
+        popup.scrollTop = 0;
+        // El lector de pantalla tiene que anunciar el título del paso visible.
+        popup.setAttribute('aria-labelledby', 'welcomePaso' + paso + 'Titulo');
     }
 }
+
+// Abre el popup en el paso indicado. Sin argumento arranca por la bienvenida
+// (es lo que hace la carga inicial); el link del pie y la pestaña lateral piden
+// el paso 2, porque quien busca las preguntas ya leyó el mensaje.
+function openWelcomePopup(paso) {
+    const overlay = document.getElementById('welcomeOverlay');
+    if (!overlay) return;
+
+    // Cancelar un cierre en curso antes de volver a mostrarlo
+    if (temporizadorCierreWelcome) {
+        clearTimeout(temporizadorCierreWelcome);
+        temporizadorCierreWelcome = null;
+    }
+    overlay.style.animation = '';
+
+    mostrarPasoWelcome(paso || 1);
+    overlay.style.display = 'flex';
+
+    // Desmarcar el checkbox cuando se abre manualmente
+    const checkbox = document.getElementById('noShowCheckbox');
+    if (checkbox) {
+        checkbox.checked = false;
+    }
+}
+
+// Los botones "Continuar" y "Volver" se enganchan por delegación con
+// [data-welcome-paso], el mismo patrón que usa [data-accion] en el controlador
+// de los paneles inferiores.
+document.addEventListener('click', function (e) {
+    const boton = e.target instanceof Element
+        ? e.target.closest('[data-welcome-paso]')
+        : null;
+    if (!boton) return;
+    mostrarPasoWelcome(Number(boton.dataset.welcomePaso));
+});
 
 // === FUNCIONES PARA EXPANDIR VIDEO Y MAPA ===
 
@@ -5300,21 +5575,17 @@ window.addEventListener('load', function() {
     const hidePopup = localStorage.getItem('hideWelcomePopup');
     
     if (hidePopup !== 'true') {
-        // Esperar un breve momento antes de mostrar el popup
-        setTimeout(() => {
-            const overlay = document.getElementById('welcomeOverlay');
-            if (overlay) {
-                overlay.style.display = 'flex';
-            }
-        }, 500);
+        // Esperar un breve momento antes de mostrar el popup. Se abre por
+        // openWelcomePopup() y no tocando el display a mano para que el paso y
+        // el aria-labelledby queden en el estado que corresponde.
+        setTimeout(() => openWelcomePopup(1), 500);
     }
 });
 
 // Cerrar popup al hacer clic fuera del contenido
 document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('welcomeOverlay');
-    const popup = document.querySelector('.welcome-popup');
-    
+
     if (overlay) {
         overlay.addEventListener('click', function(e) {
             // Si el click fue en el overlay (fondo) y no en el popup
@@ -5324,12 +5595,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Prevenir que clicks dentro del popup cierren el overlay
-    if (popup) {
-        popup.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
-    }
+    // Los clicks de adentro del popup no cierran nada: el listener de arriba
+    // compara e.target contra el overlay, así que un click en el contenido
+    // simplemente no entra en el if. Antes acá había un stopPropagation() que
+    // hacía lo mismo, pero de paso cortaba el burbujeo hasta document y dejaba
+    // muertos los handlers delegados de los botones del popup.
 });
 
 // Cerrar popup al presionar Escape
