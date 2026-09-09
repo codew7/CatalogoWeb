@@ -53,6 +53,21 @@
         ((typeof pedido.pagos.porcentajeDescuento === 'number' && pedido.pagos.porcentajeDescuento > 0) ||
          (typeof pedido.pagos.descuento === 'number' && pedido.pagos.descuento > 0)));
     }
+
+    // Origen del pedido. Los pedidos que llegan del catálogo del interior se
+    // guardan en Firebase con cat: 'int' (ver catalogoInterior.js) y quedan
+    // excluidos del descuento automático del 10%.
+    let pedidoEsInterior = false;
+
+    function calcularEsInterior(pedido) {
+      return !!(pedido && String(pedido.cat || '').trim().toLowerCase() === 'int');
+    }
+
+    // El descuento automático solo corre si Firebase no trae un descuento ya
+    // registrado y el pedido no es del catálogo del interior.
+    function descuentoAutomaticoHabilitado() {
+      return !descuentoFirebaseRegistrado && !pedidoEsInterior;
+    }
   </script>
 
   <style>
@@ -1878,6 +1893,7 @@
     const snap = await pedidoRef.once('value');
     pedidoActual = snap.val();
     descuentoFirebaseRegistrado = calcularDescuentoRegistrado(pedidoActual);
+    pedidoEsInterior = calcularEsInterior(pedidoActual);
 
     if (!pedidoActual){
       const loadingOverlay = document.getElementById('loadingOverlay');
@@ -1919,6 +1935,7 @@
       if (cambiosRelevantes) {
         pedidoActual = pedidoNuevo;
         descuentoFirebaseRegistrado = calcularDescuentoRegistrado(pedidoNuevo);
+        pedidoEsInterior = calcularEsInterior(pedidoNuevo);
         procesarPedidoCargado();
       }
 
@@ -2195,10 +2212,11 @@
       const envio = parseFloat(envioInput.value) || 0;
 
       // Descuento automático del 10%: subtotal > $100.000 y 5 o más unidades en total.
-      // Solo se aplica si Firebase NO tiene valores de descuento registrados previamente.
+      // Solo se aplica si Firebase NO tiene valores de descuento registrados
+      // previamente y el pedido no viene del catálogo del interior (cat === 'int').
       const UMBRAL_DESCUENTO = 100000;
       const UMBRAL_UNIDADES = 5;
-      if (!descuentoFirebaseRegistrado) {
+      if (descuentoAutomaticoHabilitado()) {
         const cumpleDescuento = subtotal > UMBRAL_DESCUENTO && totalUnidades >= UMBRAL_UNIDADES;
         const descuentoRow = porcentajeInput.closest('.total-row');
         if (cumpleDescuento && porcentaje < 10) {
@@ -2460,11 +2478,12 @@
     envio = envio || 0;
 
     // Descuento automático del 10%: subtotal > $100.000 y 5 o más unidades en total.
-    // Solo se aplica si Firebase NO tiene valores de descuento registrados previamente;
+    // Solo se aplica si Firebase NO tiene valores de descuento registrados
+    // previamente y el pedido no viene del catálogo del interior (cat === 'int');
     // si los tiene, se muestran tal cual están en la base de datos.
     const UMBRAL_DESCUENTO = 100000;
     const UMBRAL_UNIDADES = 5;
-    if (!descuentoFirebaseRegistrado) {
+    if (descuentoAutomaticoHabilitado()) {
       const cumpleDescuento = total > UMBRAL_DESCUENTO && totalUnidades >= UMBRAL_UNIDADES;
       if (cumpleDescuento && porcentaje < 10) {
         porcentaje = 10;
@@ -2966,4 +2985,4 @@
 </script>
 
 </body>
-</html>
+</html>
