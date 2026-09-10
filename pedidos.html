@@ -2122,12 +2122,19 @@
           }
 
           const valorU = row[6];
+          // Columna E: valor unitario para pedidos del catálogo del interior (cat: 'int').
+          const valorUInt = row[4];
           const valorC = row[7];
 
           if (codigo) {
             let valorULimpio = 0;
             if (valorU) {
               valorULimpio = parseFloat(valorU.toString().replace(/\$/g, '').replace(/,/g, '')) || 0;
+            }
+
+            let valorUIntLimpio = 0;
+            if (valorUInt) {
+              valorUIntLimpio = parseFloat(valorUInt.toString().replace(/\$/g, '').replace(/,/g, '')) || 0;
             }
 
             let valorCLimpio = 0;
@@ -2137,6 +2144,7 @@
 
             sheetValorMap[codigo] = {
               valorU: valorULimpio,
+              valorUInt: valorUIntLimpio,
               valorC: valorCLimpio
             };
           }
@@ -2161,10 +2169,13 @@
     pedidoActual.items.forEach(item => {
       if (item.codigo && sheetValorMap[item.codigo]) {
         const valoresSheet = sheetValorMap[item.codigo];
+        // Pedidos con cat: 'int' toman el valor unitario de la columna E; el resto (o
+        // si el pedido no tiene campo "cat") sigue usando la columna G.
+        const valorUSheet = pedidoEsInterior ? valoresSheet.valorUInt : valoresSheet.valorU;
 
         if (item.valorU === undefined || item.valorU === null || item.valorU === '') {
-          if (item.valorU !== valoresSheet.valorU) {
-            item.valorU = valoresSheet.valorU;
+          if (item.valorU !== valorUSheet) {
+            item.valorU = valorUSheet;
           }
         }
 
