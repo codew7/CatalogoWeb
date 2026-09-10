@@ -86,6 +86,13 @@
         --verde-050:#eef3f0;
 
         --navy:#12365c;        /* círculos de la franja informativa y destacados */
+        --navy-050:#eaf0f7;    /* fondo suave del acento navy (desvío de la bienvenida) */
+
+        /* Único verde pensado para leerse SOBRE las superficies oscuras: el
+           resto de la escala verde está calibrada contra fondos claros y sobre
+           --verde-900 queda ilegible. Se usa en el encabezado de la bienvenida
+           (emblema, volanta y el remate del título). */
+        --verde-brillo:#6fcf97;
 
         --ambar:#b06a12;
         --ambar-700:#8a5210;
@@ -148,6 +155,9 @@
         --verde-050:#16241c;
 
         --navy:#4a9b63;
+        --navy-050:#172520;
+
+        --verde-brillo:#7fdca6;
 
         --ambar:#e0973a;
         --ambar-700:#f0b45c;
@@ -2633,48 +2643,222 @@
 
     .welcome-volver:hover { background: rgba(255,255,255,.3); }
 
-    /* Cuerpo del paso 1 · el mensaje salió del header oscuro y se lee acá, en
-       tinta sobre superficie clara: son cuatro renglones y en blanco al 88%
-       sobre verde se leían con esfuerzo. */
-    .welcome-mensaje {
-        margin: 0 0 16px;
-        font-size: .95rem;
-        line-height: 1.6;
+    /* --- Paso 1 · encabezado ---
+       El resplandor no es decoración gratuita: sobre el plano liso de
+       --verde-900 el título de 70 y pico de caracteres se leía como un ladrillo
+       oscuro. El degradado radial le da un foco arriba a la derecha, que es
+       justo de donde baja la lectura. Va como capa de background sobre el
+       token, no en lugar del token, así el modo oscuro lo sigue solo. */
+    .welcome-header-bienvenida {
+        position: relative;
+        overflow: hidden;
+        padding: 28px 30px 26px;
+        background:
+            radial-gradient(118% 132% at 86% -18%, rgba(111,207,151,.26) 0%, rgba(111,207,151,0) 58%),
+            var(--verde-900);
+    }
+
+    .welcome-emblema {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        margin-bottom: 16px;
+        border-radius: 17px;   /* cuadrado redondeado, no círculo: acompaña al radio del popup */
+        background: rgba(111,207,151,.14);
+        border: 1px solid rgba(111,207,151,.26);
+        color: var(--verde-brillo);
+        font-size: 1.24rem;
+    }
+
+    /* Volanta · ubica al cliente antes de que empiece a leer el título. */
+    .welcome-eyebrow {
+        margin: 0 0 7px !important;
+        font-size: .67rem !important;
+        font-weight: 700;
+        letter-spacing: .17em;
+        text-transform: uppercase;
+        color: var(--verde-brillo) !important;
+    }
+
+    /* El título crece con la pantalla en vez de saltar en un breakpoint. El
+       tracking va en negativo porque a este tamaño las letras se separan solas
+       y el renglón se desarma; el interlineado, corto, por la misma razón. */
+    .welcome-header-bienvenida h2 {
+        margin: 0;
+        font-size: clamp(1.3rem, 4.4vw, 1.58rem);
+        font-weight: 700;
+        line-height: 1.22;
+        letter-spacing: -.022em;
+    }
+
+    /* El único punto de color del encabezado: el ojo aterriza acá y de paso
+       queda claro de qué catálogo se trata. */
+    .welcome-titulo-acento { color: var(--verde-brillo); }
+
+    /* --- Paso 1 · cuerpo ---
+       Más aire que el paso 2: acá se lee, allá se busca. Por eso el padding
+       propio en vez de tocar .welcome-body, que comparte con las preguntas. */
+    .welcome-body-bienvenida { padding: 26px 30px 24px; }
+
+    .welcome-lead {
+        margin: 0;
+        font-size: 1.04rem;
+        line-height: 1.5;
+        letter-spacing: -.008em;
         color: var(--tinta-700);
     }
 
-    .welcome-mensaje strong { color: var(--tinta-900); }
+    .welcome-lead strong { color: var(--tinta-900); font-weight: 700; }
 
-    .welcome-firma {
-        margin: 16px 0 0;
-        font-size: .95rem;
-        font-weight: 700;
-        color: var(--verde-800);
+    /* Los dos datos que definen este catálogo. Cada uno con su color: ámbar
+       para el precio (es la paleta que el sitio ya usa para todo lo monetario,
+       del descuento del carrito al aviso de monto mínimo) y verde para el
+       envío. Dos acentos distintos ordenan la lectura y le sacan al bloque el
+       aire de párrafo continuo. */
+    .welcome-puntos {
+        list-style: none;
+        margin: 14px 0 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 
-    /* Variante clickeable de .info-text (sección 13): el recuadro entero es el
-       enlace. margin-bottom en 0 porque acá no abre un formulario como en los
-       modales, sino que lo sigue la firma. */
-    .info-text.info-text-link {
-        margin-bottom: 0;
+    .welcome-punto {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: .92rem;
+        line-height: 1.5;
+        color: var(--tinta-700);
+    }
+
+    .welcome-punto strong { color: var(--tinta-900); font-weight: 700; }
+
+    .welcome-punto-icono {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        flex: none;
+        border-radius: 14px;
+        font-size: 1rem;
+    }
+
+    .welcome-punto-ambar .welcome-punto-icono { background: var(--ambar-050); color: var(--ambar); }
+    .welcome-punto-verde .welcome-punto-icono { background: var(--verde-050); color: var(--verde-700); }
+
+    /* Desvío al catálogo general · misma gramática que los puntos de arriba
+       (ícono + texto) pero sobre superficie propia y con la barra de acento a
+       la izquierda, como los avisos .info-text del resto del sitio: se lee como
+       una salida, no como un tercer beneficio. */
+    .welcome-desvio {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 22px;
+        padding: 14px 16px;
+        background: var(--navy-050);
+        border-left: 3px solid var(--navy);
+        border-radius: var(--radio-sm);
+        color: var(--tinta-700);
         text-decoration: none;
-        cursor: pointer;
-        transition: background var(--t), border-color var(--t), transform var(--t);
+        transition: background var(--t), transform var(--t), box-shadow var(--t);
     }
 
-    .info-text.info-text-link:hover {
-        background: var(--verde-100);
-        border-color: var(--verde-600);
+    .welcome-desvio:hover {
         transform: translateY(-1px);
+        box-shadow: var(--sombra-2);
     }
 
-    .info-text-flecha {
+    .welcome-desvio-icono {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        flex: none;
+        border-radius: 12px;
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        color: var(--navy);
+        font-size: .95rem;
+    }
+
+    .welcome-desvio-texto {
+        font-size: .86rem;
+        line-height: 1.45;
+        min-width: 0;
+    }
+
+    .welcome-desvio-texto strong {
+        display: block;
+        color: var(--tinta-900);
+        font-weight: 700;
+    }
+
+    .welcome-desvio-flecha {
         margin-left: auto;
         flex: none;
+        color: var(--navy);
+        font-size: .85rem;
         transition: transform var(--t);
     }
 
-    .info-text.info-text-link:hover .info-text-flecha { transform: translateX(3px); }
+    .welcome-desvio:hover .welcome-desvio-flecha { transform: translateX(3px); }
+
+    /* El cierre del mensaje. La línea de arriba lo separa del bloque
+       informativo: deja de ser un párrafo más y pasa a leerse como una firma. */
+    .welcome-firma {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        margin: 24px 0 0;
+        padding-top: 20px;
+        border-top: 1px solid var(--borde);
+        font-size: .97rem;
+        font-weight: 700;
+        letter-spacing: -.005em;
+        color: var(--verde-800);
+    }
+
+    .welcome-firma i { color: var(--ambar); font-size: .92em; }
+
+    /* --- Paso 1 · entrada escalonada ---
+       Un solo momento coreografiado al abrir: las piezas aparecen en el orden
+       en que se leen, lo que da la sensación de que el mensaje se va contando
+       en vez de caer todo junto. Son unos 50 ms de diferencia entre una y otra:
+       lo justo para percibir el orden sin que nadie tenga que esperar.
+       El fill "both" las deja quietas y visibles al terminar; el bloque de
+       movimiento reducido (sección 23) neutraliza duración Y retardo, así que
+       ahí aparecen todas juntas y de una. */
+    @keyframes welcomeEntra {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: none; }
+    }
+
+    .welcome-emblema,
+    .welcome-eyebrow,
+    .welcome-header-bienvenida h2,
+    .welcome-lead,
+    .welcome-punto,
+    .welcome-desvio,
+    .welcome-firma {
+        animation: welcomeEntra .34s cubic-bezier(.22,.61,.36,1) both;
+    }
+
+    .welcome-emblema              { animation-delay: .04s; }
+    .welcome-eyebrow              { animation-delay: .09s; }
+    .welcome-header-bienvenida h2 { animation-delay: .14s; }
+    .welcome-lead                 { animation-delay: .21s; }
+    .welcome-punto:nth-child(1)   { animation-delay: .27s; }
+    .welcome-punto:nth-child(2)   { animation-delay: .32s; }
+    .welcome-desvio               { animation-delay: .39s; }
+    .welcome-firma                { animation-delay: .45s; }
 
     .welcome-body { padding: 18px 30px 20px; }
 
@@ -2881,15 +3065,25 @@
         font-size: .98rem;
         font-weight: 700;
         cursor: pointer;
-        transition: background var(--t), transform var(--t);
+        letter-spacing: -.005em;
+        box-shadow: 0 10px 22px -14px var(--verde-800);
+        transition: background var(--t), transform var(--t), box-shadow var(--t);
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 10px;
     }
 
-    .welcome-btn:hover { background: var(--verde-700); }
-    .welcome-btn:active { transform: translateY(1px); }
+    .welcome-btn i { transition: transform var(--t); }
+
+    .welcome-btn:hover {
+        background: var(--verde-700);
+        transform: translateY(-1px);
+        box-shadow: 0 14px 26px -14px var(--verde-800);
+    }
+
+    .welcome-btn:hover i { transform: translateX(3px); }
+    .welcome-btn:active { transform: translateY(0) scale(.99); }
 
     /* --- Pestaña lateral de preguntas frecuentes ---
        El acceso permanente una vez cerrada la bienvenida. Vive pegada al borde
@@ -3881,12 +4075,22 @@
 
         .welcome-popup { max-height: 90vh; }
         .welcome-header { padding: 22px; }
-        .welcome-header h2 { font-size: 1.32rem; }
+        .welcome-header-faq h2 { font-size: 1.32rem; }
         .welcome-header-faq { gap: 11px; }
         .welcome-volver { width: 34px; height: 34px; }
-        .welcome-mensaje, .welcome-firma { font-size: .89rem; }
         .welcome-body { padding: 14px 22px 16px; }
         .welcome-footer { padding: 16px 22px 20px; }
+
+        .welcome-header-bienvenida { padding: 24px 22px 22px; }
+        .welcome-emblema { width: 44px; height: 44px; border-radius: 15px; margin-bottom: 13px; font-size: 1.1rem; }
+        .welcome-body-bienvenida { padding: 22px 22px 20px; }
+        .welcome-lead { font-size: .96rem; }
+        .welcome-punto { gap: 12px; font-size: .87rem; }
+        .welcome-punto-icono { width: 38px; height: 38px; border-radius: 12px; font-size: .92rem; }
+        .welcome-desvio { gap: 12px; padding: 13px 14px; }
+        .welcome-desvio-icono { width: 34px; height: 34px; border-radius: 11px; }
+        .welcome-desvio-texto { font-size: .82rem; }
+        .welcome-firma { font-size: .9rem; margin-top: 20px; padding-top: 17px; }
         .faq-question { font-size: .82rem; padding: 12px 14px; }
         .faq-answer { font-size: .84rem; padding: 0 14px; }
         .faq-answer.active { padding: 4px 14px 16px; }
@@ -3941,14 +4145,16 @@
     @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after {
             animation-duration: .01ms !important;
+            animation-delay: 0ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: .01ms !important;
             scroll-behavior: auto !important;
         }
         .card:hover { transform: none; }
         .card:hover > img { transform: none; }
-        .info-text.info-text-link:hover { transform: none; }
-        .info-text.info-text-link:hover .info-text-flecha { transform: none; }
+        .welcome-desvio:hover { transform: none; }
+        .welcome-desvio:hover .welcome-desvio-flecha { transform: none; }
+        .welcome-btn:hover { transform: none; }
     }
 
     /* ---------- 24 · MODO OSCURO (excepciones sin variable) ----------
@@ -4053,27 +4259,49 @@
     <div id="welcomeOverlay" class="welcome-overlay" style="display: none;">
         <div class="welcome-popup" role="dialog" aria-modal="true" aria-labelledby="welcomePaso1Titulo">
 
-            <!-- ---- Paso 1 · bienvenida ---- -->
+            <!-- ---- Paso 1 · bienvenida ----
+                 El mensaje está partido en piezas a propósito: como un solo
+                 párrafo son cuatro renglones seguidos que nadie lee. Cada idea
+                 (mismos productos / precios / envío) tiene ahora su propio
+                 renglón con un ícono que la ancla, así se entiende de un
+                 vistazo aunque el cliente sólo barra la pantalla. -->
             <section class="welcome-paso" id="welcomePaso1">
-                <div class="welcome-header">
-                    <h2 id="welcomePaso1Titulo">¡Bienvenido a nuestro catálogo exclusivo para envíos al Interior del País!</h2>
+                <div class="welcome-header welcome-header-bienvenida">
+                    <span class="welcome-emblema" aria-hidden="true"><i class="fas fa-truck-fast"></i></span>
+                    <p class="welcome-eyebrow">Catálogo del Interior</p>
+                    <h2 id="welcomePaso1Titulo">¡Bienvenido a nuestro catálogo exclusivo para envíos al <span class="welcome-titulo-acento">Interior del País</span>!</h2>
                 </div>
 
-                <div class="welcome-body">
-                    <p class="welcome-mensaje">Aquí vas a encontrar los mismos productos que en nuestro catálogo general, con <strong>precios exclusivos</strong> para quienes compran desde <strong>fuera del Gran Buenos Aires</strong> y necesitan resolver el envío por expreso o encomienda.</p>
+                <div class="welcome-body welcome-body-bienvenida">
+                    <p class="welcome-lead">Aquí vas a encontrar todos nuestros artículos con:</p>
+
+                    <ul class="welcome-puntos">
+                        <li class="welcome-punto welcome-punto-ambar">
+                            <span class="welcome-punto-icono" aria-hidden="true"><i class="fas fa-tag"></i></span>
+                            <span><strong>Precios exclusivos</strong> para quienes compran desde fuera del Gran Buenos Aires.</span>
+                        </li>
+                        <li class="welcome-punto welcome-punto-verde">
+                            <span class="welcome-punto-icono" aria-hidden="true"><i class="fas fa-box-open"></i></span>
+                            <span>El envío se resuelve <strong>por expreso o encomienda</strong>, estés donde estés.</span>
+                        </li>
+                    </ul>
 
                     <!-- Desvío para quien no es del interior. Va como bloque
                          clickeable entero (y no como un "aquí" suelto dentro del
                          párrafo) porque en el teléfono un link de cinco letras
-                         es imposible de acertar. Reutiliza .info-text, el mismo
-                         recuadro de los avisos de los modales. -->
-                    <a class="info-text info-text-link" href="index.html">
-                        <i class="fas fa-location-dot" aria-hidden="true"></i>
-                        <span><strong>¿Estás dentro del Gran Buenos Aires?</strong> Entonces te conviene visitar nuestra página general, donde puedes comprar sin restricciones.</span>
-                        <i class="fas fa-arrow-right info-text-flecha" aria-hidden="true"></i>
+                         es imposible de acertar. El acento --navy lo separa de
+                         los dos puntos de arriba: no es un beneficio más, es
+                         una salida hacia otra página. -->
+                    <a class="welcome-desvio" href="index.html">
+                        <span class="welcome-desvio-icono" aria-hidden="true"><i class="fas fa-location-dot"></i></span>
+                        <span class="welcome-desvio-texto">
+                            <strong>¿Estás dentro del Gran Buenos Aires?</strong>
+                            Entonces te conviene visitar nuestra página general, donde puedes comprar sin restricciones.
+                        </span>
+                        <i class="fas fa-arrow-right welcome-desvio-flecha" aria-hidden="true"></i>
                     </a>
 
-                    <p class="welcome-firma">¡Gracias por elegirnos y confiar!</p>
+                    <p class="welcome-firma"><i class="fas fa-heart" aria-hidden="true"></i> ¡Gracias por elegirnos y confiar!</p>
                 </div>
 
                 <div class="welcome-footer">
