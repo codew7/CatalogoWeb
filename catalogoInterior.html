@@ -35,6 +35,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://sheets.googleapis.com">
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
     <link rel="icon" href="faviconnegro.png" type="image/png">
 
@@ -42,7 +45,7 @@
     <title>Catálogo Envíos</title>
             
         <!-- EmailJS Script v4 -->
-        <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer></script>
 
         <!-- Google Tag Manager -->
         <script> (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -52,9 +55,36 @@
         })(window,document,'script','dataLayer','GTM-5P63433D');
         </script>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" defer></script>
+    <!-- Firebase y EmailJS llevan defer: así no frenan el parseo del HTML.
+         defer conserva el orden de aparición, por eso catalogoInterior.js (que
+         usa firebase, emailjs y firebaseConfig) sigue corriendo después de
+         ellos. Ningún script inline de esta página toca db / firebase / emailjs
+         a nivel superior, sólo dentro de handlers o de DOMContentLoaded, que
+         corre después de los defer. -->
     <script src="config.js"></script>
+    <!-- Arranque temprano de la lista de productos · el pedido a Google Sheets
+         sale acá, en paralelo con la descarga de Firebase, EmailJS y Font
+         Awesome, en vez de esperar a que catalogoInterior.js termine de bajar y
+         correr. catalogoInterior.js consume window.__productosPromise si existe
+         y, si no, hace su propio fetch (así sigue funcionando aunque este
+         bloque falte). config.js va sin defer a propósito: es local y de 600
+         bytes, y este inline necesita GOOGLE_SHEETS_CONFIG ya definido. -->
+    <script>
+        (function () {
+            if (typeof GOOGLE_SHEETS_CONFIG === 'undefined' || typeof fetch !== 'function') return;
+            var c = GOOGLE_SHEETS_CONFIG;
+            window.__productosPromise = fetch(
+                'https://sheets.googleapis.com/v4/spreadsheets/' + c.SPREADSHEET_ID +
+                '/values/' + c.RANGO + '?key=' + c.API_KEY
+            );
+            // Sin esto, un fallo de red antes de que catalogoInterior.js se
+            // enganche quedaría como "unhandled rejection" en consola; el JS lo
+            // maneja igual con su propio .catch.
+            window.__productosPromise.catch(function () {});
+        })();
+    </script>
     <script src="catalogoInterior.js" defer></script>
     
     <style>
@@ -5117,31 +5147,31 @@
         <div class="carousel-slide">
             <picture>
                 <source srcset="imagepie1-mobile.jpg" media="(max-width: 600px)">
-                <img src="imagepie1.jpg" alt="Imagen Pie 1">
+                <img src="imagepie1.jpg" alt="Imagen Pie 1" loading="lazy" decoding="async">
             </picture>
         </div>
         <div class="carousel-slide">
             <picture>
                 <source srcset="imagepie2-mobile.jpg" media="(max-width: 600px)">
-                <img src="imagepie2.jpg" alt="Imagen Pie 2">
+                <img src="imagepie2.jpg" alt="Imagen Pie 2" loading="lazy" decoding="async">
             </picture>
         </div>
         <div class="carousel-slide">
             <picture>
                 <source srcset="imagepie3-mobile.jpg" media="(max-width: 600px)">
-                <img src="imagepie3.jpg" alt="Imagen Pie 3">
+                <img src="imagepie3.jpg" alt="Imagen Pie 3" loading="lazy" decoding="async">
             </picture>
         </div>
         <div class="carousel-slide">
             <picture>
                 <source srcset="imagepie4-mobile.jpg" media="(max-width: 600px)">
-                <img src="imagepie4.jpg" alt="Imagen Pie 4">
+                <img src="imagepie4.jpg" alt="Imagen Pie 4" loading="lazy" decoding="async">
             </picture>
         </div>
         <div class="carousel-slide">
             <picture>
                 <source srcset="imagepie5-mobile.jpg" media="(max-width: 600px)">
-                <img src="imagepie5.jpg" alt="Imagen Pie 5">
+                <img src="imagepie5.jpg" alt="Imagen Pie 5" loading="lazy" decoding="async">
             </picture>
         </div>
     </div>

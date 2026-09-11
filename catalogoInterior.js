@@ -306,7 +306,16 @@ if (modoEdicion) {
 const loadingOverlay = document.getElementById('loadingOverlay');
 
 // Fetch data from Google Sheets
-fetch(`https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/values/${GOOGLE_SHEETS_CONFIG.RANGO}?key=${GOOGLE_SHEETS_CONFIG.API_KEY}`)
+// El pedido lo dispara catalogoInterior.html en un inline del <head> (window.__productosPromise)
+// para que salga en paralelo con la descarga de Firebase/EmailJS/Font Awesome y no
+// espere a que este archivo termine de bajar y ejecutar. Si ese inline falta o no
+// pudo correr, se hace el fetch acá igual: el resto de la cadena es idéntico.
+const _URL_PRODUCTOS = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/values/${GOOGLE_SHEETS_CONFIG.RANGO}?key=${GOOGLE_SHEETS_CONFIG.API_KEY}`;
+const _productosPromise = (window.__productosPromise && typeof window.__productosPromise.then === 'function')
+    ? window.__productosPromise
+    : fetch(_URL_PRODUCTOS);
+
+_productosPromise
     .then(response => {
         if (!response.ok) throw new Error(`Error al acceder a la API: ${response.statusText}`);
         return response.json();
@@ -394,8 +403,13 @@ fetch(`https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_CONFIG.SPRE
             aplicarFiltros();
         });
 
-        document.getElementById('buscar').addEventListener('input', (e) => {
-            aplicarFiltros();
+        // Debounce: aplicarFiltros() normaliza texto, corre Levenshtein contra
+        // todos los productos y redibuja la grilla. Hacerlo en cada tecla es
+        // trabajo tirado; se espera a que el usuario haga una pausa corta.
+        let _buscarTimer = null;
+        document.getElementById('buscar').addEventListener('input', () => {
+            clearTimeout(_buscarTimer);
+            _buscarTimer = setTimeout(aplicarFiltros, 200);
         });
 
         document.getElementById('filtroDisponibles').addEventListener('change', () => {
@@ -403,6 +417,7 @@ fetch(`https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_CONFIG.SPRE
         });
 
         document.getElementById('todos').addEventListener('click', () => {
+            clearTimeout(_buscarTimer); // una búsqueda pendiente no debe pisar el reset
             // Resetear todos los filtros
             document.getElementById('categorias').value = 'todos';
             document.getElementById('buscar').value = '';
