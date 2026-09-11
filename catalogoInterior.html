@@ -1685,6 +1685,74 @@
         font-variant-numeric: tabular-nums;
     }
 
+    /* Franja "Te estás ahorrando": va pegada debajo del total oscuro, en la
+       misma paleta ámbar que usa el descuento del carrito, para que destaque
+       sin dejar de leerse como parte del resumen. La cifra hereda el latido
+       del globo del carrito (badge-pop) cuando cambia. */
+    .cart-ahorro {
+        display: flex;
+        align-items: center;
+        flex: none;
+        gap: 12px;
+        padding: 11px 16px;
+        background: var(--ambar-050);
+        border-top: 1px dashed #f0c98a;
+        animation: fadeIn .3s ease;
+    }
+
+    .cart-ahorro-icono {
+        flex: none;
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radio-full);
+        background: var(--ambar);
+        color: #fff;
+        font-size: .95rem;
+    }
+
+    .cart-ahorro-texto {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+        line-height: 1.25;
+    }
+
+    .cart-ahorro-titulo {
+        font-size: .84rem;
+        font-weight: 600;
+        color: var(--ambar-700);
+    }
+
+    .cart-ahorro-titulo strong {
+        display: inline-block;
+        font-size: 1.02rem;
+        font-weight: 800;
+        color: var(--ambar-700);
+        letter-spacing: -.01em;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cart-ahorro-titulo strong.is-pop { animation: badge-pop .42s cubic-bezier(.34,1.56,.64,1); }
+
+    .cart-ahorro-nota {
+        font-size: .68rem;
+        color: #a5804f;   /* mismo tono que .cart-discount-note */
+    }
+
+    /* En el modal de confirmación va como tarjeta suelta debajo del total,
+       con borde punteado y radio --radio-md */
+    .cart-ahorro.total-ahorro {
+        margin-top: 9px;
+        padding: 13px 16px;
+        border: 1px dashed #f0c98a;
+        border-radius: var(--radio-md);
+        animation: none;
+    }
+
     /* El padding inferior cubre el área segura de iOS: el panel llega hasta el
        borde de la pantalla, igual que .sheet-body */
     .cart-buttons-container {
@@ -2156,23 +2224,6 @@
         text-transform: none;
         font-variant-numeric: tabular-nums;
     }
-
-    .total-discount-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 13px 16px;
-        margin-bottom: 9px;
-        background: var(--ambar-050);
-        border: 1px dashed #f0c98a;
-        border-radius: var(--radio-md);
-        font-size: .88rem;
-        color: var(--ambar-700);
-    }
-
-    .total-discount-row span { display: flex; align-items: center; gap: 9px; font-weight: 700; }
-    .total-discount-row i { color: var(--ambar); }
-    .total-discount-row strong { color: var(--ambar-700); font-variant-numeric: tabular-nums; }
 
     /* Botones de acción */
     .btn-primary, .btn-secondary {
@@ -4797,6 +4848,16 @@
                 <span class="cart-total-amount" id="cartTotalAmount">$0</span>
             </span>
         </div>
+        <!-- Ahorro frente al valor de lista · lo llena actualizarCarrito()
+             (catalogoInterior.js) y sólo se muestra cuando hay diferencia real
+             entre "Valor $" y la oferta al interior -->
+        <div class="cart-ahorro" id="cartAhorro" style="display:none;" aria-live="polite">
+            <span class="cart-ahorro-icono"><i class="fas fa-piggy-bank" aria-hidden="true"></i></span>
+            <span class="cart-ahorro-texto">
+                <span class="cart-ahorro-titulo">Te estás ahorrando <strong id="cartAhorroMonto">$0</strong></span>
+                <span class="cart-ahorro-nota" id="cartAhorroNota">frente al valor de lista</span>
+            </span>
+        </div>
         <div class="cart-buttons-container">
             <button onclick="enviarPedido()" class="whatsapp-link">
                 <i class="fas fa-paper-plane"></i>
@@ -4962,15 +5023,19 @@
                     </h3>
                     <div id="pedidoDetalle" class="pedido-items"></div>
                     <div class="total-section">
-                        <div class="total-discount-row" id="totalDescuentoRow" style="display:none;">
-                            <span><i class="fas fa-tags"></i> Descuento (10%):</span>
-                            <strong id="totalDescuento">-$0</strong>
-                        </div>
                         <div class="total-row">
                             <span>Total del Pedido</span>
                             <span class="total-row-amount">
                                 <span class="total-original" id="totalPedidoOriginal"></span>
                                 <strong id="totalPedido">$0</strong>
+                            </span>
+                        </div>
+                        <!-- Mismo bloque de ahorro que el carrito; lo llena mostrarModalConfirmacion() -->
+                        <div class="cart-ahorro total-ahorro" id="totalAhorroRow" style="display:none;">
+                            <span class="cart-ahorro-icono"><i class="fas fa-piggy-bank" aria-hidden="true"></i></span>
+                            <span class="cart-ahorro-texto">
+                                <span class="cart-ahorro-titulo">Te estás ahorrando <strong id="totalAhorroMonto">$0</strong></span>
+                                <span class="cart-ahorro-nota" id="totalAhorroNota">frente al valor de lista</span>
                             </span>
                         </div>
                     </div>
@@ -5434,7 +5499,6 @@ function mostrarModalConfirmacion() {
     const pedidoDetalle = document.getElementById('pedidoDetalle');
     let detalleHTML = '';
     let total = 0;
-    let totalUnidades = 0;
 
     // Función para formatear números sin decimales y con separador de miles
     function formatearPrecio(numero) {
@@ -5445,7 +5509,6 @@ function mostrarModalConfirmacion() {
         const precioUnitario = parseFloat(item.precio.replace(/[^0-9.-]+/g, ''));
         const subtotal = precioUnitario * item.cantidad;
         total += subtotal;
-        totalUnidades += (parseFloat(item.cantidad) || 0);
 
         detalleHTML += `
             <div class="pedido-item">
@@ -5464,29 +5527,28 @@ function mostrarModalConfirmacion() {
     
     pedidoDetalle.innerHTML = detalleHTML;
 
-    // Aplicar descuento del 10%: solo en envíos, con total > $100.000 y 5 o más unidades
-    const UMBRAL_DESCUENTO = 100000;
-    const UMBRAL_UNIDADES = 5;
-    const PORCENTAJE_DESCUENTO = 0.10;
-    const aplicaDescuento = entregaConDescuento() && total > UMBRAL_DESCUENTO && totalUnidades >= UMBRAL_UNIDADES;
-    const montoDescuento = aplicaDescuento ? total * PORCENTAJE_DESCUENTO : 0;
-    const totalFinal = total - montoDescuento;
+    document.getElementById('totalPedido').textContent = `$${formatearPrecio(total)}`;
 
-    const totalDescuentoRow = document.getElementById('totalDescuentoRow');
-    const totalDescuentoEl = document.getElementById('totalDescuento');
+    // Ahorro frente al valor de lista (mismo cálculo que la franja del carrito).
+    // El tachado junto al total muestra el total a valor de lista.
     const totalPedidoOriginal = document.getElementById('totalPedidoOriginal');
-    if (totalDescuentoRow && totalDescuentoEl && totalPedidoOriginal) {
-        if (aplicaDescuento) {
-            totalDescuentoRow.style.display = 'flex';
-            totalDescuentoEl.textContent = `-$${formatearPrecio(montoDescuento)}`;
-            totalPedidoOriginal.textContent = `$${formatearPrecio(total)}`;
+    const totalAhorroRow = document.getElementById('totalAhorroRow');
+    if (totalAhorroRow && typeof calcularResumenCarrito === 'function') {
+        const resumen = calcularResumenCarrito();
+        const ahorro = resumen.ahorro || 0;
+        if (ahorro > 0) {
+            const pct = resumen.totalLista > 0 ? Math.round(ahorro / resumen.totalLista * 100) : 0;
+            document.getElementById('totalAhorroMonto').textContent = `$${formatearPrecio(ahorro)}`;
+            document.getElementById('totalAhorroNota').textContent = pct > 0
+                ? `${pct}% menos que el valor de lista`
+                : 'frente al valor de lista';
+            totalAhorroRow.style.display = 'flex';
+            if (totalPedidoOriginal) totalPedidoOriginal.textContent = `$${formatearPrecio(resumen.totalLista)}`;
         } else {
-            totalDescuentoRow.style.display = 'none';
-            totalPedidoOriginal.textContent = '';
+            totalAhorroRow.style.display = 'none';
+            if (totalPedidoOriginal) totalPedidoOriginal.textContent = '';
         }
     }
-
-    document.getElementById('totalPedido').textContent = `$${formatearPrecio(totalFinal)}`;
 
     // Reflejar el tipo de entrega elegido en el paso 1
     pintarResumenTipoEntrega();

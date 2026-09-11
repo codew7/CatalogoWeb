@@ -100,11 +100,6 @@ function limpiarTipoEntrega() {
     }
 }
 
-// El descuento del 10% solo corre para envíos. Todos los pedidos son envío.
-function entregaConDescuento() {
-    return true;
-}
-
 // Función para guardar el carrito en localStorage
 function guardarCarritoLocal() {
     // No guardar en localStorage si estamos en modo edición
@@ -774,7 +769,7 @@ function cargarGrid(data) {
                 if (existe) {
                     existe.cantidad = cantidad;
                 } else {
-                    agregarAlCarrito(articulo.textContent, item[OFERTA_INTERIOR], cantidad, item[2], item[0]);
+                    agregarAlCarrito(articulo.textContent, item[OFERTA_INTERIOR], cantidad, item[2], item[0], item[VALOR_CONSUMIDOR]);
                     return; // agregarAlCarrito ya guarda en Firebase si es modo edición
                 }
                 actualizarCarrito();
@@ -1019,14 +1014,17 @@ function pedirTipoEntregaSiHaceFalta(onElegido) {
     onElegido();
 }
 
-function agregarAlCarrito(nombre, precio, cantidad, codigo, categoria) {
+// precioLista es el "Valor $" de la tarjeta (VALOR_CONSUMIDOR): no suma al
+// total, sólo sirve para mostrarle al cliente cuánto se ahorra frente a la oferta.
+function agregarAlCarrito(nombre, precio, cantidad, codigo, categoria, precioLista) {
     const existe = carrito.find(item => item.nombre === nombre);
     if (existe) {
         // Si el artículo ya existe, actualizamos la cantidad
         existe.cantidad += cantidad;
+        if (precioLista != null && existe.precioLista == null) existe.precioLista = precioLista;
     } else {
         // Si no existe, lo agregamos al carrito
-        carrito.push({ nombre, precio, cantidad, codigo, categoria});
+        carrito.push({ nombre, precio, cantidad, codigo, categoria, precioLista });
     }
     actualizarCarrito();
     guardarCarritoLocal();
@@ -1258,6 +1256,34 @@ function actualizarCarrito() {
     const cartTotalAmount = document.getElementById('cartTotalAmount');
     if (cartTotalAmount) {
         cartTotalAmount.textContent = formatearMonto(totalFinal);
+    }
+
+    // Valor de lista tachado junto al total y la franja "Te estás ahorrando".
+    // Sólo aparecen cuando hay una diferencia real entre lista y oferta.
+    const ahorro = resumen.ahorro || 0;
+    const cartTotalOriginal = document.getElementById('cartTotalOriginal');
+    if (cartTotalOriginal) {
+        cartTotalOriginal.textContent = ahorro > 0 ? formatearMonto(resumen.totalLista) : '';
+    }
+    const cartAhorro = document.getElementById('cartAhorro');
+    if (cartAhorro) {
+        const mostrar = carrito.length > 0 && ahorro > 0;
+        cartAhorro.style.display = mostrar ? 'flex' : 'none';
+        if (mostrar) {
+            const cifra = document.getElementById('cartAhorroMonto');
+            const previo = cifra ? cifra.textContent : '';
+            const nuevo = formatearMonto(ahorro);
+            if (cifra) cifra.textContent = nuevo;
+            const pct = resumen.totalLista > 0 ? Math.round(ahorro / resumen.totalLista * 100) : 0;
+            const nota = document.getElementById('cartAhorroNota');
+            if (nota) nota.textContent = pct > 0 ? `${pct}% menos que el valor de lista` : 'frente al valor de lista';
+            // Latido sólo cuando la cifra cambia (mismo criterio que el globo del carrito)
+            if (cifra && previo !== nuevo) {
+                cifra.classList.remove('is-pop');
+                void cifra.offsetWidth;
+                cifra.classList.add('is-pop');
+            }
+        }
     }
 
     const cartDiscount = document.getElementById('cartDiscount');
@@ -1703,9 +1729,26 @@ function calcularResumenCarrito() {
         return sum + precioUnit * item.cantidad;
     }, 0);
 
+    // Total a valor de lista ("Valor $" de la tarjeta). Si el ítem no lo trae
+    // (carritos guardados antes de que se registrara) se busca en el catálogo por
+    // código y, como último recurso, se toma el precio de oferta: ese ítem no
+    // aporta ahorro pero tampoco lo distorsiona.
+    const totalLista = carrito.reduce((sum, item) => {
+        const precioUnit = parseFloat(String(item.precio).replace(/[^0-9.-]+/g, '')) || 0;
+        let lista = item.precioLista;
+        if (lista == null && item.codigo && Array.isArray(productos)) {
+            const producto = productos.find(p => (p[2] || '').toString().trim() === String(item.codigo).trim());
+            if (producto) lista = producto[VALOR_CONSUMIDOR];
+        }
+        const listaUnit = parseFloat(String(lista ?? '').replace(/[^0-9.-]+/g, '')) || precioUnit;
+        return sum + Math.max(listaUnit, precioUnit) * item.cantidad;
+    }, 0);
+
     return {
         unidades: unidades,
         totalBruto: totalBruto,
+        totalLista: totalLista,
+        ahorro: Math.max(0, totalLista - totalBruto),
         aplicaDescuento: false,
         montoDescuento: 0,
         totalFinal: totalBruto
