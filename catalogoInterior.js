@@ -9,6 +9,25 @@ const OFERTA_INTERIOR = "4";
 const CACHE_VERSION = "2.2"; // Incrementa este número cuando actualices imágenes
 const PEDIDOS_VERSION = "20260316"; // Versión para forzar actualización de pedidos.html en navegadores
 
+// === Meta Pixel ===
+// El píxel se carga en el <head> de catalogoInterior.html. Los eventos estándar
+// (AddToCart, InitiateCheckout, Purchase) se disparan desde acá. Si un bloqueador
+// de anuncios frena el script de Meta, fbq no existe: la página sigue igual.
+function trackMetaPixel(evento, datos) {
+    if (typeof fbq !== 'function') return;
+    try {
+        fbq('track', evento, datos || {});
+    } catch (e) {
+        console.error('Meta Pixel:', e);
+    }
+}
+
+// Los precios del catálogo viajan como texto formateado ("11,210"); el píxel
+// necesita un número.
+function precioNumerico(valor) {
+    return parseFloat(String(valor ?? '').replace(/[^0-9.-]+/g, '')) || 0;
+}
+
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -1043,6 +1062,16 @@ function agregarAlCarrito(nombre, precio, cantidad, codigo, categoria, precioLis
     }
     actualizarCarrito();
     guardarCarritoLocal();
+
+    const precioUnit = precioNumerico(precio);
+    trackMetaPixel('AddToCart', {
+        content_name: nombre,
+        content_ids: [String(codigo || nombre)],
+        content_type: 'product',
+        content_category: categoria || '',
+        value: precioUnit * cantidad,
+        currency: 'ARS'
+    });
 
     // En modo edición, guardar automáticamente en Firebase
     if (modoEdicion && pedidoEditId) {
@@ -2170,6 +2199,23 @@ function _enviarPedidoFinalConfirmado() {
                 email: datosExtraCliente.email || '',
                 unidades: resumenPedido.unidades,
                 total: resumenPedido.totalFinal
+            });
+
+            // Meta Pixel: pedido confirmado. Va acá y no antes porque recién en
+            // este punto el pedido existe en Firebase; también tiene que ir
+            // antes de limpiarCarrito() para poder listar los ítems.
+            trackMetaPixel('Purchase', {
+                value: resumenPedido.totalFinal,
+                currency: 'ARS',
+                num_items: resumenPedido.unidades,
+                order_id: pedidoId,
+                content_ids: carrito.map(it => String(it.codigo || it.nombre)),
+                content_type: 'product',
+                contents: carrito.map(it => ({
+                    id: String(it.codigo || it.nombre),
+                    quantity: it.cantidad,
+                    item_price: precioNumerico(it.precio)
+                }))
             });
 
             // Enviar email automático

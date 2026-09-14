@@ -5492,6 +5492,15 @@ function continuarConEnvio() {
         }
         const clienteModal = document.getElementById('clienteModal');
         if (clienteModal) clienteModal.style.display = 'flex';
+
+        // Meta Pixel: el cliente pasó el mínimo y empieza a cargar sus datos
+        trackMetaPixel('InitiateCheckout', {
+            value: resumenCarrito.totalFinal,
+            currency: 'ARS',
+            num_items: resumenCarrito.unidades,
+            content_ids: carrito.map(it => String(it.codigo || it.nombre)),
+            content_type: 'product'
+        });
     });
 }
 
