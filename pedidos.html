@@ -2709,7 +2709,12 @@
   /* -------- BOTÓN AGREGAR -------- */
   document.getElementById('agregarItemBtn').onclick = () => {
     if (pedidoActual.locked) return;
-    window.location.href = `catalogo.html?pedido=${id}`;
+    // Cada pedido se edita en el catálogo del que salió: los que traen
+    // cat: 'int' vuelven al catálogo del interior (precios de la columna E) y
+    // el resto al catálogo mayorista. Ambos leen ?pedido= y arrancan en modo
+    // edición sobre el mismo pedido.
+    const paginaCatalogo = calcularEsInterior(pedidoActual) ? 'catalogoInterior.html' : 'catalogo.html';
+    window.location.href = `${paginaCatalogo}?pedido=${id}`;
   };
 
   document.getElementById('cancelarBtn').onclick = async () => {
