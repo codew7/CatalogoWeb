@@ -16,6 +16,9 @@
     <meta name="description" content="HomePoint - Distribuidora Mayorista y Minorista de artículos para el hogar, electrónicos y bienestar personal. Envíos a todo el país.">
     <meta name="keywords" content="mayorista, venta mayorista, hogar, HomePoint, distribuidora homepoint, productos ganadores, emprendedores, emprendedor, revendedores, reventa de articulos, venta al por mayor, atención personalizada, envios al interior, productos para el hogar, productos de bienestar, productos electrónicos, productos de limpieza, productos de cocina, productos de decoración, productos de cuidado personal, productos de belleza, productos de salud, productos de tecnología, productos de entretenimiento, productos de oficina, productos de jardinería, productos de iluminación, productos de seguridad, productos de mascotas">
     <title>Bienvenido || Distribuidora HomePoint</title>
+    <!-- Tiñe la barra del navegador móvil con el acento de las páginas Interior -->
+    <meta name="theme-color" content="#2a6a82" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0c0d0f" media="(prefers-color-scheme: dark)">
 
     <script>
         (function () {
@@ -79,13 +82,16 @@
     /* ---------- 1 · TOKENS ----------
        Copiados de catalogo.html. El verde queda reservado a acciones y
        destacados; el resto de la interfaz es neutra. */
+    /* INTERIOR · ACENTO AZUL PETRÓLEO: igual que catalogoInterior.html, la
+       familia --verde-* conserva el nombre pero acá vale azul petróleo, para
+       diferenciar las páginas del Interior de las Mayoristas. */
     :root {
         --verde-900:#111827;   /* superficies oscuras: neutro, no verde */
-        --verde-800:#1b5140;   /* textos de acento sobre fondo claro */
-        --verde-700:#2c5341;   /* hover de acciones */
-        --verde-600:#376550;   /* botones primarios */
-        --verde-100:#d5e2dc;
-        --verde-050:#eef3f0;
+        --verde-800:#1c4f63;   /* textos de acento sobre fondo claro */
+        --verde-700:#1f5870;   /* hover de acciones */
+        --verde-600:#2a6a82;   /* botones primarios */
+        --verde-100:#d3e3ea;
+        --verde-050:#edf4f7;
 
         --navy:#12365c;        /* acento frío de la franja informativa */
 
@@ -124,6 +130,15 @@
         --ui:'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif;
         --display:var(--ui);
 
+        /* Verde de WhatsApp · es color de marca ajena y no sigue al acento de
+           la página: el ícono se reconoce por ese verde. --wsp-700 es el que
+           se usa para el glifo suelto sobre fondo claro, donde el verde puro
+           se lee flojo. */
+        --wsp:#25D366;
+        --wsp-700:#1da851;
+        --wsp-100:#c3eed3;
+        --wsp-050:#e9f9ef;
+
         color-scheme: light;
     }
 
@@ -132,13 +147,13 @@
        <html> (ver script inline del <head> y el toggle del final). */
     :root[data-theme="dark"] {
         --verde-900:#1a2230;
-        --verde-800:#4fae6c;
-        --verde-700:#5cbf7a;
-        --verde-600:#376550;
-        --verde-100:#1c3226;
-        --verde-050:#16241c;
+        --verde-800:#5fb3d0;
+        --verde-700:#74c2dd;
+        --verde-600:#2a6a82;
+        --verde-100:#16303a;
+        --verde-050:#122229;
 
-        --navy:#4a9b63;
+        --navy:#5fb3d0;
 
         --ambar:#e0973a;
         --ambar-700:#f0b45c;
@@ -162,6 +177,9 @@
         --sombra-1:0 1px 2px rgba(0,0,0,.4);
         --sombra-2:0 6px 20px -8px rgba(0,0,0,.55);
         --sombra-3:0 24px 60px -22px rgba(0,0,0,.7);
+
+        --wsp-100:#1b3d28;
+        --wsp-050:#11261a;
 
         color-scheme: dark;
     }
@@ -279,7 +297,7 @@
         font-family: var(--ui);
         font-size: .74rem;
         font-weight: 600;
-        color: var(--tinta-400);
+        color: var(--verde-700);
         text-transform: uppercase;
         letter-spacing: .17em;
         padding-left: 8px;
@@ -458,7 +476,7 @@
         width: 900px;
         height: 520px;
         transform: translateX(-50%);
-        background: radial-gradient(ellipse at center, rgba(55,101,80,.12), transparent 68%);
+        background: radial-gradient(ellipse at center, rgba(42,106,130,.12), transparent 68%);
         pointer-events: none;
     }
 
@@ -1045,7 +1063,7 @@
     .form-group textarea:focus {
         outline: none;
         border-color: var(--verde-600);
-        box-shadow: 0 0 0 3px rgba(55,101,80,.14);
+        box-shadow: 0 0 0 3px rgba(42,106,130,.14);
     }
 
     .form-group textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
@@ -1741,7 +1759,7 @@
     [data-theme="dark"] .site-header { border-bottom: 2px solid var(--verde-600); }
 
     [data-theme="dark"] .hero::after {
-        background: radial-gradient(ellipse at center, rgba(79,174,108,.10), transparent 68%);
+        background: radial-gradient(ellipse at center, rgba(95,179,208,.10), transparent 68%);
     }
 
     [data-theme="dark"] .hero::before { opacity: .35; }
@@ -1752,7 +1770,7 @@
     [data-theme="dark"] .review-icon { color: #fff; opacity: .06; }
 
     [data-theme="dark"] .btn-primario { background: var(--verde-600); border-color: var(--verde-600); }
-    [data-theme="dark"] .btn-primario:hover { background: #40795e; border-color: #40795e; }
+    [data-theme="dark"] .btn-primario:hover { background: #347a94; border-color: #347a94; }
 
     /* logo.png es un isotipo oscuro (pensado para fondos claros); en modo
        oscuro se reemplaza por logoblanco.png. El selector lleva el tipo `img`
@@ -1760,6 +1778,39 @@
     img.logo-dark { display: none; }
     [data-theme="dark"] img.logo-light { display: none; }
     [data-theme="dark"] img.logo-dark { display: block; }
+
+    /* ---------- WHATSAPP SIEMPRE EN VERDE ----------
+       Los íconos de WhatsApp conservan su verde característico aunque el resto
+       de la página use el acento petróleo. Va al final para ganarle a las
+       reglas del acento, incluidas las de modo oscuro. */
+    .wsp-button {
+        background: var(--wsp-050);
+        border-color: var(--wsp-100);
+        color: var(--wsp-700);
+    }
+
+    .wsp-button:hover,
+    .wsp-button[aria-expanded="true"] {
+        background: var(--wsp);
+        border-color: var(--wsp);
+        color: #fff;
+        box-shadow: 0 8px 18px -10px var(--wsp-700);
+    }
+
+    .footer-lista i.fa-whatsapp { color: var(--wsp-700); }
+
+    .canal-icono {
+        background: var(--wsp-050);
+        border-color: var(--wsp-100);
+        color: var(--wsp-700);
+    }
+
+    .contacto-lista i.fa-whatsapp { color: var(--wsp-700); }
+
+    .canal-card .btn-primario,
+    [data-theme="dark"] .canal-card .btn-primario { background: var(--wsp-700); border-color: var(--wsp-700); }
+    .canal-card .btn-primario:hover,
+    [data-theme="dark"] .canal-card .btn-primario:hover { background: #178f45; border-color: #178f45; }
     </style>
 </head>
 
@@ -1773,11 +1824,11 @@
     <!-- === ENCABEZADO === -->
     <header class="site-header">
         <div class="site-header-inner">
-            <a class="brand" href="index.html" aria-label="HomePoint · Inicio">
+            <div class="brand">
                 <img src="logo.png" alt="HomePoint" class="logo-light">
                 <img src="logoblanco.png" alt="HomePoint" class="logo-dark">
                 <span class="brand-tag">Distribuidora Mayorista</span>
-            </a>
+            </div>
 
             <nav class="site-nav" aria-label="Navegación principal">
                 <a href="#catalogos">Catálogos</a>

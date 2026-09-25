@@ -43,6 +43,9 @@
 
     
     <title>Catálogo Envíos</title>
+    <!-- Tiñe la barra del navegador móvil con el acento de esta página -->
+    <meta name="theme-color" content="#2a6a82" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0c0d0f" media="(prefers-color-scheme: dark)">
             
         <!-- EmailJS Script v4 -->
         <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer></script>
@@ -120,15 +123,28 @@
        Colores medidos sobre claro.png. El verde queda reservado a acciones y al
        precio mayorista; el resto de la interfaz es neutra. Las superficies
        oscuras (encabezados de modales, barra del carrito, total, paginación
-       activa) usan --tinta-900, no verde. */
+       activa) usan --tinta-900, no verde.
+
+       CATÁLOGO INTERIOR · ACENTO AZUL PETRÓLEO
+       Esta página es gemela de catalogo.html (Mayorista) y se diferencia sólo
+       por el acento: la familia --verde-* conserva el nombre (la usan decenas
+       de reglas compartidas con la base) pero acá vale azul petróleo. Lo que
+       no es acento no cambia: neutros, ámbar de dinero y rojo de error.
+       "Disponible" sigue en verde vía --ok, porque el significado del stock
+       no depende de la página. --acento-rgb / --acento-brillo-rgb existen para
+       los anillos de foco, sombras y resplandores que necesitan alfa. */
     :root {
         --verde-900:#111827;   /* superficies oscuras: neutro, no verde */
-        --verde-800:#1b5140;   /* precio mayorista y "Disponible" */
-        --verde-700:#2c5341;   /* hover de acciones */
-        --verde-600:#376550;   /* botón Agregar y primarios */
+        --verde-800:#1c4f63;   /* precio destacado */
+        --verde-700:#1f5870;   /* hover de acciones */
+        --verde-600:#2a6a82;   /* botón Agregar y primarios */
         --verde-500:#4CAF50;   /* hex que escribe el JS · no usar como color visible */
-        --verde-100:#d5e2dc;
-        --verde-050:#eef3f0;
+        --verde-100:#d3e3ea;
+        --verde-050:#edf4f7;
+
+        --acento-rgb:42,106,130;          /* = --verde-600 */
+        --acento-brillo-rgb:124,198,224;  /* = --verde-brillo */
+        --ok:#1b5140;                     /* verde de "Disponible" */
 
         --navy:#12365c;        /* círculos de la franja informativa y destacados */
         --navy-050:#eaf0f7;    /* fondo suave del acento navy (desvío de la bienvenida) */
@@ -137,7 +153,7 @@
            resto de la escala verde está calibrada contra fondos claros y sobre
            --verde-900 queda ilegible. Se usa en el encabezado de la bienvenida
            (emblema, volanta y el remate del título). */
-        --verde-brillo:#6fcf97;
+        --verde-brillo:#7cc6e0;
 
         --ambar:#b06a12;
         --ambar-700:#8a5210;
@@ -185,6 +201,15 @@
         --ui:'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif;
         --display:var(--ui);   /* claro.png no usa serif: una sola familia */
 
+        /* Verde de WhatsApp · es color de marca ajena y no sigue al acento de
+           la página: el ícono se reconoce por ese verde. --wsp-700 es el que
+           se usa para el glifo suelto sobre fondo claro, donde el verde puro
+           se lee flojo. */
+        --wsp:#25D366;
+        --wsp-700:#1da851;
+        --wsp-100:#c3eed3;
+        --wsp-050:#e9f9ef;
+
         color-scheme: light;
     }
 
@@ -194,15 +219,19 @@
        inline en <head> y el toggle en mayorista.js). */
     :root[data-theme="dark"] {
         --verde-900:#1a2230;
-        --verde-800:#4fae6c;
-        --verde-700:#5cbf7a;
-        --verde-100:#1c3226;
-        --verde-050:#16241c;
+        --verde-800:#5fb3d0;
+        --verde-700:#74c2dd;
+        --verde-100:#16303a;
+        --verde-050:#122229;
 
-        --navy:#4a9b63;
-        --navy-050:#172520;
+        --navy:#5fb3d0;
+        --navy-050:#13222a;
 
-        --verde-brillo:#7fdca6;
+        --verde-brillo:#8fd3ea;
+
+        --acento-rgb:95,179,208;
+        --acento-brillo-rgb:143,211,234;
+        --ok:#4fae6c;
 
         --ambar:#e0973a;
         --ambar-700:#f0b45c;
@@ -226,6 +255,9 @@
         --sombra-1:0 1px 2px rgba(0,0,0,.4);
         --sombra-2:0 6px 20px -8px rgba(0,0,0,.55);
         --sombra-3:0 24px 60px -22px rgba(0,0,0,.7);
+
+        --wsp-100:#1b3d28;
+        --wsp-050:#11261a;
 
         color-scheme: dark;
     }
@@ -347,7 +379,7 @@
         font-family: var(--ui);
         font-size: .74rem;
         font-weight: 600;
-        color: var(--tinta-400);
+        color: var(--verde-700);
         text-transform: uppercase;
         letter-spacing: .17em;
         padding-left: 8px;
@@ -709,7 +741,7 @@
     .control-field:focus-within {
         background: var(--superficie);
         border-color: var(--verde-600);
-        box-shadow: 0 0 0 3px rgba(55,101,80,.14);
+        box-shadow: 0 0 0 3px rgba(var(--acento-rgb),.14);
     }
 
     .control-field > i:first-child {
@@ -809,7 +841,7 @@
 
     .switch input:checked + .switch-track { background: var(--verde-600); }
     .switch input:checked + .switch-track::after { transform: translateX(18px); }
-    .switch input:focus-visible + .switch-track { box-shadow: 0 0 0 3px rgba(55,101,80,.3); }
+    .switch input:focus-visible + .switch-track { box-shadow: 0 0 0 3px rgba(var(--acento-rgb),.3); }
 
     .switch-label {
         font-size: .85rem;
@@ -986,7 +1018,7 @@
         font-weight: 600;
     }
 
-    .stock-info span[style*="color: #4CAF50"] { color: var(--verde-800) !important; }
+    .stock-info span[style*="color: #4CAF50"] { color: var(--ok) !important; }
     .stock-info span[style*="color: #4CAF50"]::before { content: '\f058'; }   /* circle-check */
     .stock-info span[style*="color: #4CAF50"]::after  { content: 'Disponible'; }
 
@@ -2007,7 +2039,7 @@
     .modal-content select:focus {
         outline: none;
         border-color: var(--verde-600);
-        box-shadow: 0 0 0 3px rgba(55,101,80,.14);
+        box-shadow: 0 0 0 3px rgba(var(--acento-rgb),.14);
     }
 
     .modal-content input::placeholder { color: var(--tinta-400); }
@@ -2359,7 +2391,7 @@
         justify-content: center;
         border-radius: 50%;
         background: var(--verde-600);
-        box-shadow: 0 16px 34px -14px rgba(55,101,80,.6);
+        box-shadow: 0 16px 34px -14px rgba(var(--acento-rgb),.6);
         animation: exito-sello .48s cubic-bezier(.34,1.56,.64,1) both;
     }
 
@@ -2750,7 +2782,7 @@
         overflow: hidden;
         padding: 28px 30px 26px;
         background:
-            radial-gradient(118% 132% at 86% -18%, rgba(111,207,151,.26) 0%, rgba(111,207,151,0) 58%),
+            radial-gradient(118% 132% at 86% -18%, rgba(var(--acento-brillo-rgb),.26) 0%, rgba(var(--acento-brillo-rgb),0) 58%),
             var(--verde-900);
     }
 
@@ -2762,8 +2794,8 @@
         height: 50px;
         margin-bottom: 16px;
         border-radius: 17px;   /* cuadrado redondeado, no círculo: acompaña al radio del popup */
-        background: rgba(111,207,151,.14);
-        border: 1px solid rgba(111,207,151,.26);
+        background: rgba(var(--acento-brillo-rgb),.14);
+        border: 1px solid rgba(var(--acento-brillo-rgb),.26);
         color: var(--verde-brillo);
         font-size: 1.24rem;
     }
@@ -4290,6 +4322,26 @@
     img.logo-dark { display: none; }
     [data-theme="dark"] img.logo-light { display: none; }
     [data-theme="dark"] img.logo-dark { display: block; }
+
+    /* ---------- WHATSAPP SIEMPRE EN VERDE ----------
+       Los íconos de WhatsApp conservan su verde característico aunque el resto
+       de la página use el acento petróleo. Va al final para ganarle a las
+       reglas del acento, incluidas las de modo oscuro. */
+    .wsp-button {
+        background: var(--wsp-050);
+        border-color: var(--wsp-100);
+        color: var(--wsp-700);
+    }
+
+    .wsp-button:hover,
+    .wsp-button[aria-expanded="true"] {
+        background: var(--wsp);
+        border-color: var(--wsp);
+        color: #fff;
+        box-shadow: 0 8px 18px -10px var(--wsp-700);
+    }
+
+    .footer-lista i.fa-whatsapp { color: var(--wsp-700); }
     </style>
 
     <!-- === CONFIGURACIÓN POPUP DE MANTENIMIENTO === -->
@@ -4576,7 +4628,7 @@
         <div class="brand">
             <img src="logo.png" alt="HomePoint" class="logo-light">
             <img src="logoblanco.png" alt="HomePoint" class="logo-dark">
-            <span class="brand-tag">Distribuidora Mayorista</span>
+            <span class="brand-tag">Catálogo exclusivo Despachos</span>
         </div>
 
         <div class="header-actions">
@@ -5321,7 +5373,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="background: #fff; padding: 30px 40px; border-radius: 12px; text-align: center; max-width: 90vw;">
                 <h2 style='color:#d32f2f;'>¡Ya tienes un pedido abierto en proceso! 🛒</h2>
                 <p>Si quieres hacer cambios, puedes modificarlo o cancelarlo para crear uno completamente nuevo.</p>
-                <button id="verPedidoBtn" style="background:#4CAF50;color:#fff;padding:10px 30px;border:none;border-radius:6px;font-size:1.1em;cursor:pointer;">Ver Pedido</button>
+                <button id="verPedidoBtn" style="background:var(--verde-600);color:#fff;padding:10px 30px;border:none;border-radius:6px;font-size:1.1em;cursor:pointer;">Ver Pedido</button>
             </div>
         `;
         document.getElementById('verPedidoBtn').onclick = function() {
