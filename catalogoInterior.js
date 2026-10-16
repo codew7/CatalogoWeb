@@ -2166,6 +2166,7 @@ function _enviarPedidoFinalConfirmado() {
                 // Permite separar en el panel los pedidos de esta página de los que
                 // entran por los otros catálogos.
                 cat: 'int',
+                sucursal: '1',
 
                 cliente: {
                     nombre: datosExtraCliente.nombre || '',

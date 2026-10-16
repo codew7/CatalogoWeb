@@ -2127,6 +2127,7 @@ function _enviarPedidoFinalConfirmado() {
                 locked: false,
                 adminViewed: false,
                 createdby: "web",
+                sucursal: '1',
                 status: 'ABIERTO',
 
                 cliente: {
