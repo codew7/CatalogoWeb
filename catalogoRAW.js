@@ -157,7 +157,6 @@ function guardarCarritoEnPedido() {
 
         db.ref('pedidos/' + pedidoEditId).update({
             items: itemsFinales,
-            adminViewed: false,
             lastUpdated: Date.now()
         }).then(() => {
             console.log('Pedido actualizado automáticamente en Firebase');
@@ -2060,7 +2059,6 @@ function _enviarPedidoFinalConfirmado() {
 
         db.ref('pedidos/' + pedidoEditId).update({
             items: itemsFinales,
-            adminViewed: false,
             lastUpdated: Date.now()
         })
         .then(() => {
@@ -2125,7 +2123,6 @@ function _enviarPedidoFinalConfirmado() {
                 id: pedidoId,
                 timestamp: Date.now(),
                 locked: false,
-                adminViewed: false,
                 createdby: "web",
                 sucursal: '1',
                 status: 'ABIERTO',

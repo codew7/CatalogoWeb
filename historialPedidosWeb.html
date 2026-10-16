@@ -642,7 +642,6 @@
     }
 
     /* === COLUMNAS === */
-    .col-indicador { width: 3%; min-width: 40px; }
     .col-nombre { width: 18%; min-width: 150px; text-align: left; }
     .col-fecha { width: 12%; min-width: 120px; }
     .col-entrega { width: 10%; min-width: 90px; }
@@ -652,25 +651,6 @@
     .col-eliminar { width: 14%; min-width: 120px; }
 
     /* === ELEMENTOS ESPECIALES === */
-    .dot {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--danger-color);
-      animation: pulse 2s infinite;
-      box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
-      }
-      50% {
-        box-shadow: 0 0 0 6px rgba(244, 67, 54, 0);
-      }
-    }
-
     .cancelado-row {
       background: #f5f5f5 !important;
       color: #9e9e9e !important;
@@ -1457,7 +1437,6 @@
         <table id="tabla">
           <thead>
             <tr>
-              <th class="col-indicador"><i class="bi bi-bell-fill"></i></th>
               <th class="col-nombre">Nombre</th>
               <th class="col-fecha">Fecha</th>
               <th class="col-entrega">Entrega</th>
@@ -2372,15 +2351,6 @@
           tr.style.color = '#458254';
         }
 
-        /* --- 1. Indicador de modificación --- */
-  const indCell = tr.insertCell();
-  indCell.className = 'col-indicador';
-        if (p.adminViewed === false) {
-          const dot = document.createElement('span');
-          dot.className = 'dot';
-          indCell.appendChild(dot);
-        }
-
         /* --- 3. Nombre cliente --- */
   const nombreCell = tr.insertCell();
   nombreCell.className = 'col-nombre';
@@ -2399,8 +2369,6 @@
         nombreSpan.style.textDecoration = 'underline';
         nombreSpan.onclick = () => {
           window.open(`pedidos.html?id=${p.id}&admin=true`, '_blank');
-          db.ref(`pedidos/${p.id}`).update({ adminViewed: true })
-            .catch(() => console.error('No se pudo marcar adminViewed'));
         };
         nombreContainer.appendChild(nombreSpan);
         
