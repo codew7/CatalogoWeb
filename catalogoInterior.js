@@ -346,6 +346,7 @@ _productosPromise
         // y ordenar descendente por la fecha (índice 12 - columna M)
             productos = items
                 .filter(item => (item[3] || '').toString().trim() !== '') // Excluir filas con columna D vacía
+                .filter(item => (item[0] || '').toString().trim().toLowerCase() !== 'moda') // Ocultar la categoría Moda
             .sort((a, b) => {
                 // Función para convertir fecha DD/MM/YYYY a objeto Date
                 function parsearFecha(fechaStr) {
