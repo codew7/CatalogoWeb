@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0d0b12">
+    <title>Programa Mayorista · HomePoint</title>
+    <link rel="icon" href="faviconnegro.png" type="image/png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script src="config.js"></script>
+
+    <style>
+        :root {
+            --ink: #0d0b12;
+            --ink-2: #15121d;
+            --surface: rgba(255, 255, 255, 0.045);
+            --surface-2: rgba(255, 255, 255, 0.07);
+            --line: rgba(255, 255, 255, 0.10);
+            --line-strong: rgba(255, 255, 255, 0.20);
+            --text: #f4f1fa;
+            --text-2: rgba(244, 241, 250, 0.66);
+            --text-3: rgba(244, 241, 250, 0.42);
+            --accent: #b8a4f5;
+            --accent-strong: #8b6fe0;
+            --accent-glow: rgba(139, 111, 224, 0.35);
+            --ok: #7ee2b8;
+            --error: #ff8f8f;
+            --radius: 14px;
+            --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+            --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            font-family: 'Geist', system-ui, sans-serif;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--text);
+            background: var(--ink);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Atmósfera: dos halos de luz violeta y un grano muy sutil. */
+        .atmos { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        .atmos::before, .atmos::after {
+            content: ''; position: absolute; border-radius: 50%; filter: blur(80px);
+        }
+        .atmos::before {
+            width: 70vmax; height: 70vmax; top: -35vmax; right: -25vmax;
+            background: radial-gradient(circle, rgba(108, 78, 182, 0.55), transparent 65%);
+        }
+        .atmos::after {
+            width: 55vmax; height: 55vmax; bottom: -30vmax; left: -25vmax;
+            background: radial-gradient(circle, rgba(70, 52, 140, 0.45), transparent 65%);
+        }
+        .grain {
+            position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: 0.06; mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        .layout {
+            position: relative; z-index: 2;
+            min-height: 100vh; min-height: 100dvh;
+            display: grid;
+            grid-template-columns: 1fr;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: max(20px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+            gap: 28px;
+            align-content: start;
+        }
+
+        /* ===== PRESENTACIÓN ===== */
+        .intro { padding-top: 8px; }
+        .brand { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
+        .brand img { height: 30px; opacity: 0.95; }
+        .eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 0.72rem; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+            color: var(--accent);
+        }
+        .eyebrow::before { content: ''; width: 18px; height: 1px; background: currentColor; }
+        h1 {
+            font-family: 'Instrument Serif', serif;
+            font-weight: 400;
+            font-size: clamp(2.6rem, 9vw, 4.6rem);
+            line-height: 0.98;
+            letter-spacing: -0.02em;
+            margin: 16px 0 18px;
+        }
+        h1 em { font-style: italic; color: var(--accent); }
+        .lead { color: var(--text-2); font-size: 1.02rem; max-width: 30rem; font-weight: 300; }
+
+        .benefits { display: none; list-style: none; margin-top: 40px; border-top: 1px solid var(--line); }
+        .benefits li {
+            display: flex; gap: 16px; align-items: baseline;
+            padding: 16px 0; border-bottom: 1px solid var(--line);
+            color: var(--text-2); font-size: 0.95rem;
+        }
+        .benefits span { font-family: 'Instrument Serif', serif; font-size: 1.15rem; color: var(--accent); min-width: 2rem; }
+
+        /* ===== PANEL ===== */
+        .panel {
+            position: relative;
+            background: linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.035));
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 24px 20px 22px;
+            backdrop-filter: blur(24px) saturate(140%);
+            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 30px 80px -20px rgba(0,0,0,0.6);
+        }
+
+        .progress { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; gap: 16px; }
+        .progress-label { font-size: 0.78rem; color: var(--text-3); letter-spacing: 0.02em; white-space: nowrap; }
+        .progress-label b { color: var(--text); font-weight: 500; }
+        .progress-track { display: flex; gap: 6px; flex: 1; max-width: 180px; }
+        .progress-track i {
+            flex: 1; height: 3px; border-radius: 3px; background: var(--line);
+            position: relative; overflow: hidden;
+        }
+        .progress-track i::after {
+            content: ''; position: absolute; inset: 0; background: var(--accent);
+            transform: scaleX(0); transform-origin: left;
+            transition: transform 600ms var(--ease-out);
+        }
+        .progress-track i.done::after { transform: scaleX(1); }
+
+        .steps { position: relative; transition: height 450ms var(--ease-out); }
+        .step { display: none; }
+        .step.active { display: block; }
+        .step.enter-fwd  { animation: inFwd 520ms var(--ease-out) both; }
+        .step.enter-back { animation: inBack 520ms var(--ease-out) both; }
+        @keyframes inFwd  { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+        @keyframes inBack { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+        .step.enter-fwd > *, .step.enter-back > * { animation: rise 600ms var(--ease-out) both; }
+        .step > *:nth-child(2) { animation-delay: 40ms; }
+        .step > *:nth-child(3) { animation-delay: 80ms; }
+        .step > *:nth-child(4) { animation-delay: 120ms; }
+        .step > *:nth-child(5) { animation-delay: 160ms; }
+        .step > *:nth-child(6) { animation-delay: 200ms; }
+        .step > *:nth-child(7) { animation-delay: 240ms; }
+        @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        .step-title {
+            font-family: 'Instrument Serif', serif; font-weight: 400;
+            font-size: 1.9rem; line-height: 1.1; letter-spacing: -0.01em; margin-bottom: 6px;
+        }
+        .step-sub { color: var(--text-3); font-size: 0.9rem; margin-bottom: 24px; }
+
+        /* Campos con etiqueta flotante */
+        .field { position: relative; margin-bottom: 14px; }
+        .field input {
+            width: 100%;
+            height: 60px;
+            padding: 24px 16px 8px 46px;
+            font: inherit; font-size: 1rem; color: var(--text);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            transition: border-color 200ms, background 200ms, box-shadow 200ms;
+            -webkit-appearance: none;
+        }
+        /* Desplegable con la misma piel que los campos de texto */
+        .field select {
+            width: 100%;
+            height: 60px;
+            padding: 24px 44px 8px 46px;
+            font: inherit; font-size: 1rem; color: var(--text);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: border-color 200ms, background 200ms, box-shadow 200ms;
+            -webkit-appearance: none; appearance: none;
+        }
+        .field select:not(.has-value) { color: transparent; }
+        .field select option { background: var(--ink-2); color: var(--text); }
+        .field select:hover { border-color: var(--line-strong); }
+        .field select:focus {
+            outline: none; background: var(--surface-2);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(184, 164, 245, 0.14);
+        }
+        .field select:focus + label,
+        .field select.has-value + label {
+            top: 11px; transform: translateY(0) scale(0.74);
+            color: var(--text-2); letter-spacing: 0.03em;
+        }
+        .field select:focus + label { color: var(--accent); }
+        .field .chevron {
+            position: absolute; right: 16px; top: 30px; transform: translateY(-50%);
+            color: var(--text-3); pointer-events: none; font-size: 0.9rem;
+            transition: transform 300ms var(--ease-out), color 200ms, opacity 200ms;
+        }
+        .field:focus-within .chevron { color: var(--accent); }
+        .field.valid .chevron { opacity: 0; }
+        .field.invalid select { border-color: var(--error); }
+        .field-select .ok { top: 30px; }
+
+        .field input:hover { border-color: var(--line-strong); }
+        .field input:focus {
+            outline: none; background: var(--surface-2);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(184, 164, 245, 0.14);
+        }
+        .field label {
+            position: absolute; left: 46px; top: 50%; transform: translateY(-50%);
+            color: var(--text-3); pointer-events: none; font-size: 0.98rem;
+            transform-origin: left top;
+            transition: transform 260ms var(--ease-out), color 200ms, top 260ms var(--ease-out);
+        }
+        .field input:focus + label,
+        .field input:not(:placeholder-shown) + label {
+            top: 11px; transform: translateY(0) scale(0.74);
+            color: var(--text-2); letter-spacing: 0.03em;
+        }
+        .field input:focus + label { color: var(--accent); }
+        .field .ico {
+            position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+            color: var(--text-3); font-size: 1.05rem; transition: color 200ms;
+        }
+        .field:focus-within .ico { color: var(--accent); }
+        .field .ok {
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%) scale(0.6);
+            color: var(--ok); opacity: 0; transition: opacity 250ms, transform 350ms var(--ease-out);
+        }
+        .field.valid .ok { opacity: 1; transform: translateY(-50%) scale(1); }
+        .field.invalid input { border-color: var(--error); }
+        .field.invalid .ico { color: var(--error); }
+        .field-msg {
+            font-size: 0.8rem; color: var(--error); margin: 6px 0 0 4px;
+            max-height: 0; overflow: hidden; opacity: 0;
+            transition: max-height 300ms var(--ease-out), opacity 200ms;
+        }
+        .field.invalid .field-msg { max-height: 40px; opacity: 1; }
+        .field-hint { font-size: 0.78rem; color: var(--text-3); margin: 6px 0 0 4px; }
+        .field.invalid .field-hint { display: none; }
+
+        /* Preguntas sí / no con control segmentado */
+        .question {
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+            padding: 14px 0; border-bottom: 1px solid var(--line);
+        }
+        .question:first-of-type { border-top: 1px solid var(--line); }
+        .question-text { font-size: 0.96rem; }
+        .question-text small { display: block; color: var(--text-3); font-size: 0.78rem; margin-top: 2px; }
+        .question.invalid .question-text { color: var(--error); }
+        .seg {
+            position: relative; display: grid; grid-template-columns: 1fr 1fr;
+            background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+            padding: 3px; flex-shrink: 0; width: 124px;
+        }
+        .seg input { position: absolute; opacity: 0; pointer-events: none; }
+        .seg label {
+            position: relative; z-index: 1; text-align: center; cursor: pointer;
+            font-size: 0.86rem; font-weight: 500; padding: 7px 0; color: var(--text-2);
+            border-radius: 999px; transition: color 250ms; user-select: none;
+        }
+        .seg .thumb {
+            position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px);
+            border-radius: 999px; background: var(--text);
+            opacity: 0; transform: translateX(0) scale(0.85);
+            transition: transform 420ms var(--ease-out), opacity 200ms;
+        }
+        .seg:has(input:checked) .thumb { opacity: 1; transform: translateX(0) scale(1); }
+        .seg:has(input[value="no"]:checked) .thumb { transform: translateX(100%) scale(1); }
+        .seg input:checked + label { color: var(--ink); }
+        .seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .seg label:active { transform: scale(0.96); }
+
+        /* Opciones con ícono */
+        .group-label {
+            font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+            color: var(--text-3); margin: 24px 0 12px;
+        }
+        .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .tiles input { position: absolute; opacity: 0; pointer-events: none; }
+        .tiles label {
+            display: flex; align-items: center; gap: 10px;
+            padding: 13px 14px; border-radius: 12px; cursor: pointer;
+            background: var(--surface); border: 1px solid var(--line);
+            font-size: 0.92rem; color: var(--text-2); user-select: none;
+            transition: border-color 200ms, background 200ms, color 200ms, transform 120ms;
+        }
+        .tiles label i { font-size: 1.05rem; color: var(--text-3); transition: color 200ms; }
+        .tiles label:hover { border-color: var(--line-strong); }
+        .tiles label:active { transform: scale(0.97); }
+        .tiles input:checked + label {
+            background: rgba(184, 164, 245, 0.12); border-color: var(--accent); color: var(--text);
+        }
+        .tiles input:checked + label i { color: var(--accent); }
+        .tiles input:focus-visible + label { box-shadow: 0 0 0 3px rgba(184, 164, 245, 0.3); }
+        .tiles input:disabled + label { opacity: 0.38; cursor: not-allowed; }
+        .tiles input:disabled + label:active { transform: none; }
+        .tiles .wide { grid-column: 1 / -1; }
+        .group-label.split { display: flex; justify-content: space-between; align-items: baseline; }
+        .group-label .contador {
+            letter-spacing: 0.04em; text-transform: none; font-size: 0.78rem;
+            transition: color 200ms;
+        }
+        .group-label .contador.lleno { color: var(--accent); }
+        .otro-wrap {
+            display: grid; grid-template-rows: 0fr; opacity: 0;
+            transition: grid-template-rows 380ms var(--ease-out), opacity 250ms, margin 380ms var(--ease-out);
+        }
+        .otro-wrap > div { overflow: hidden; }
+        .otro-wrap.open { grid-template-rows: 1fr; opacity: 1; margin-top: 10px; }
+        .otro-wrap .field { margin: 0; }
+        .otro-wrap .field input { padding-left: 16px; height: 52px; padding-top: 8px; }
+
+        /* Resumen */
+        .resumen {
+            margin-top: 22px; padding: 16px; border-radius: var(--radius);
+            background: rgba(0,0,0,0.22); border: 1px solid var(--line);
+        }
+        .resumen-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .resumen-head span { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+        .link {
+            background: none; border: none; color: var(--accent); font: inherit; font-size: 0.82rem;
+            cursor: pointer; padding: 4px; border-radius: 6px;
+        }
+        .link:hover { text-decoration: underline; text-underline-offset: 3px; }
+        .resumen dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 0.88rem; }
+        .resumen dt { color: var(--text-3); }
+        .resumen dd { color: var(--text); text-align: right; overflow-wrap: anywhere; }
+
+        /* Acciones */
+        .actions { display: flex; gap: 10px; margin-top: 26px; }
+        .btn {
+            height: 54px; border-radius: var(--radius); border: 1px solid transparent;
+            font: inherit; font-size: 0.98rem; font-weight: 500; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            transition: transform 120ms var(--ease-out), background 200ms, box-shadow 250ms, opacity 200ms;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary {
+            flex: 1; color: var(--ink); background: var(--text);
+            box-shadow: 0 10px 30px -10px rgba(184, 164, 245, 0.55);
+        }
+        .btn-primary:hover { background: #fff; box-shadow: 0 14px 40px -10px rgba(184, 164, 245, 0.75); }
+        .btn-primary i { transition: transform 300ms var(--ease-out); }
+        .btn-primary:hover i { transform: translateX(3px); }
+        .btn-ghost {
+            width: 54px; flex-shrink: 0; color: var(--text-2);
+            background: var(--surface); border-color: var(--line);
+        }
+        .btn-ghost:hover { color: var(--text); border-color: var(--line-strong); }
+        .btn:disabled { opacity: 0.6; cursor: wait; }
+        .spinner {
+            width: 18px; height: 18px; border-radius: 50%;
+            border: 2px solid rgba(13, 11, 18, 0.25); border-top-color: var(--ink);
+            animation: spin 700ms linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .form-error {
+            margin-top: 14px; padding: 12px 14px; border-radius: 12px;
+            background: rgba(255, 143, 143, 0.1); border: 1px solid rgba(255, 143, 143, 0.3);
+            color: var(--error); font-size: 0.86rem; display: none;
+        }
+        .form-error.show { display: block; animation: shake 400ms var(--ease-out); }
+        @keyframes shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+
+        .privacy {
+            display: flex; gap: 8px; align-items: center; justify-content: center;
+            margin-top: 18px; font-size: 0.76rem; color: var(--text-3);
+        }
+
+        .honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+        /* Éxito */
+        .success { display: none; text-align: center; padding: 18px 4px 8px; }
+        .success.show { display: block; animation: rise 700ms var(--ease-out) both; }
+        .check { width: 84px; height: 84px; margin: 0 auto 22px; }
+        .check circle {
+            fill: none; stroke: var(--accent); stroke-width: 2;
+            stroke-dasharray: 252; stroke-dashoffset: 252;
+            animation: draw 900ms var(--ease-in-out) 150ms forwards;
+        }
+        .check path {
+            fill: none; stroke: var(--text); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+            stroke-dasharray: 50; stroke-dashoffset: 50;
+            animation: draw 500ms var(--ease-out) 900ms forwards;
+        }
+        @keyframes draw { to { stroke-dashoffset: 0; } }
+        .success h2 {
+            font-family: 'Instrument Serif', serif; font-weight: 400;
+            font-size: 2.2rem; line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 12px;
+        }
+        .success h2 em { color: var(--accent); }
+        .success p { color: var(--text-2); max-width: 22rem; margin: 0 auto; font-weight: 300; }
+        .success .next {
+            margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line);
+            display: flex; gap: 12px; align-items: center; justify-content: center;
+            color: var(--text-3); font-size: 0.85rem;
+        }
+        .success .next i { color: #25d366; font-size: 1.2rem; }
+
+        /* Entrada de la página */
+        .reveal { animation: rise 900ms var(--ease-out) both; }
+        .reveal-1 { animation-delay: 60ms; }
+        .reveal-2 { animation-delay: 160ms; }
+        .reveal-3 { animation-delay: 260ms; }
+        .reveal-4 { animation-delay: 380ms; }
+
+        /* ===== ESCRITORIO: presentación a la izquierda, formulario a la derecha ===== */
+        @media (min-width: 920px) {
+            .layout {
+                grid-template-columns: 1.05fr 0.95fr;
+                gap: 72px;
+                align-content: center;
+                padding: 48px 40px;
+            }
+            .intro { position: sticky; top: 48px; align-self: start; padding-top: 24px; }
+            .brand { margin-bottom: 72px; }
+            .benefits { display: block; }
+            .panel { padding: 36px 34px 30px; }
+            .step-title { font-size: 2.2rem; }
+        }
+
+        @media (max-width: 360px) {
+            .question { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .tiles { grid-template-columns: 1fr; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; transition-duration: 1ms !important; }
+            .step.enter-fwd, .step.enter-back { animation: fade 200ms ease both !important; }
+            @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+        }
+        @media (prefers-reduced-transparency: reduce) {
+            .panel { background: var(--ink-2); backdrop-filter: none; -webkit-backdrop-filter: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="atmos" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <div class="layout">
+        <section class="intro">
+            <div class="brand reveal reveal-1">
+                <img src="logoblanco.png" alt="HomePoint">
+            </div>
+            <div class="eyebrow reveal reveal-1">Programa mayorista</div>
+            <h1 class="reveal reveal-2">Precios de distribuidor<br>para <em>tu negocio.</em></h1>
+            <p class="lead reveal reveal-3">Registrate en menos de un minuto. Un asesor revisa tu solicitud y te contacta por WhatsApp con las condiciones comerciales.</p>
+            <ul class="benefits reveal reveal-4">
+                <li><span>01</span> Listas de precios exclusivas para revendedores</li>
+                <li><span>02</span> Atención personalizada y seguimiento de tus pedidos</li>
+                <li><span>03</span> Mejores condiciones a medida que crecés con nosotros</li>
+            </ul>
+        </section>
+
+        <main class="panel reveal reveal-3">
+            <form id="form" novalidate>
+                <div class="progress" id="progress">
+                    <div class="progress-label">Paso <b id="pasoActual">1</b> de 3</div>
+                    <div class="progress-track"><i class="done"></i><i></i><i></i></div>
+                </div>
+
+                <div class="steps" id="steps">
+                    <!-- ===== PASO 1 ===== -->
+                    <section class="step active" data-step="1">
+                        <h2 class="step-title">Tus datos</h2>
+                        <p class="step-sub">Para saber quién sos y cómo contactarte.</p>
+
+                        <div class="field" data-req>
+                            <i class="bi bi-person ico"></i>
+                            <input type="text" id="nombre" placeholder=" " autocomplete="name" maxlength="80" enterkeyhint="next">
+                            <label for="nombre">Nombre y apellido</label>
+                            <i class="bi bi-check-circle-fill ok"></i>
+                            <div class="field-msg">Ingresá tu nombre y apellido.</div>
+                        </div>
+                        <div class="field" data-req>
+                            <i class="bi bi-whatsapp ico"></i>
+                            <input type="tel" id="telefono" placeholder=" " autocomplete="tel" inputmode="tel" maxlength="25" enterkeyhint="next">
+                            <label for="telefono">WhatsApp</label>
+                            <i class="bi bi-check-circle-fill ok"></i>
+                            <div class="field-hint">Con código de área. Ej: 11 2345 6789</div>
+                            <div class="field-msg">Revisá el número: incluí el código de área.</div>
+                        </div>
+                        <div class="field" data-req>
+                            <i class="bi bi-envelope ico"></i>
+                            <input type="email" id="email" placeholder=" " autocomplete="email" inputmode="email" maxlength="100" enterkeyhint="next">
+                            <label for="email">Email</label>
+                            <i class="bi bi-check-circle-fill ok"></i>
+                            <div class="field-msg">Ingresá un email válido.</div>
+                        </div>
+                        <div class="field" data-req>
+                            <i class="bi bi-geo-alt ico"></i>
+                            <input type="text" id="localidad" placeholder=" " autocomplete="address-level2" maxlength="80" enterkeyhint="next">
+                            <label for="localidad">Localidad</label>
+                            <i class="bi bi-check-circle-fill ok"></i>
+                            <div class="field-msg">Contanos desde dónde comprás.</div>
+                        </div>
+                        <div class="field field-select" data-req>
+                            <i class="bi bi-map ico"></i>
+                            <select id="provincia" autocomplete="address-level1">
+                                <option value=""></option>
+                            </select>
+                            <label for="provincia">Provincia</label>
+                            <i class="bi bi-chevron-down chevron"></i>
+                            <i class="bi bi-check-circle-fill ok"></i>
+                            <div class="field-msg">Elegí tu provincia.</div>
+                        </div>
+                    </section>
+
+                    <!-- ===== PASO 2 ===== -->
+                    <section class="step" data-step="2">
+                        <h2 class="step-title">Tu negocio</h2>
+                        <p class="step-sub">Así preparamos una propuesta a tu medida.</p>
+
+                        <div class="question" data-q="ecommerce">
+                            <div class="question-text">Tienda online<small>E-commerce propio o marketplace</small></div>
+                            <div class="seg">
+                                <input type="radio" name="ecommerce" id="ec-si" value="si"><label for="ec-si">Sí</label>
+                                <input type="radio" name="ecommerce" id="ec-no" value="no"><label for="ec-no">No</label>
+                                <span class="thumb"></span>
+                            </div>
+                        </div>
+                        <div class="question" data-q="localFisico">
+                            <div class="question-text">Local físico<small>Punto de venta a la calle</small></div>
+                            <div class="seg">
+                                <input type="radio" name="localFisico" id="lf-si" value="si"><label for="lf-si">Sí</label>
+                                <input type="radio" name="localFisico" id="lf-no" value="no"><label for="lf-no">No</label>
+                                <span class="thumb"></span>
+                            </div>
+                        </div>
+                        <div class="question" data-q="redes">
+                            <div class="question-text">Venta por redes<small>Instagram, Facebook, WhatsApp</small></div>
+                            <div class="seg">
+                                <input type="radio" name="redes" id="rs-si" value="si"><label for="rs-si">Sí</label>
+                                <input type="radio" name="redes" id="rs-no" value="no"><label for="rs-no">No</label>
+                                <span class="thumb"></span>
+                            </div>
+                        </div>
+
+                        <div class="group-label split">
+                            <span>Rubro principal</span>
+                            <span class="contador" id="rubroContador">Elegí hasta 2</span>
+                        </div>
+                        <div class="tiles">
+                            <input type="checkbox" name="rubro" id="ru-bazar" value="Bazar"><label for="ru-bazar"><i class="bi bi-cup-hot"></i>Bazar</label>
+                            <input type="checkbox" name="rubro" id="ru-regal" value="Regalería"><label for="ru-regal"><i class="bi bi-gift"></i>Regalería</label>
+                            <input type="checkbox" name="rubro" id="ru-deco" value="Deco"><label for="ru-deco"><i class="bi bi-lamp"></i>Deco</label>
+                            <input type="checkbox" name="rubro" id="ru-tec" value="Tecnología"><label for="ru-tec"><i class="bi bi-cpu"></i>Tecnología</label>
+                            <input type="checkbox" name="rubro" id="ru-electro" value="Electrodomésticos"><label for="ru-electro"><i class="bi bi-plug"></i>Electrodomésticos</label>
+                            <input type="checkbox" name="rubro" id="ru-jugue" value="Juguetería"><label for="ru-jugue"><i class="bi bi-puzzle"></i>Juguetería</label>
+                            <input type="checkbox" name="rubro" id="ru-otro" value="Otro"><label for="ru-otro" class="wide"><i class="bi bi-three-dots"></i>Otro rubro</label>
+                        </div>
+                        <div class="otro-wrap" id="rubroOtroWrap"><div>
+                            <div class="field">
+                                <input type="text" id="rubroOtro" placeholder="¿Cuál es tu rubro?" maxlength="60">
+                            </div>
+                        </div></div>
+                    </section>
+
+                    <!-- ===== PASO 3 ===== -->
+                    <section class="step" data-step="3">
+                        <h2 class="step-title">Último paso</h2>
+                        <p class="step-sub">Revisá tus datos antes de enviar.</p>
+
+                        <div class="group-label" style="margin-top:0">¿Cómo nos conociste?</div>
+                        <div class="tiles">
+                            <input type="radio" name="conocio" id="co-redes" value="Redes sociales"><label for="co-redes"><i class="bi bi-instagram"></i>Redes sociales</label>
+                            <input type="radio" name="conocio" id="co-reco" value="Recomendación"><label for="co-reco"><i class="bi bi-people"></i>Recomendación</label>
+                            <input type="radio" name="conocio" id="co-local" value="Pasé por el local"><label for="co-local"><i class="bi bi-shop"></i>Por el local</label>
+                            <input type="radio" name="conocio" id="co-otro" value="Otro"><label for="co-otro"><i class="bi bi-three-dots"></i>Otro</label>
+                        </div>
+                        <div class="otro-wrap" id="conocioOtroWrap"><div>
+                            <div class="field">
+                                <input type="text" id="conocioOtro" placeholder="Contanos cómo" maxlength="60">
+                            </div>
+                        </div></div>
+
+                        <div class="resumen">
+                            <div class="resumen-head">
+                                <span>Resumen</span>
+                                <button type="button" class="link" onclick="irAPaso(1)">Editar</button>
+                            </div>
+                            <dl id="resumen"></dl>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Trampa para bots: un humano no ve este campo, un bot lo completa. -->
+                <div class="honeypot" aria-hidden="true">
+                    <input type="text" id="sitio" tabindex="-1" autocomplete="off">
+                </div>
+
+                <div class="actions" id="actions">
+                    <button type="button" class="btn btn-ghost" id="btnAtras" aria-label="Volver" style="display:none"><i class="bi bi-arrow-left"></i></button>
+                    <button type="submit" class="btn btn-primary" id="btnSiguiente">Continuar <i class="bi bi-arrow-right"></i></button>
+                </div>
+                <div class="form-error" id="error" role="alert"></div>
+                <div class="privacy"><i class="bi bi-lock"></i> Tus datos se usan solo para contactarte.</div>
+            </form>
+
+            <div class="success" id="gracias">
+                <svg class="check" viewBox="0 0 84 84" aria-hidden="true">
+                    <circle cx="42" cy="42" r="40"/>
+                    <path d="M27 43 l10 10 l20 -21"/>
+                </svg>
+                <h2>¡Gracias, <em id="graciasNombre"></em>!</h2>
+                <p>Recibimos tu solicitud. Un asesor la va a revisar y te contactará a la brevedad.</p>
+                <div class="next"><i class="bi bi-whatsapp"></i> Te escribimos al número que nos dejaste.</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const $ = id => document.getElementById(id);
+        const radio = name => (document.querySelector(`input[name="${name}"]:checked`) || {}).value || '';
+        const TOTAL = 3;
+        let paso = 1;
+
+        /* ===================================================== validación = */
+        const reglas = {
+            nombre: v => v.trim().split(/\s+/).length >= 2 && v.trim().length >= 4,
+            telefono: v => v.replace(/\D/g, '').length >= 8,
+            email: v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()),
+            localidad: v => v.trim().length >= 2,
+            provincia: v => v !== ''
+        };
+
+        // Mismos nombres que usa clientes.html, para que los datos coincidan.
+        const PROVINCIAS = [
+            'Buenos Aires', 'Catamarca', 'Chaco', 'Chubut', 'Ciudad Autónoma de Buenos Aires',
+            'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja',
+            'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis',
+            'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Tucumán'
+        ];
+        PROVINCIAS.forEach(p => $('provincia').add(new Option(p, p)));
+
+        // La etiqueta flotante del desplegable sube cuando hay una provincia elegida.
+        $('provincia').addEventListener('change', e => {
+            e.target.classList.toggle('has-value', e.target.value !== '');
+            validarCampo('provincia', true);
+        });
+
+        function validarCampo(id, mostrarError) {
+            const input = $(id);
+            const field = input.closest('.field');
+            const ok = reglas[id](input.value);
+            field.classList.toggle('valid', ok);
+            if (ok) field.classList.remove('invalid');
+            else if (mostrarError) field.classList.add('invalid');
+            return ok;
+        }
+
+        // Valida en vivo: el tilde aparece al completar bien; el error solo
+        // después de salir del campo, para no retar mientras se escribe.
+        Object.keys(reglas).forEach(id => {
+            const input = $(id);
+            input.addEventListener('input', () => validarCampo(id, input.closest('.field').classList.contains('invalid')));
+            input.addEventListener('blur', () => { if (input.value) validarCampo(id, true); });
+        });
+
+        function validarPaso(n) {
+            if (n === 1) {
+                const malos = Object.keys(reglas).filter(id => !validarCampo(id, true));
+                if (malos.length) { $(malos[0]).focus(); return false; }
+            }
+            if (n === 2) {
+                const faltan = ['ecommerce', 'localFisico', 'redes'].filter(q => !radio(q));
+                document.querySelectorAll('.question').forEach(q => q.classList.toggle('invalid', faltan.includes(q.dataset.q)));
+                if (faltan.length) { mostrarError('Respondé las tres preguntas sobre tu negocio.'); return false; }
+            }
+            return true;
+        }
+
+        document.querySelectorAll('.seg input').forEach(r => r.addEventListener('change', () => {
+            r.closest('.question').classList.remove('invalid');
+            ocultarError();
+        }));
+
+        function mostrarError(msg) {
+            const e = $('error');
+            e.classList.remove('show');
+            void e.offsetWidth; // reinicia la animación si el error se repite
+            e.textContent = msg;
+            e.classList.add('show');
+        }
+        function ocultarError() { $('error').classList.remove('show'); }
+
+        /* ========================================================== pasos = */
+        function irAPaso(n) {
+            if (n === paso) return;
+            const dir = n > paso ? 'enter-fwd' : 'enter-back';
+            const contenedor = $('steps');
+            const actual = document.querySelector(`.step[data-step="${paso}"]`);
+            const siguiente = document.querySelector(`.step[data-step="${n}"]`);
+
+            // Anima la altura del contenedor entre un paso y otro.
+            contenedor.style.height = contenedor.offsetHeight + 'px';
+            actual.classList.remove('active', 'enter-fwd', 'enter-back');
+            siguiente.classList.remove('enter-fwd', 'enter-back');
+            siguiente.classList.add('active', dir);
+            const destino = siguiente.offsetHeight;
+            requestAnimationFrame(() => { contenedor.style.height = destino + 'px'; });
+            setTimeout(() => { contenedor.style.height = ''; }, 480);
+
+            paso = n;
+            ocultarError();
+            $('pasoActual').textContent = n;
+            document.querySelectorAll('.progress-track i').forEach((b, i) => b.classList.toggle('done', i < n));
+            $('btnAtras').style.display = n > 1 ? '' : 'none';
+            $('btnSiguiente').innerHTML = n === TOTAL
+                ? 'Enviar solicitud <i class="bi bi-arrow-right"></i>'
+                : 'Continuar <i class="bi bi-arrow-right"></i>';
+            if (n === TOTAL) armarResumen();
+            if (window.innerWidth < 920) $('progress').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        $('btnAtras').addEventListener('click', () => irAPaso(paso - 1));
+
+        // "Enter" en un campo pasa al siguiente en vez de enviar el formulario.
+        const ordenCampos = ['nombre', 'telefono', 'email', 'localidad', 'provincia'];
+        ordenCampos.forEach((id, i) => $(id).addEventListener('keydown', e => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            if (i < ordenCampos.length - 1) $(ordenCampos[i + 1]).focus();
+            else $('form').requestSubmit();
+        }));
+
+        // "Otro" en cómo nos conoció despliega su campo de texto.
+        document.querySelectorAll('input[name="conocio"]').forEach(r => r.addEventListener('change', () => {
+            const otro = radio('conocio') === 'Otro';
+            $('conocioOtroWrap').classList.toggle('open', otro);
+            if (otro) setTimeout(() => $('conocioOtro').focus(), 200);
+        }));
+
+        // Rubros: hasta 2 a la vez. Al llegar al tope se bloquean los demás
+        // en vez de destildar uno solo, así nadie pierde una elección sin darse cuenta.
+        const MAX_RUBROS = 2;
+        const rubrosInputs = [...document.querySelectorAll('input[name="rubro"]')];
+        rubrosInputs.forEach(r => r.addEventListener('change', () => {
+            const elegidos = rubrosInputs.filter(x => x.checked);
+            const lleno = elegidos.length >= MAX_RUBROS;
+            rubrosInputs.forEach(x => { if (!x.checked) x.disabled = lleno; });
+
+            const contador = $('rubroContador');
+            contador.textContent = elegidos.length ? `${elegidos.length} de ${MAX_RUBROS}` : `Elegí hasta ${MAX_RUBROS}`;
+            contador.classList.toggle('lleno', lleno);
+
+            const otro = $('ru-otro').checked;
+            $('rubroOtroWrap').classList.toggle('open', otro);
+            if (r === $('ru-otro') && otro) setTimeout(() => $('rubroOtro').focus(), 200);
+            else if (lleno) setTimeout(() => $('btnSiguiente').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 150);
+        }));
+
+        function valorOtro(name, extra) {
+            const v = radio(name);
+            return v === 'Otro' ? ('Otro: ' + $(extra).value.trim()) : v;
+        }
+
+        // Se guarda como texto ("Bazar, Deco") para que el panel lo muestre sin cambios.
+        function valorRubros() {
+            return rubrosInputs.filter(x => x.checked)
+                .map(x => x.value === 'Otro' ? ('Otro: ' + $('rubroOtro').value.trim()) : x.value)
+                .join(', ');
+        }
+
+        function armarResumen() {
+            const siNo = v => v === 'si' ? 'Sí' : v === 'no' ? 'No' : '—';
+            const filas = [
+                ['Nombre', $('nombre').value.trim()],
+                ['WhatsApp', $('telefono').value.trim()],
+                ['Email', $('email').value.trim().toLowerCase()],
+                ['Localidad', $('localidad').value.trim()],
+                ['Provincia', $('provincia').value],
+                ['Tienda online', siNo(radio('ecommerce'))],
+                ['Local físico', siNo(radio('localFisico'))],
+                ['Redes', siNo(radio('redes'))],
+                ['Rubro', valorRubros() || '—']
+            ];
+            $('resumen').innerHTML = '';
+            filas.forEach(([k, v]) => {
+                const dt = document.createElement('dt'); dt.textContent = k;
+                const dd = document.createElement('dd'); dd.textContent = v;
+                $('resumen').append(dt, dd);
+            });
+        }
+
+        /* ========================================================== envío = */
+        $('form').addEventListener('submit', e => {
+            e.preventDefault();
+            if (!validarPaso(paso)) return;
+            if (paso < TOTAL) return irAPaso(paso + 1);
+            enviar();
+        });
+
+        function mostrarGracias() {
+            $('graciasNombre').textContent = $('nombre').value.trim().split(/\s+/)[0];
+            $('form').style.display = 'none';
+            $('gracias').classList.add('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function enviar() {
+            // Bot detectado: se simula éxito y no se guarda nada.
+            if ($('sitio').value) return mostrarGracias();
+
+            const datos = {
+                nombre: $('nombre').value.trim(),
+                telefono: $('telefono').value.trim(),
+                email: $('email').value.trim().toLowerCase(),
+                localidad: $('localidad').value.trim(),
+                provincia: $('provincia').value,
+                ecommerce: radio('ecommerce'),
+                localFisico: radio('localFisico'),
+                redes: radio('redes'),
+                rubro: valorRubros(),
+                conocio: valorOtro('conocio', 'conocioOtro'),
+                estado: 'pendiente',
+                creado: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            const btn = $('btnSiguiente');
+            btn.disabled = true;
+            $('btnAtras').disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Enviando';
+
+            db.ref('clientesPotenciales').push(datos)
+                .then(mostrarGracias)
+                .catch(err => {
+                    console.error('Error al registrar:', err);
+                    btn.disabled = false;
+                    $('btnAtras').disabled = false;
+                    btn.innerHTML = 'Enviar solicitud <i class="bi bi-arrow-right"></i>';
+                    mostrarError('No pudimos enviar tu solicitud. Revisá tu conexión e intentá de nuevo.');
+                });
+        }
+    </script>
+</body>
+</html>
