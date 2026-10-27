@@ -2879,65 +2879,6 @@
     .welcome-punto-ambar .welcome-punto-icono { background: var(--ambar-050); color: var(--ambar); }
     .welcome-punto-verde .welcome-punto-icono { background: var(--verde-050); color: var(--verde-700); }
 
-    /* Desvío al catálogo general · misma gramática que los puntos de arriba
-       (ícono + texto) pero sobre superficie propia y con la barra de acento a
-       la izquierda, como los avisos .info-text del resto del sitio: se lee como
-       una salida, no como un tercer beneficio. */
-    .welcome-desvio {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-top: 22px;
-        padding: 14px 16px;
-        background: var(--navy-050);
-        border-left: 3px solid var(--navy);
-        border-radius: var(--radio-sm);
-        color: var(--tinta-700);
-        text-decoration: none;
-        transition: background var(--t), transform var(--t), box-shadow var(--t);
-    }
-
-    .welcome-desvio:hover {
-        transform: translateY(-1px);
-        box-shadow: var(--sombra-2);
-    }
-
-    .welcome-desvio-icono {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        height: 38px;
-        flex: none;
-        border-radius: 12px;
-        background: var(--superficie);
-        border: 1px solid var(--borde);
-        color: var(--navy);
-        font-size: .95rem;
-    }
-
-    .welcome-desvio-texto {
-        font-size: .86rem;
-        line-height: 1.45;
-        min-width: 0;
-    }
-
-    .welcome-desvio-texto strong {
-        display: block;
-        color: var(--tinta-900);
-        font-weight: 700;
-    }
-
-    .welcome-desvio-flecha {
-        margin-left: auto;
-        flex: none;
-        color: var(--navy);
-        font-size: .85rem;
-        transition: transform var(--t);
-    }
-
-    .welcome-desvio:hover .welcome-desvio-flecha { transform: translateX(3px); }
-
     /* El cierre del mensaje. La línea de arriba lo separa del bloque
        informativo: deja de ser un párrafo más y pasa a leerse como una firma. */
     .welcome-firma {
@@ -2974,7 +2915,6 @@
     .welcome-header-bienvenida h2,
     .welcome-lead,
     .welcome-punto,
-    .welcome-desvio,
     .welcome-firma {
         animation: welcomeEntra .34s cubic-bezier(.22,.61,.36,1) both;
     }
@@ -2985,8 +2925,7 @@
     .welcome-lead                 { animation-delay: .21s; }
     .welcome-punto:nth-child(1)   { animation-delay: .27s; }
     .welcome-punto:nth-child(2)   { animation-delay: .32s; }
-    .welcome-desvio               { animation-delay: .39s; }
-    .welcome-firma                { animation-delay: .45s; }
+    .welcome-firma                { animation-delay: .39s; }
 
     .welcome-body { padding: 18px 30px 20px; }
 
@@ -4215,9 +4154,6 @@
         .welcome-lead { font-size: .96rem; }
         .welcome-punto { gap: 12px; font-size: .87rem; }
         .welcome-punto-icono { width: 38px; height: 38px; border-radius: 12px; font-size: .92rem; }
-        .welcome-desvio { gap: 12px; padding: 13px 14px; }
-        .welcome-desvio-icono { width: 34px; height: 34px; border-radius: 11px; }
-        .welcome-desvio-texto { font-size: .82rem; }
         .welcome-firma { font-size: .9rem; margin-top: 20px; padding-top: 17px; }
         .faq-question { font-size: .82rem; padding: 12px 14px; }
         .faq-answer { font-size: .84rem; padding: 0 14px; }
@@ -4280,8 +4216,6 @@
         }
         .card:hover { transform: none; }
         .card:hover > img { transform: none; }
-        .welcome-desvio:hover { transform: none; }
-        .welcome-desvio:hover .welcome-desvio-flecha { transform: none; }
         .welcome-btn:hover { transform: none; }
     }
 
@@ -4439,21 +4373,6 @@
                             <span>El envío se resuelve <strong>por expreso o encomienda</strong>, estés donde estés.</span>
                         </li>
                     </ul>
-
-                    <!-- Desvío para quien no es del interior. Va como bloque
-                         clickeable entero (y no como un "aquí" suelto dentro del
-                         párrafo) porque en el teléfono un link de cinco letras
-                         es imposible de acertar. El acento --navy lo separa de
-                         los dos puntos de arriba: no es un beneficio más, es
-                         una salida hacia otra página. -->
-                    <a class="welcome-desvio" href="index.html">
-                        <span class="welcome-desvio-icono" aria-hidden="true"><i class="fas fa-location-dot"></i></span>
-                        <span class="welcome-desvio-texto">
-                            <strong>¿Estás dentro del Gran Buenos Aires?</strong>
-                            Entonces te conviene visitar nuestra página general, donde puedes comprar sin restricciones.
-                        </span>
-                        <i class="fas fa-arrow-right welcome-desvio-flecha" aria-hidden="true"></i>
-                    </a>
 
                     <p class="welcome-firma"><i class="fas fa-heart" aria-hidden="true"></i> ¡Gracias por elegirnos y confiar!</p>
                 </div>
@@ -5377,7 +5296,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         document.getElementById('verPedidoBtn').onclick = function() {
-            window.location.href = `pedidos.html?id=${pedidoId}&v=${PEDIDOS_VERSION}`;
+            window.location.href = `pedidos.html?id=${pedidoId}&v=${PEDIDOS_VERSION}&o=int`;
         };
     }
 
@@ -6390,7 +6309,7 @@ if (cartContainer) {
         btn.innerHTML = '<i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Ver mi pedido</span>';
         btn.addEventListener('click', function () {
             const version = typeof PEDIDOS_VERSION !== 'undefined' ? PEDIDOS_VERSION : '';
-            window.open('pedidos.html?id=' + pedido.id + '&v=' + version, '_blank');
+            window.open('pedidos.html?id=' + pedido.id + '&v=' + version + '&o=int', '_blank');
             cerrarSheets();
         });
         ficha.appendChild(btn);

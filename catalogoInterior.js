@@ -1564,7 +1564,7 @@ function mostrarModalPedidoConfirmado(pedidoId) {
 
     // Botón para ver el pedido - redirige directamente
     document.getElementById('verPedidoBtnConfirmado').onclick = function() {
-        window.location.href = `pedidos.html?id=${pedidoId}&v=${PEDIDOS_VERSION}`;
+        window.location.href = `pedidos.html?id=${pedidoId}&v=${PEDIDOS_VERSION}&o=int`;
     };
 
     // Cerrar por la X, por "Seguir comprando" o por el velo termina siempre en
@@ -2106,7 +2106,7 @@ function _enviarPedidoFinalConfirmado() {
         .then(() => {
             alert('¡Artículos agregados exitosamente al pedido!');
             setTimeout(() => {
-                window.location.replace(`pedidos.html?id=${pedidoEditId}&v=${PEDIDOS_VERSION}`);
+                window.location.replace(`pedidos.html?id=${pedidoEditId}&v=${PEDIDOS_VERSION}&o=int`);
             }, 300);
         })
         .catch(error => {
@@ -2222,7 +2222,7 @@ function _enviarPedidoFinalConfirmado() {
                 emailjs.send("service_lu9cpxk", "template_xqo1j5z", {
                     email: datosExtraCliente.email,
                     name: datosExtraCliente.nombre,
-                    linkPedido: `https://www.home-point.com.ar/pedidos.html?id=${pedidoId}&v=${PEDIDOS_VERSION}`
+                    linkPedido: `https://www.home-point.com.ar/pedidos.html?id=${pedidoId}&v=${PEDIDOS_VERSION}&o=int`
                 })
                 .then(function(response) {
                     console.log("Email enviado!", response.status, response.text);
@@ -2450,7 +2450,7 @@ buscarUltimoPedidoBtn.addEventListener('click', function() {
       if (ultimo && ultimo.id) {
         mostrarMensajeBusqueda('success', '¡Pedido encontrado! Redirigiendo...');
         setTimeout(() => {
-          window.open(`pedidos.html?id=${ultimo.id}&v=${PEDIDOS_VERSION}`, '_blank');
+          window.open(`pedidos.html?id=${ultimo.id}&v=${PEDIDOS_VERSION}&o=int`, '_blank');
           ultimoPedidoModal.style.display = 'none';
           ocultarMensajeBusqueda();
           ultimoPedidoEmailInput.value = '';
