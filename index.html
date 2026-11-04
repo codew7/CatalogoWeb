@@ -1156,14 +1156,18 @@
         margin-bottom: 22px;
     }
 
+    /* Columna flexible: el botón "Cómo llegar" queda al pie de cada tarjeta y
+       los de las dos sucursales se alinean aunque el texto tenga distinto alto. */
     .showroom-dato {
+        display: flex;
+        flex-direction: column;
         padding: 18px;
         background: var(--superficie-2);
         border: 1px solid var(--borde);
         border-radius: var(--radio-sm);
     }
 
-    .showroom-dato i {
+    .showroom-dato > i {
         display: block;
         margin-bottom: 12px;
         color: var(--verde-600);
@@ -1186,6 +1190,8 @@
         color: var(--tinta-900);
         line-height: 1.5;
     }
+
+    .showroom-dato > span:last-of-type { margin-bottom: 16px; }
 
     .panel .btn { margin-top: auto; align-self: flex-start; }
 
@@ -1759,6 +1765,13 @@
                                     <small>Consultas y retiros</small>
                                 </span>
                             </div>
+                            <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491124038349', '_blank'); cerrarMenuWsp();">
+                                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                                <span class="wsp-option-texto">
+                                    <strong>Sucursal Caseros</strong>
+                                    <small>Av. San Martín 2724</small>
+                                </span>
+                            </div>
                             <div class="wsp-option" role="button" tabindex="0" onclick="window.open('https://api.whatsapp.com/send/?phone=5491176460030', '_blank'); cerrarMenuWsp();">
                                 <i class="fas fa-truck" aria-hidden="true"></i>
                                 <span class="wsp-option-texto">
@@ -1793,7 +1806,7 @@
                         </a>
                         <a class="hamburger-dropdown-item" href="#contacto">
                             <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-                            <span>Contacto y showroom</span>
+                            <span>Contacto y sucursales</span>
                         </a>
                         <a class="hamburger-dropdown-item" href="#faq">
                             <i class="fas fa-circle-question" aria-hidden="true"></i>
@@ -1840,7 +1853,7 @@
         <div class="info-band-item">
             <span class="info-band-icon"><i class="fas fa-store" aria-hidden="true"></i></span>
             <span class="info-band-text">
-                <strong>Local en Munro</strong>
+                <strong>Locales en Munro y Caseros</strong>
                 Lunes a Sábados de 10 a 19 hs
             </span>
         </div>
@@ -2027,7 +2040,7 @@
             <div class="seccion-head reveal">
                 <span class="seccion-etiqueta">Contacto</span>
                 <h2>Escribinos o visitanos</h2>
-                <p>Te respondemos por el canal que prefieras y te esperamos en el local para que veas los productos en persona.</p>
+                <p>Te respondemos por el canal que prefieras y te esperamos en nuestras sucursales para que veas los productos en persona.</p>
             </div>
 
             <div class="contacto-grid">
@@ -2051,6 +2064,14 @@
                             </span>
                         </a>
 
+                        <a href="https://api.whatsapp.com/send/?phone=5491124038349" target="_blank" rel="noopener">
+                            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                            <span class="contacto-texto">
+                                <small>Sucursal Caseros</small>
+                                <span>+54 9 11 2403-8349</span>
+                            </span>
+                        </a>
+
                         <a href="mailto:distribuidorahomepoint@gmail.com">
                             <i class="fas fa-envelope" aria-hidden="true"></i>
                             <span class="contacto-texto">
@@ -2062,29 +2083,32 @@
                 </div>
 
                 <div class="panel reveal">
-                    <h3 class="panel-titulo"><i class="fas fa-store" aria-hidden="true"></i> Nuestro showroom</h3>
+                    <h3 class="panel-titulo"><i class="fas fa-store" aria-hidden="true"></i> Nuestras sucursales</h3>
 
                     <div class="showroom-datos">
                         <div class="showroom-dato">
                             <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-                            <strong>Dirección</strong>
+                            <strong>Sucursal Munro</strong>
                             <span>Vélez Sarsfield 4127, Munro</span>
-                            <br>
                             <span>Buenos Aires, Argentina</span>
+                            <span>Lunes a Sábados de 10 a 19 hs</span>
+                            <a href="https://maps.app.goo.gl/L7QhZ11dmPc7LjWn7" target="_blank" rel="noopener" class="btn btn-secundario">
+                                <i class="fas fa-diamond-turn-right" aria-hidden="true"></i>
+                                Cómo llegar
+                            </a>
                         </div>
                         <div class="showroom-dato">
-                            <i class="fas fa-clock" aria-hidden="true"></i>
-                            <strong>ATENCIÓN</strong>
-                            <span>Lunes a Sábados</span>
-                            <br>
-                            <span>Horario de 10 a 19 hs</span>
+                            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                            <strong>Sucursal Caseros</strong>
+                            <span>Av. San Martín 2724, Caseros</span>
+                            <span>Buenos Aires, Argentina</span>
+                            <span>Lunes a Sábados de 10 a 19 hs</span>
+                            <a href="https://www.google.com/maps/search/?api=1&query=Av.%20San%20Mart%C3%ADn%202724%2C%20Caseros%2C%20Buenos%20Aires" target="_blank" rel="noopener" class="btn btn-secundario">
+                                <i class="fas fa-diamond-turn-right" aria-hidden="true"></i>
+                                Cómo llegar
+                            </a>
                         </div>
                     </div>
-
-                    <a href="https://maps.app.goo.gl/L7QhZ11dmPc7LjWn7" target="_blank" rel="noopener" class="btn btn-secundario">
-                        <i class="fas fa-diamond-turn-right" aria-hidden="true"></i>
-                        Cómo llegar
-                    </a>
                 </div>
             </div>
         </div>
@@ -2108,7 +2132,7 @@
                         <i class="fas fa-chevron-down" aria-hidden="true"></i>
                     </summary>
                     <div class="faq-respuesta">
-                        <p>En el local <strong>no hay mínimo ni requisitos</strong>: venís y te llevás lo que necesites. <br> Los envíos cuentan con un mínimo de <strong>$50.000 de compra</strong>.</p>
+                        <p>En nuestros locales <strong>no hay mínimo ni requisitos</strong>: venís y te llevás lo que necesites. <br> Los envíos cuentan con un mínimo de <strong>$50.000 de compra</strong>.</p>
                     </div>
                 </details>
 
@@ -2141,7 +2165,7 @@
                         <i class="fas fa-chevron-down" aria-hidden="true"></i>
                     </summary>
                     <div class="faq-respuesta">
-                        <p>Aceptamos <strong>efectivo</strong>, <strong>transferencia bancaria</strong> o de <strong>MercadoPago</strong>. <br> Tarjetas, únicamente acercándote al local.</p>
+                        <p>Aceptamos <strong>efectivo</strong>, <strong>transferencia bancaria</strong> o de <strong>MercadoPago</strong>. <br> Tarjetas, únicamente acercándote a nuestros locales.</p>
                     </div>
                 </details>
 
@@ -2197,6 +2221,10 @@
                         <i class="fab fa-whatsapp"></i>
                         <span>+54 9 11 2189-1006</span>
                     </a>
+                    <a href="https://api.whatsapp.com/send/?phone=5491124038349" target="_blank" rel="noopener">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>+54 9 11 2403-8349 (Caseros)</span>
+                    </a>
                     <a href="mailto:distribuidorahomepoint@gmail.com">
                         <i class="fas fa-envelope"></i>
                         <span>distribuidorahomepoint@gmail.com</span>
@@ -2204,6 +2232,10 @@
                     <a href="https://maps.app.goo.gl/L7QhZ11dmPc7LjWn7" target="_blank" rel="noopener">
                         <i class="fas fa-map-marker-alt"></i>
                         <span>Vélez Sarsfield 4127, Munro, Buenos Aires</span>
+                    </a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=Av.%20San%20Mart%C3%ADn%202724%2C%20Caseros%2C%20Buenos%20Aires" target="_blank" rel="noopener">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Av. San Martín 2724, Caseros, Buenos Aires</span>
                     </a>
                     <span>
                         <i class="fas fa-clock"></i>
