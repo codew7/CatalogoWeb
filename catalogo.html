@@ -2098,6 +2098,9 @@
     /* Tipo de entrega */
     .entrega-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
+    /* Envío ocupa toda la fila y las dos sucursales de retiro quedan juntas abajo */
+    .entrega-card[data-tipo="envio"] { grid-column: 1 / -1; }
+
     .entrega-card {
         background: var(--superficie);
         border: 1px solid var(--borde-fuerte);
@@ -4142,7 +4145,7 @@
                             <strong>Munro:</strong> Vélez Sarsfield 4127, Vicente López (Zona Norte).<br>
                             <strong>Caseros:</strong> Av. San Martín 2724, Tres de Febrero (Zona Oeste). <a href="https://www.google.com/maps/search/?api=1&query=Av.%20San%20Mart%C3%ADn%202724%2C%20Caseros%2C%20Buenos%20Aires" target="_blank" rel="noopener">Ver en Google Maps</a><br>
                             <strong>Horario de atención:</strong> Lunes a Sábados de 10 a 19 hs, en ambas sucursales.<br>
-                            Los retiros de pedidos web se realizan en Munro.
+                            Podés retirar tus pedidos web en cualquiera de las dos.
                             <div class="faq-map-container">
                                 <div class="faq-map-wrapper">
                                     <iframe
@@ -4623,10 +4626,15 @@
                         <span class="entrega-titulo">Envío</span>
                         <span class="entrega-sub">Despachamos a todo el país</span>
                     </div>
-                    <div class="entrega-card" data-tipo="retiro" role="button" tabindex="0">
+                    <div class="entrega-card" data-tipo="retiro" data-sucursal="munro" role="button" tabindex="0">
                         <i class="fas fa-store"></i>
-                        <span class="entrega-titulo">Retiro</span>
-                        <span class="entrega-sub">Retirá en Munro, Zona Norte</span>
+                        <span class="entrega-titulo">Retiro en Munro</span>
+                        <span class="entrega-sub">Vélez Sarsfield 4127, Zona Norte</span>
+                    </div>
+                    <div class="entrega-card" data-tipo="retiro" data-sucursal="caseros" role="button" tabindex="0">
+                        <i class="fas fa-store"></i>
+                        <span class="entrega-titulo">Retiro en Caseros</span>
+                        <span class="entrega-sub">Av. San Martín 2724, Zona Oeste</span>
                     </div>
                 </div>
             </div>
@@ -4640,7 +4648,7 @@
                 <i class="fas fa-times"></i>
             </button>
             <div class="modal-header">
-                <h2><i class="fas fa-store"></i> Retiro en Munro</h2>
+                <h2><i class="fas fa-store"></i> <span id="retiroDatosTitulo">Retiro en Munro</span></h2>
                 <p>Necesitamos tus datos para contactarte</p>
             </div>
 
@@ -5233,7 +5241,8 @@ function mostrarModalTipoEntrega(onElegido) {
 
     // Marcar la opción vigente (al reabrir para cambiarla)
     modal.querySelectorAll('.entrega-card').forEach(card => {
-        card.classList.toggle('selected', card.dataset.tipo === tipoEntrega);
+        card.classList.toggle('selected', card.dataset.tipo === tipoEntrega &&
+            (tipoEntrega !== 'retiro' || card.dataset.sucursal === sucursalRetiro));
     });
 
     modal.style.display = 'flex';
@@ -5276,6 +5285,8 @@ function continuarConEnvio() {
 function continuarConRetiro() {
     const modal = document.getElementById('retiroDatosModal');
     if (!modal) return;
+
+    document.getElementById('retiroDatosTitulo').textContent = `Retiro en ${datosSucursalRetiro().nombre}`;
 
     // Arrancar siempre con los campos vacíos y sin el error de la vez anterior
     document.getElementById('retiroNombreInput').value = '';
@@ -5421,7 +5432,7 @@ function pintarResumenTipoEntrega() {
 
     const datos = {
         envio:  { icono: 'fa-truck', titulo: 'Envío a domicilio', sub: 'Coordinamos el despacho con los datos que cargaste.' },
-        retiro: { icono: 'fa-store', titulo: 'Retiro en Munro', sub: 'Un representante te va a contactar por WhatsApp.' }
+        retiro: { icono: 'fa-store', titulo: `Retiro en ${datosSucursalRetiro().nombre}`, sub: 'Un representante te va a contactar por WhatsApp.' }
     }[tipoEntrega];
 
     seccion.style.display = '';
@@ -5457,7 +5468,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('#tipoEntregaModal .entrega-card').forEach(card => {
         const elegir = () => {
-            setTipoEntrega(card.dataset.tipo); // función del mayorista.js: asigna y persiste
+            setTipoEntrega(card.dataset.tipo, card.dataset.sucursal); // función del mayorista.js: asigna y persiste
             tipoEntregaModal.style.display = 'none';
 
             const continuar = _onTipoEntregaElegido;

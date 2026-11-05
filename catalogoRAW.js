@@ -75,9 +75,29 @@ let tipoEntrega = '';
 
 const TIPO_ENTREGA_STORAGE_KEY = 'tipoEntregaMayorista';
 
+// Sucursales donde se puede retirar: a cada una le llega su pedido a su propio WhatsApp.
+const SUCURSALES_RETIRO = {
+    munro: { nombre: 'Munro', whatsappUrl: WHATSAPP_URL, telefono: '+54 9 11 2189-1006' },
+    caseros: { nombre: 'Caseros', whatsappUrl: 'https://api.whatsapp.com/send/?phone=5491124038349', telefono: '+54 9 11 2403-8349' }
+};
+const SUCURSAL_RETIRO_STORAGE_KEY = 'sucursalRetiroMayorista';
+// Va aparte de tipoEntrega, que sigue valiendo 'envio' | 'retiro'. Sólo tiene efecto en los retiros.
+let sucursalRetiro = 'munro';
+
+// Munro es el valor por defecto: carritos guardados antes de sumar Caseros y
+// páginas cuyas tarjetas no indican sucursal (catalogoLocal.html).
+function normalizarSucursalRetiro(valor) {
+    return Object.prototype.hasOwnProperty.call(SUCURSALES_RETIRO, valor) ? valor : 'munro';
+}
+
+function datosSucursalRetiro() {
+    return SUCURSALES_RETIRO[sucursalRetiro];
+}
+
 // Guarda la elección del cliente y la persiste junto al carrito
-function setTipoEntrega(valor) {
+function setTipoEntrega(valor, sucursal) {
     tipoEntrega = valor;
+    sucursalRetiro = normalizarSucursalRetiro(sucursal);
 
     if (modoEdicion) {
         return;
@@ -85,6 +105,7 @@ function setTipoEntrega(valor) {
 
     try {
         localStorage.setItem(TIPO_ENTREGA_STORAGE_KEY, valor);
+        localStorage.setItem(SUCURSAL_RETIRO_STORAGE_KEY, sucursalRetiro);
     } catch (e) {
         console.error('Error al guardar el tipo de entrega en localStorage:', e);
     }
@@ -93,9 +114,11 @@ function setTipoEntrega(valor) {
 // Olvida la elección: se vuelve a preguntar al agregar el próximo "primer artículo"
 function limpiarTipoEntrega() {
     tipoEntrega = '';
+    sucursalRetiro = 'munro';
 
     try {
         localStorage.removeItem(TIPO_ENTREGA_STORAGE_KEY);
+        localStorage.removeItem(SUCURSAL_RETIRO_STORAGE_KEY);
     } catch (e) {
         console.error('Error al limpiar el tipo de entrega de localStorage:', e);
     }
@@ -186,6 +209,7 @@ function cargarCarritoLocal() {
         } else {
             limpiarTipoEntrega();
         }
+        sucursalRetiro = normalizarSucursalRetiro(localStorage.getItem(SUCURSAL_RETIRO_STORAGE_KEY));
 
         if (carritoGuardado) {
             actualizarCarrito();
@@ -1395,7 +1419,7 @@ function pintarEntregaEnCarrito() {
 
     const datos = {
         envio:  { icono: 'fa-truck', titulo: 'Envío' },
-        retiro: { icono: 'fa-store', titulo: 'Retiro' }
+        retiro: { icono: 'fa-store', titulo: `Retiro en ${datosSucursalRetiro().nombre}` }
     }[tipoEntrega];
 
     const icono = document.getElementById('cartEntregaIcono');
@@ -1646,7 +1670,8 @@ function mostrarModalPedidoWhatsApp(mensaje) {
         modalExistente.remove();
     }
 
-    const enlaceWhatsApp = `${WHATSAPP_URL}&text=${encodeURIComponent(mensaje)}`;
+    const sucursal = datosSucursalRetiro();
+    const enlaceWhatsApp = `${sucursal.whatsappUrl}&text=${encodeURIComponent(mensaje)}`;
 
     let overlay = document.createElement('div');
     overlay.id = 'pedido-whatsapp-modal';
@@ -1671,7 +1696,7 @@ function mostrarModalPedidoWhatsApp(mensaje) {
                     <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
                 </a>
                 <p style="margin:15px 0 0 0;color:#888;font-size:0.85em;line-height:1.5;">
-                    Si el botón no abre WhatsApp, escribinos al<br><strong>+54 9 11 2189-1006</strong>
+                    Si el botón no abre WhatsApp, escribinos al<br><strong>${sucursal.telefono}</strong>
                 </p>
             </div>
         </div>
