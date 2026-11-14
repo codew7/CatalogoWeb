@@ -1,0 +1,20 @@
+# Hostinger: configuración de esta carpeta.
+
+# 1) Que los cambios se vean enseguida (sin quedar guardada una versión vieja 7 días).
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html?|js|css|json)$">
+    Header set Cache-Control "no-cache"
+    Header unset Expires
+  </FilesMatch>
+</IfModule>
+<IfModule mod_expires.c>
+  <FilesMatch "\.(html?|js|css|json)$">
+    ExpiresActive Off
+  </FilesMatch>
+</IfModule>
+
+# 2) Red de seguridad: si por error se suben, nadie puede descargar
+#    el cuestionario con puntajes, las reglas ni las instrucciones.
+<FilesMatch "^(cuestionario\.json|database\.rules\.json|firebase\.json|INSTRUCCIONES\.md)$">
+  Require all denied
+</FilesMatch>

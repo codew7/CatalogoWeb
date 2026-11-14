@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Trabajá con nosotros · HomePoint</title>
+  <meta name="description" content="Sumate al equipo de Distribuidora HomePoint en Caseros y Munro. Postulate en pocos minutos.">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="color-scheme" content="dark light">
+  <script>
+    // Tema antes de pintar (evita el parpadeo): guardado en el dispositivo o el del sistema
+    (function () { var t; try { t = localStorage.getItem("hp_tema"); } catch (e) {}
+      if (t !== "claro" && t !== "oscuro") t = matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "oscuro";
+      document.documentElement.dataset.tema = t; })();
+  </script>
+  <link rel="icon" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <a class="saltar" href="#contenido">Saltar al contenido</a>
+
+  <header class="barra">
+    <div class="barra__interior">
+      <a href="./" class="barra__logo" aria-label="HomePoint, inicio"><img src="logoblanco.png" data-logo alt="HomePoint" width="115" height="20"></a>
+      <div class="barra__lado">
+        <span class="barra__etiqueta">Búsqueda abierta</span>
+        <div data-selector-tema></div>
+      </div>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <!-- Aviso para el dueño del sitio si falta configurar Firebase -->
+    <div id="aviso-config" class="aviso aviso--error" hidden role="alert"></div>
+
+    <!-- ============ INICIO ============ -->
+    <section id="vista-inicio" class="vista">
+      <div class="hero">
+        <img class="hero__logo" src="logoblanco.png" data-logo alt="HomePoint" width="500" height="87">
+        <h1 class="hero__titulo">
+          <span class="linea"><span>Trabajá</span></span>
+          <span class="linea"><span class="hero__marca">con nosotros.</span></span>
+        </h1>
+        <p class="hero__texto" id="txt-presentacion"></p>
+        <div class="hero__acciones">
+          <button type="button" class="btn btn--primario btn--grande" id="btn-postularme">
+            <span id="txt-postularme">Postularme</span>
+            <svg class="flecha" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h13m-5-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <p class="hero__meta"><svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> 6 minutos</p>
+        </div>
+        <p id="aviso-enviada" class="nota-enviada" hidden></p>
+      </div>
+
+      <div class="cinta-marco" aria-hidden="true">
+      <div class="cinta">
+        <div class="cinta__pista">
+          <span>Distribuidora HomePoint</span><span>Venta Mayorista &amp; Minorista</span><span>Distribuidora HomePoint</span><span>Venta Mayorista &amp; Minorista</span>
+          <span>Distribuidora HomePoint</span><span>Venta Mayorista &amp; Minorista</span><span>Distribuidora HomePoint</span><span>Venta Mayorista &amp; Minorista</span>
+        </div>
+      </div>
+      </div>
+
+      <section class="bloque" aria-labelledby="tit-puestos">
+        <h2 class="bloque__titulo" id="tit-puestos" data-n="01">Puestos disponibles</h2>
+        <div id="lista-puestos" class="puestos"><div class="esqueleto"></div></div>
+      </section>
+
+      <section class="bloque" aria-labelledby="tit-faq">
+        <h2 class="bloque__titulo" id="tit-faq" data-n="02">Preguntas frecuentes</h2>
+        <div id="lista-faq" class="faq"></div>
+      </section>
+    </section>
+
+    <!-- ============ FORMULARIO ============ -->
+    <section id="vista-form" class="vista" hidden>
+      <div class="progreso" aria-live="polite">
+        <div class="progreso__fila">
+          <span id="progreso-paso" class="progreso__paso">Paso 1 de 4</span>
+          <span id="progreso-tiempo" class="progreso__tiempo">Te quedan unos 6 min</span>
+        </div>
+        <div class="progreso__barra" role="progressbar" aria-label="Avance del formulario" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <span id="progreso-relleno"></span>
+        </div>
+        <ol class="progreso__etapas" aria-hidden="true"><li>Datos</li><li>Perfil</li><li>Preguntas</li><li>CV</li></ol>
+      </div>
+
+      <form id="form" novalidate autocomplete="on">
+
+        <!-- ---------- PASO 1 ---------- -->
+        <fieldset class="paso" data-paso="1">
+          <legend class="paso__titulo"><span class="paso__num">01 / 04</span>Tus datos</legend>
+          <p class="paso__sub">Usamos esta información solo para este proceso de selección.</p>
+
+          <!-- Bloque A: identidad -->
+          <div class="grupo">
+            <p class="grupo__cabeza"><span class="grupo__n">A</span>Identidad</p>
+            <div class="grilla-2">
+              <div class="campo" data-campo="nombre">
+                <label for="nombre">Nombre</label>
+                <input id="nombre" name="nombre" type="text" autocomplete="given-name" maxlength="60" placeholder="María" aria-describedby="err-nombre">
+                <p class="campo__error" id="err-nombre"></p>
+              </div>
+              <div class="campo" data-campo="apellido">
+                <label for="apellido">Apellido</label>
+                <input id="apellido" name="apellido" type="text" autocomplete="family-name" maxlength="60" placeholder="Gómez" aria-describedby="err-apellido">
+                <p class="campo__error" id="err-apellido"></p>
+              </div>
+              <div class="campo" data-campo="dni">
+                <label for="dni">DNI <span class="campo__pista">Sin puntos</span></label>
+                <input id="dni" name="dni" type="text" inputmode="numeric" maxlength="12" placeholder="30123456" aria-describedby="err-dni">
+                <p class="campo__error" id="err-dni"></p>
+              </div>
+              <div class="campo" data-campo="fechaNacimiento">
+                <label for="fechaNacimiento">Fecha de nacimiento</label>
+                <input id="fechaNacimiento" name="fechaNacimiento" type="date" autocomplete="bday" aria-describedby="err-fechaNacimiento">
+                <p class="campo__error" id="err-fechaNacimiento"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloque B: sobre vos -->
+          <div class="grupo">
+            <p class="grupo__cabeza"><span class="grupo__n">B</span>Sobre vos</p>
+            <fieldset class="campo" data-campo="sexo" aria-describedby="err-sexo">
+              <legend>Sexo</legend>
+              <div class="segmentado segmentado--3">
+                <label class="segmento"><input type="radio" name="sexo" value="Masculino"><span>Masculino</span></label>
+                <label class="segmento"><input type="radio" name="sexo" value="Femenino"><span>Femenino</span></label>
+                <label class="segmento"><input type="radio" name="sexo" value="Prefiero no decirlo"><span>Prefiero no decirlo</span></label>
+              </div>
+              <p class="campo__error" id="err-sexo"></p>
+            </fieldset>
+            <fieldset class="campo" data-campo="estadoCivil" aria-describedby="err-estadoCivil">
+              <legend>Estado civil</legend>
+              <div class="segmentado segmentado--civil">
+                <label class="segmento"><input type="radio" name="estadoCivil" value="Soltero/a"><span>Soltero/a</span></label>
+                <label class="segmento"><input type="radio" name="estadoCivil" value="Casado/a"><span>Casado/a</span></label>
+                <label class="segmento"><input type="radio" name="estadoCivil" value="Divorciado/a"><span>Divorciado/a</span></label>
+                <label class="segmento"><input type="radio" name="estadoCivil" value="Viudo/a"><span>Viudo/a</span></label>
+                <label class="segmento"><input type="radio" name="estadoCivil" value="Prefiero no decirlo"><span>Prefiero no decirlo</span></label>
+              </div>
+              <p class="campo__error" id="err-estadoCivil"></p>
+            </fieldset>
+          </div>
+
+          <!-- Bloque C: contacto -->
+          <div class="grupo">
+            <p class="grupo__cabeza"><span class="grupo__n">C</span>Contacto</p>
+            <div class="grilla-2">
+              <div class="campo" data-campo="localidad">
+                <label for="localidad">Localidad donde vivís</label>
+                <input id="localidad" name="localidad" type="text" list="lista-localidades" autocomplete="address-level2" maxlength="80" placeholder="Empezá a escribir…" aria-describedby="err-localidad">
+                <datalist id="lista-localidades"></datalist>
+                <p class="campo__error" id="err-localidad"></p>
+              </div>
+              <div class="campo" data-campo="telefono">
+                <label for="telefono">WhatsApp <span class="campo__pista" id="ayuda-telefono">Con código de área</span></label>
+                <input id="telefono" name="telefono" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="20" placeholder="11 2345 6789" aria-describedby="ayuda-telefono err-telefono">
+                <p class="campo__error" id="err-telefono"></p>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- ---------- PASO 2 ---------- -->
+        <fieldset class="paso" data-paso="2" hidden>
+          <legend class="paso__titulo"><span class="paso__num">02 / 04</span>Tu perfil laboral</legend>
+          <p class="paso__sub">Tocá la opción que corresponda.</p>
+
+          <fieldset class="campo" data-campo="puesto" aria-describedby="err-puesto">
+            <legend>¿Para qué puesto te postulás?</legend>
+            <div class="tarjetas-opcion" id="opciones-puesto"></div>
+            <p class="campo__error" id="err-puesto"></p>
+          </fieldset>
+
+          <fieldset class="campo" data-campo="experiencia" aria-describedby="ayuda-experiencia err-experiencia" hidden>
+            <legend id="txt-experiencia">¿Tenés experiencia en este puesto?</legend>
+            <p class="campo__ayuda" id="ayuda-experiencia">Nos referimos a experiencia en este mismo tipo de tareas.</p>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="experiencia" value="Sí"><span>Sí</span></label>
+              <label class="chip"><input type="radio" name="experiencia" value="No"><span>No</span></label>
+            </div>
+            <p class="campo__error" id="err-experiencia"></p>
+          </fieldset>
+
+          <fieldset class="campo" data-campo="trabajaActualmente" aria-describedby="err-trabajaActualmente">
+            <legend>¿Trabajás actualmente?</legend>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="trabajaActualmente" value="Sí"><span>Sí</span></label>
+              <label class="chip"><input type="radio" name="trabajaActualmente" value="No"><span>No</span></label>
+            </div>
+            <p class="campo__error" id="err-trabajaActualmente"></p>
+          </fieldset>
+
+          <fieldset class="campo campo--anidado" data-campo="anticipacion" aria-describedby="err-anticipacion" hidden>
+            <legend>¿Con qué anticipación podrías dejar tu trabajo actual?</legend>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="anticipacion" value="Inmediata"><span>Inmediata</span></label>
+              <label class="chip"><input type="radio" name="anticipacion" value="7 días"><span>7 días</span></label>
+              <label class="chip"><input type="radio" name="anticipacion" value="15 días"><span>15 días</span></label>
+            </div>
+            <p class="campo__error" id="err-anticipacion"></p>
+          </fieldset>
+
+          <div class="grupo-empleo" id="grupo-empleo" hidden>
+            <p class="grupo-empleo__titulo" id="txt-grupo-empleo">Tu último empleo</p>
+            <label class="casilla" id="casilla-primer-empleo">
+              <input type="checkbox" name="primerEmpleo" id="primerEmpleo">
+              <span class="casilla__caja" aria-hidden="true"></span>
+              <span>Es mi primer empleo</span>
+            </label>
+            <div class="grilla-2" id="campos-empleo">
+              <div class="campo" data-campo="ultimoLugar">
+                <label for="ultimoLugar" id="lbl-ultimoLugar">¿Dónde trabajaste por última vez?</label>
+                <input id="ultimoLugar" name="ultimoLugar" type="text" maxlength="80" placeholder="Nombre de la empresa o lugar" aria-describedby="err-ultimoLugar">
+                <p class="campo__error" id="err-ultimoLugar"></p>
+              </div>
+              <div class="campo" data-campo="antiguedad">
+                <label for="antiguedad">Antigüedad en ese trabajo</label>
+                <input id="antiguedad" name="antiguedad" type="text" maxlength="40" placeholder="Ej.: 2 años y 3 meses" aria-describedby="err-antiguedad">
+                <p class="campo__error" id="err-antiguedad"></p>
+              </div>
+              <div class="campo campo--ancho" data-campo="ultimoPuesto">
+                <label for="ultimoPuesto" id="lbl-ultimoPuesto">¿Qué puesto/tareas tenías?</label>
+                <input id="ultimoPuesto" name="ultimoPuesto" type="text" maxlength="120" placeholder="Ej.: repositor, armado de pedidos, atención en caja" aria-describedby="err-ultimoPuesto">
+                <p class="campo__error" id="err-ultimoPuesto"></p>
+              </div>
+            </div>
+          </div>
+
+          <fieldset class="campo" data-campo="sucursal" aria-describedby="err-sucursal">
+            <legend>Sucursal de preferencia</legend>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="sucursal" value="Caseros"><span>Caseros</span></label>
+              <label class="chip"><input type="radio" name="sucursal" value="Munro"><span>Munro</span></label>
+              <label class="chip"><input type="radio" name="sucursal" value="Indistinto"><span>Indistinto</span></label>
+            </div>
+            <p class="campo__error" id="err-sucursal"></p>
+          </fieldset>
+
+          <fieldset class="campo" data-campo="traslado" aria-describedby="ayuda-traslado err-traslado">
+            <legend>¿Estarías dispuesto/a a trabajar en cualquiera de nuestras dos sucursales, Caseros o Munro, según lo que se necesite?</legend>
+            <p class="campo__ayuda" id="ayuda-traslado">Por ejemplo, para cubrir a un compañero o reforzar la otra sucursal.</p>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="traslado" value="Sí"><span>Sí</span></label>
+              <label class="chip"><input type="radio" name="traslado" value="No"><span>No</span></label>
+            </div>
+            <p class="campo__error" id="err-traslado"></p>
+          </fieldset>
+
+          <fieldset class="campo" data-campo="licencia" aria-describedby="err-licencia">
+            <legend>¿Tenés licencia de conducir?</legend>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="licencia" value="Sí"><span>Sí</span></label>
+              <label class="chip"><input type="radio" name="licencia" value="No"><span>No</span></label>
+            </div>
+            <p class="campo__error" id="err-licencia"></p>
+          </fieldset>
+
+          <fieldset class="campo" data-campo="disponibilidad" aria-describedby="err-disponibilidad">
+            <legend>Disponibilidad horaria</legend>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="disponibilidad" value="Mañana"><span>Mañana</span></label>
+              <label class="chip"><input type="radio" name="disponibilidad" value="Tarde"><span>Tarde</span></label>
+              <label class="chip"><input type="radio" name="disponibilidad" value="Completa"><span>Completa</span></label>
+            </div>
+            <p class="campo__error" id="err-disponibilidad"></p>
+          </fieldset>
+
+          <fieldset class="campo" data-campo="estudios" aria-describedby="err-estudios">
+            <legend>Nivel de estudios alcanzado</legend>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="estudios" value="Secundario incompleto"><span>Secundario incompleto</span></label>
+              <label class="chip"><input type="radio" name="estudios" value="Secundario completo"><span>Secundario completo</span></label>
+              <label class="chip"><input type="radio" name="estudios" value="Terciario o universitario"><span>Terciario o universitario</span></label>
+            </div>
+            <p class="campo__error" id="err-estudios"></p>
+          </fieldset>
+
+          <fieldset class="campo" data-campo="esfuerzoFisico" aria-describedby="err-esfuerzoFisico">
+            <legend>¿Podés realizar tareas que requieran esfuerzo físico (carga y descarga)?</legend>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="esfuerzoFisico" value="Sí"><span>Sí</span></label>
+              <label class="chip"><input type="radio" name="esfuerzoFisico" value="No"><span>No</span></label>
+            </div>
+            <p class="campo__error" id="err-esfuerzoFisico"></p>
+          </fieldset>
+
+          <div class="campo" data-campo="remuneracion">
+            <label for="remuneracion">¿Cuánto te gustaría ganar por mes? <span class="etiqueta-opcional">Opcional</span></label>
+            <div class="campo__prefijo">
+              <span aria-hidden="true">$</span>
+              <input id="remuneracion" name="remuneracion" type="text" inputmode="numeric" maxlength="13" placeholder="0" aria-describedby="ayuda-remuneracion err-remuneracion">
+            </div>
+            <p class="campo__ayuda" id="ayuda-remuneracion">Si preferís no completarlo, no hay problema.</p>
+            <p class="campo__error" id="err-remuneracion"></p>
+          </div>
+        </fieldset>
+
+        <!-- ---------- PASO 3 ---------- -->
+        <fieldset class="paso" data-paso="3" hidden>
+          <legend class="paso__titulo"><span class="paso__num">03 / 04</span>Contanos cómo trabajás</legend>
+          <p class="paso__sub">No hay respuestas correctas ni incorrectas. Elegí la opción que más se parezca a vos. Te lleva unos 3 minutos.</p>
+
+          <div class="pregunta" id="pregunta" aria-live="polite">
+            <p class="pregunta__contador" id="pregunta-contador"></p>
+            <div class="pregunta__puntos" id="pregunta-puntos" aria-hidden="true"></div>
+            <fieldset class="pregunta__cuerpo">
+              <legend class="pregunta__texto" id="pregunta-texto"></legend>
+              <div class="pregunta__opciones" id="pregunta-opciones"></div>
+            </fieldset>
+            <p class="campo__error" id="err-pregunta"></p>
+            <p class="pregunta__atajos">Atajo: tocá <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> <kbd>D</kbd> para responder · <kbd>Esc</kbd> para volver</p>
+          </div>
+        </fieldset>
+
+        <!-- ---------- PASO 4 ---------- -->
+        <fieldset class="paso" data-paso="4" hidden>
+          <legend class="paso__titulo"><span class="paso__num">04 / 04</span>Tu currículum</legend>
+          <p class="paso__sub">Podés subir una foto o un PDF. JPG, PNG o PDF de hasta 10 MB.</p>
+
+          <div class="campo" data-campo="cv">
+            <div class="zona-cv" id="zona-cv">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="32" height="32"><path d="M12 16V4m0 0l-4 4m4-4l4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <p class="zona-cv__titulo">Subí tu CV</p>
+              <p class="zona-cv__texto">Arrastralo acá o elegí una opción</p>
+              <div class="zona-cv__botones">
+                <label class="btn btn--secundario">
+                  <input type="file" id="input-cv" accept="image/jpeg,image/png,application/pdf,.pdf,.jpg,.jpeg,.png" class="oculto-visual">
+                  Elegir archivo
+                </label>
+                <label class="btn btn--secundario solo-tactil">
+                  <input type="file" id="input-camara" accept="image/*" capture="environment" class="oculto-visual">
+                  Sacar foto
+                </label>
+              </div>
+            </div>
+
+            <div class="cv-estado" id="cv-procesando" hidden><span class="giro" aria-hidden="true"></span> Preparando tu CV…</div>
+
+            <div class="cv-vista" id="cv-vista" hidden>
+              <div class="cv-vista__miniaturas" id="cv-miniaturas"></div>
+              <div class="cv-vista__info">
+                <p id="cv-info"></p>
+                <button type="button" class="btn-texto" id="btn-quitar-cv">Quitar y subir otro</button>
+              </div>
+            </div>
+            <p class="campo__error" id="err-cv"></p>
+          </div>
+
+          <h2 class="paso__titulo paso__titulo--sec">Revisá tus datos</h2>
+          <div class="resumen" id="resumen"></div>
+
+          <div class="campo" data-campo="consentimiento">
+            <label class="casilla casilla--alta">
+              <input type="checkbox" name="consentimiento" id="consentimiento" aria-describedby="err-consentimiento">
+              <span class="casilla__caja" aria-hidden="true"></span>
+              <span>Acepto que HomePoint almacene mis datos para este proceso de selección, conforme a la Ley 25.326 de Protección de Datos Personales. Algunas respuestas se usan para conocer mi forma de trabajar. <button type="button" class="btn-texto" id="btn-privacidad">Ver política de privacidad</button></span>
+            </label>
+            <p class="campo__error" id="err-consentimiento"></p>
+          </div>
+
+          <div class="envio" id="envio" hidden>
+            <p class="envio__texto" id="envio-texto">Enviando…</p>
+            <div class="progreso__barra" role="progressbar" aria-label="Subida del CV" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="envio-relleno"></span></div>
+          </div>
+          <div class="aviso aviso--error" id="envio-error" hidden role="alert">
+            <p id="envio-error-texto"></p>
+            <button type="button" class="btn btn--secundario btn--chico" id="btn-reintentar">Reintentar</button>
+          </div>
+        </fieldset>
+
+        <!-- Navegación -->
+        <div class="nav-pasos">
+          <button type="button" class="btn btn--fantasma" id="btn-atras">Atrás</button>
+          <button type="button" class="btn btn--primario" id="btn-siguiente">Siguiente</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ ÉXITO ============ -->
+    <section id="vista-exito" class="vista vista--exito" hidden tabindex="-1">
+      <svg class="check" viewBox="0 0 64 64" aria-hidden="true">
+        <circle class="check__circulo" cx="32" cy="32" r="32"/>
+        <path class="check__tilde" d="M20 33l8 8 16-17"/>
+      </svg>
+      <h1 class="exito__titulo">¡Gracias por postularte!</h1>
+      <p class="exito__numero">Tu número de postulación es <strong id="exito-numero">HP-0000-0000</strong></p>
+      <p class="exito__texto">Revisaremos tu perfil y, si avanza, te contactaremos por WhatsApp.</p>
+      <a class="btn btn--fantasma" href="./">Volver al inicio</a>
+    </section>
+  </main>
+
+  <footer class="pie">
+   <div class="pie__interior">
+    <img src="logoblanco.png" data-logo alt="HomePoint" width="92" height="16">
+    <p>© <span id="anio"></span> Distribuidora HomePoint · Caseros y Munro</p>
+    <p class="pie__chico"><button type="button" class="btn-texto" id="btn-privacidad-pie">Política de privacidad</button> · Este sitio está protegido por reCAPTCHA y se aplican la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Política de privacidad</a> y las <a href="https://policies.google.com/terms" target="_blank" rel="noopener">Condiciones del servicio</a> de Google.</p>
+   </div>
+  </footer>
+
+  <!-- Ventana: confirmar envío -->
+  <dialog id="dlg-confirmar" class="dialogo" aria-labelledby="dlg-confirmar-titulo">
+    <h2 id="dlg-confirmar-titulo">¿Enviamos tu postulación?</h2>
+    <p>¿Estás seguro de que querés enviar tu postulación? Una vez enviada, no vas a poder modificar tus datos. Revisá que todo esté correcto.</p>
+    <div class="dialogo__acciones">
+      <button type="button" class="btn btn--fantasma" id="btn-revisar">Revisar datos</button>
+      <button type="button" class="btn btn--primario" id="btn-confirmar-envio">Sí, enviar</button>
+    </div>
+  </dialog>
+
+  <!-- Ventana: política de privacidad -->
+  <dialog id="dlg-privacidad" class="dialogo dialogo--largo" aria-labelledby="dlg-priv-titulo">
+    <h2 id="dlg-priv-titulo">Política de privacidad</h2>
+    <div class="dialogo__texto">
+      <p><strong>Quién guarda tus datos:</strong> Distribuidora HomePoint, para su proceso de búsqueda de personal.</p>
+      <p><strong>Qué guardamos:</strong> los datos que cargás en este formulario, tus respuestas al cuestionario y tu currículum.</p>
+      <p><strong>Para qué:</strong> solo para evaluar tu postulación y contactarte. Algunas respuestas nos ayudan a conocer tu forma de trabajar; son orientativas y no deciden por sí solas.</p>
+      <p><strong>Quién los ve:</strong> únicamente el personal autorizado de HomePoint. No los vendemos ni los compartimos con terceros.</p>
+      <p><strong>Tus derechos:</strong> podés pedirnos ver, corregir o borrar tus datos en cualquier momento, escribiéndonos. Conforme a la Ley 25.326, la Agencia de Acceso a la Información Pública es el órgano de control y atiende denuncias y reclamos sobre el incumplimiento de las normas de protección de datos personales.</p>
+      <p><strong>Cuánto tiempo:</strong> conservamos la información mientras dure la búsqueda y hasta 12 meses después, salvo que nos pidas borrarla antes.</p>
+    </div>
+    <div class="dialogo__acciones">
+      <button type="button" class="btn btn--primario" data-cerrar>Entendido</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="js/tema.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
