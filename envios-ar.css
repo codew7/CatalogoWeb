@@ -493,6 +493,30 @@
 .env-ver-todas[hidden] { display: none; }
 .env-ver-todas:hover { background: var(--superficie); border-color: var(--verde-600); }
 
+/* ---------- Más información (buscador oficial de la empresa) ---------- */
+.env-mas-info {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0;
+    padding: 0 2px;
+    font-size: .78rem;
+    line-height: 1.45;
+    color: var(--tinta-600);
+    animation: env-entrada .22s ease both;
+}
+
+.env-mas-info[hidden] { display: none; }
+
+.env-mas-info > i { font-size: .72rem; color: var(--tinta-400); flex: none; }
+
+.env-mas-info a {
+    font-weight: 700;
+    color: var(--verde-700);
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+}
+
 /* ---------- Resumen y error ---------- */
 .env-resumen {
     display: flex;
@@ -533,6 +557,8 @@
    parejo, en vez de 3 + 1. */
 @container (max-width: 600px) {
     .env-opciones { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    /* Fuera del AMBA no hay flete: quedan las tres transportistas en fila */
+    .env-opciones.sin-flete { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .env-op:not(.env-op-luego) .env-op-cuerpo { min-height: 96px; padding: 14px 8px 10px; }
     .env-suc-mapa span { display: none; }
     .env-suc-mapa { padding: 7px 9px; }

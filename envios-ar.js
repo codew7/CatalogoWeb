@@ -1,10 +1,12 @@
 /* ==========================================================================
    ENVIOS AR · selector de tipo de entrega según la localidad del cliente
    --------------------------------------------------------------------------
-   Muestra Flete + Correo Argentino + Vía Cargo + Flecha Carga, y para cada
-   transportista dice si tiene sucursal (retiro en sucursal, no domicilio) en
-   la localidad del cliente, la más cercana (≤ 30 km) o ninguna. Al elegir una
-   transportista se elige también la sucursal concreta.
+   Muestra Flete (sólo CABA y Gran Buenos Aires) + Correo Argentino + Vía
+   Cargo + Flecha Carga, y para cada transportista dice si tiene sucursal
+   (retiro en sucursal, no domicilio) en la localidad del cliente, la más
+   cercana (≤ 30 km) o ninguna. Al elegir una transportista se elige también
+   la sucursal concreta, y debajo aparece el link al buscador oficial de
+   sucursales de esa empresa.
 
    Datos: envios/<provincia>.json, generados por scripts/generar-envios.mjs.
    Se baja sólo el archivo de la provincia del cliente, una vez por página
@@ -39,13 +41,20 @@
 
     var BASE = 'envios/';
 
+    // web: buscador oficial de sucursales de cada empresa, que se ofrece
+    // debajo de las opciones al elegirla ("Más información en …").
     var EMPRESAS = [
-        { id: 'c', valor: 'Correo Argentino', nombre: 'Correo Argentino', logo: 'logo-correo.png', icono: 'fa-box' },
-        { id: 'v', valor: 'Via Cargo', nombre: 'Vía Cargo', logo: 'logo-viacargo.png', icono: 'fa-boxes-packing' },
+        { id: 'c', valor: 'Correo Argentino', nombre: 'Correo Argentino', logo: 'logo-correo.png', icono: 'fa-box',
+          web: 'https://www.correoargentino.com.ar/formularios/sucursales' },
+        { id: 'v', valor: 'Via Cargo', nombre: 'Vía Cargo', logo: 'logo-viacargo.png', icono: 'fa-boxes-packing',
+          web: 'https://viacargo.com.ar/agencies/' },
         { id: 'f', valor: 'Flecha Carga', nombre: 'Flecha Carga', logo: 'logo-flechacarga.png',
-          logoOscuro: 'logo-flechacarga-oscuro.png', icono: 'fa-truck-ramp-box' }
+          logoOscuro: 'logo-flechacarga-oscuro.png', icono: 'fa-truck-ramp-box',
+          web: 'https://www.flechacarga.com/donde-estamos/' }
     ];
     var FLETE = 'Motomensajeria';
+    // El flete propio sólo llega al AMBA
+    var PROVINCIAS_FLETE = ['CABA', 'Gran Buenos Aires'];
     var RETIRO = 'Retiro en local';
     var LUEGO = '__luego';
     var VISIBLES = 4;            // sucursales antes del "Ver todas"
@@ -255,6 +264,7 @@
                 '<div class="env-sucursales" role="radiogroup"></div>' +
                 '<button type="button" class="env-ver-todas" hidden></button>' +
             '</div></div></div>' +
+            '<p class="env-mas-info" hidden></p>' +
             '<p class="env-resumen" hidden></p>' +
             '<p class="env-error" role="alert" hidden><i class="fas fa-circle-exclamation" aria-hidden="true"></i><span></span></p>';
 
@@ -268,6 +278,8 @@
         var filtro = $('.env-filtro');
         var filtroInput = filtro.querySelector('input');
         var resumen = $('.env-resumen');
+        var masInfo = $('.env-mas-info');
+        var tarjetaFlete = $('.env-op-flete');
         var error = $('.env-error');
 
         function empresaDe(valor) {
@@ -339,11 +351,46 @@
                 input.disabled = estado.deshabilitado || bloquear;
                 tarjeta.classList.toggle('is-sin-cobertura', est === 'sin');
             });
-            // Flete, "Lo decido después" y el retiro oculto sólo dependen del
-            // bloqueo general
-            contenedor.querySelectorAll('.env-op-flete input, .env-op-luego input, .env-op[hidden] input').forEach(function (i) {
+            // "Lo decido después" y el retiro oculto sólo dependen del bloqueo
+            // general
+            contenedor.querySelectorAll('.env-op-luego input, .env-op[hidden]:not(.env-op-flete) input').forEach(function (i) {
                 i.disabled = estado.deshabilitado;
             });
+
+            // Flete: sólo CABA y Gran Buenos Aires. Fuera del AMBA no se
+            // muestra, salvo en un pedido que ya lo tenía guardado: ahí queda
+            // visible y marcado, con la aclaración, para no perder el dato.
+            var fleteOk = fleteDisponible();
+            var fleteGuardado = estado.tipo === FLETE;
+            tarjetaFlete.hidden = !fleteOk && !fleteGuardado;
+            tarjetaFlete.dataset.estado = fleteOk ? 'domicilio' : 'sin';
+            tarjetaFlete.classList.toggle('is-sin-cobertura', !fleteOk);
+            tarjetaFlete.querySelector('.env-pildora-texto').textContent = fleteOk ? 'Envío a domicilio' : 'Sólo CABA y GBA';
+            tarjetaFlete.title = fleteOk ? '' : 'El flete sólo llega a CABA y Gran Buenos Aires';
+            tarjetaFlete.querySelector('input').disabled = estado.deshabilitado || (!fleteOk && !fleteGuardado);
+            contenedor.querySelector('.env-opciones').classList.toggle('sin-flete', tarjetaFlete.hidden);
+        }
+
+        // La provincia efectiva es la de la cobertura cuando se encontró la
+        // localidad (un cliente de Munro cargado como "Buenos Aires" figura
+        // en Gran Buenos Aires); si no, la que tiene cargada el cliente.
+        function fleteDisponible() {
+            var c = estado.cobertura;
+            var prov = c && c.estado === 'ok' && c.provincia ? c.provincia : provincia;
+            return PROVINCIAS_FLETE.indexOf(prov) !== -1;
+        }
+
+        // "Más información en …": buscador oficial de la empresa elegida, se
+        // muestre o no la lista de sucursales (sirve también cuando la
+        // localidad no se reconoce o no hay conexión con nuestros datos).
+        function pintarMasInfo() {
+            var e = empresaDe(estado.tipo);
+            if (!e) { masInfo.hidden = true; return; }
+            var visible = e.web.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+            masInfo.innerHTML = '<i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i>' +
+                '<span>Más información sobre las sucursales de ' + esc(e.nombre) + ' en ' +
+                '<a href="' + e.web + '" target="_blank" rel="noopener">' + esc(visible) + '</a></span>';
+            masInfo.hidden = false;
         }
 
         function sucursalesDisponibles() {
@@ -435,9 +482,13 @@
                     '<strong>' + esc(e.nombre) + ' · ' + esc(s.nombre) + '</strong>' +
                     (s.direccion ? ' — ' + esc(s.direccion) : '') + '</span>';
                 resumen.classList.toggle('es-alerta', !vigente);
-            } else if (estado.tipo === FLETE) {
+            } else if (estado.tipo === FLETE && fleteDisponible()) {
                 html = '<i class="fas fa-circle-check" aria-hidden="true"></i><span>Lo enviamos por <strong>flete</strong> a la dirección del cliente.</span>';
                 resumen.classList.remove('es-alerta');
+            } else if (estado.tipo === FLETE) {
+                // Pedido viejo con flete fuera del AMBA: se avisa, no se borra
+                html = '<i class="fas fa-triangle-exclamation" aria-hidden="true"></i><span>El <strong>flete</strong> sólo llega a CABA y Gran Buenos Aires. Elegí una transportista para este envío.</span>';
+                resumen.classList.add('es-alerta');
             }
             resumen.innerHTML = html;
             resumen.hidden = !html;
@@ -448,6 +499,7 @@
             pintarAviso();
             pintarTarjetas();
             pintarPanel();
+            pintarMasInfo();
             pintarResumen();
             radiosEmpresa().forEach(function (r) {
                 r.checked = r.value === (estado.tipo || '') && !!estado.tipo;
@@ -474,6 +526,7 @@
                     estado.sucursal = x && x.sucursales.length === 1 ? x.sucursales[0] : null;
                 }
                 pintarPanel();
+                pintarMasInfo();
                 pintarResumen();
                 notificar();
             } else if (t.name === nombreRadio + 'Sucursal') {
