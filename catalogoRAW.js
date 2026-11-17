@@ -2151,6 +2151,10 @@ function _enviarPedidoFinalConfirmado() {
                 createdby: "web",
                 sucursal: '1',
                 status: 'ABIERTO',
+                // Transportista y sucursal elegidas en la confirmación (envios-ar.js):
+                // { tipoEntrega, entrega, sucursalEnvio }, o nada si eligió "Lo decido
+                // después" o es retiro. Va antes de cliente/items para no pisarlos.
+                ...(window.EnviosAR ? EnviosAR.datosParaPedido() : {}),
 
                 cliente: {
                     nombre: datosExtraCliente.nombre || '',

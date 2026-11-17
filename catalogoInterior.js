@@ -2160,10 +2160,17 @@ function _enviarPedidoFinalConfirmado() {
                 locked: false,
                 createdby: "web",
                 status: 'ABIERTO',
+                // Transportista y sucursal elegidas en la confirmación (envios-ar.js):
+                // { tipoEntrega, entrega, sucursalEnvio }, o nada si eligió "Lo decido
+                // después" o es retiro. Va antes de cliente/items para no pisarlos.
+                ...(window.EnviosAR ? EnviosAR.datosParaPedido() : {}),
                 // Origen del pedido: 'int' = catálogo del interior (catalogoInterior.html).
                 // Permite separar en el panel los pedidos de esta página de los que
                 // entran por los otros catálogos.
                 cat: 'int',
+                // Siempre es envío al interior: lo habitual es pagar por transferencia.
+                // Es sólo el valor inicial; el cliente lo puede cambiar en pedidos.html.
+                tipoPago: 'Transferencia',
                 sucursal: '1',
 
                 cliente: {

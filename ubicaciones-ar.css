@@ -1,0 +1,114 @@
+/* ==========================================================================
+   UBICACIONES AR · estilos del autocompletado de localidad (ubicaciones-ar.js)
+   Compartido por catalogo.html, catalogoInterior.html y pedidos.html: usa los
+   tokens de diseño que define cada página (--superficie, --verde-*, …), así
+   que se adapta solo al modo oscuro.
+   ========================================================================== */
+
+/* Lista de sugerencias que arma ubicaciones-ar.js debajo del input. Va en position:absolute sin "top": toma la posición estática, justo debajo
+   del input, y se superpone al mensaje de error y a los campos siguientes en
+   vez de empujarlos. */
+.ubic-grupo { position: relative; }
+
+.ubic-listbox {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    margin: 4px 0 0;
+    padding: 4px;
+    list-style: none;
+    max-height: 264px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--superficie);
+    border: 1px solid var(--borde-fuerte);
+    border-radius: var(--radio-sm);
+    box-shadow: var(--sombra-3);
+    animation: fadeIn .12s ease;
+}
+
+.ubic-listbox[hidden] { display: none; }
+
+.ubic-op {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.ubic-op.is-activa { background: var(--verde-050); }
+
+.ubic-op-nombre {
+    font-size: .9rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--tinta-900);
+}
+
+.ubic-op-nombre mark {
+    background: none;
+    color: var(--verde-800);
+    font-weight: 800;
+}
+
+.ubic-op-detalle {
+    font-size: .74rem;
+    line-height: 1.3;
+    color: var(--tinta-400);
+}
+
+.ubic-info {
+    padding: 10px 12px;
+    font-size: .8rem;
+    line-height: 1.4;
+    color: var(--tinta-600);
+}
+
+.ubic-encabezado {
+    padding: 10px 12px 6px;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ambar-700);
+}
+
+.ubic-op + .ubic-encabezado {
+    margin-top: 4px;
+    border-top: 1px solid var(--borde);
+}
+
+.ubic-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Error y campo inválido · definidos acá (y no sólo en el .form-error del
+   catálogo) para que funcionen igual en páginas que no tienen esas reglas. */
+.ubic-error {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 6px 0 0;
+    font-size: .78rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--rojo);
+}
+
+.ubic-error[hidden] { display: none; }
+
+.ubic-error i { font-size: .9em; flex: none; }
+
+.ubic-grupo input.is-invalid,
+.ubic-grupo input.is-invalid:focus {
+    border-color: var(--rojo);
+    box-shadow: 0 0 0 3px rgba(180,35,24,.14);
+}

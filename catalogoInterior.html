@@ -104,6 +104,10 @@
         })();
     </script>
     <script src="catalogoInterior.js" defer></script>
+    <link rel="stylesheet" href="ubicaciones-ar.css">
+    <link rel="stylesheet" href="envios-ar.css">
+    <script src="ubicaciones-ar.js" defer></script>
+    <script src="envios-ar.js" defer></script>
     
     <style>
     /* ==========================================================================
@@ -2069,6 +2073,7 @@
     .form-error[hidden] { display: none; }
 
     .form-error i { font-size: .9em; flex: none; }
+
 
     /* El campo inválido se marca en rojo aunque tenga el foco puesto, por eso
        las dos reglas: si no, el :focus de arriba le devolvería el borde verde. */
@@ -5030,6 +5035,16 @@
                     <div id="tipoEntregaResumen" class="entrega-resumen"></div>
                 </div>
 
+                <!-- Transportista y sucursal (sólo envíos) · envios-ar.js.
+                     Muestra qué empresas tienen sucursal en la localidad del
+                     cliente; se puede dejar para después. -->
+                <div class="confirmacion-section" id="envioEmpresaSection" hidden>
+                    <h3 class="confirmacion-titulo">
+                        <i class="fas fa-truck-ramp-box"></i> ¿Cómo te lo enviamos?
+                    </h3>
+                    <div id="envioEmpresaSelector"></div>
+                </div>
+
                 <!-- Información del Cliente -->
                 <div class="confirmacion-section">
                     <h3 class="confirmacion-titulo">
@@ -5332,6 +5347,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
+                // La localidad tiene que salir del listado oficial: si el texto
+                // no es una de las sugerencias, ubicaciones-ar.js marca el campo
+                // y frena acá. Si el listado no cargó, deja pasar texto libre.
+                if (window.UbicacionesAR && !UbicacionesAR.validarLocalidad()) return;
+
+
                 // Primero verificar si el email ya existe en la base de datos
                 db.ref('clientes').orderByChild('email').equalTo(email).limitToFirst(1).once('value')
                     .then(snap => {
@@ -5584,8 +5605,34 @@ function mostrarModalConfirmacion() {
     // Reflejar el tipo de entrega elegido en el paso 1
     pintarResumenTipoEntrega();
 
+    // Selector de transportista y sucursal (sólo envíos)
+    pintarSelectorEnvio();
+
     // Mostrar el modal de confirmación
     confirmacionModal.style.display = 'flex';
+}
+
+// Selector de transportista + sucursal del modal de confirmación (envios-ar.js).
+// Sólo para envíos de pedidos nuevos: el retiro en local no lleva transporte y
+// en modo edición el pedido ya tiene el suyo. Lo elegido viaja al pedido
+// desde enviarPedidoFinal() vía EnviosAR.datosParaPedido(); con "Lo decido
+// después" el pedido nace sin transportista y se elige en pedidos.html.
+let selectorEnvio = null;
+function pintarSelectorEnvio() {
+    const seccion = document.getElementById('envioEmpresaSection');
+    if (!seccion) return;
+    const mostrar = !!window.EnviosAR && !modoEdicion && tipoEntrega === 'envio';
+    seccion.hidden = !mostrar;
+    if (!mostrar) { selectorEnvio = null; return; }
+    // Si el modal se vuelve a abrir, se conserva lo que ya había elegido
+    const previo = selectorEnvio ? selectorEnvio.valor() : null;
+    selectorEnvio = EnviosAR.montar(document.getElementById('envioEmpresaSelector'), {
+        provincia: datosExtraCliente.provincia || '',
+        localidad: datosExtraCliente.localidad || '',
+        valor: previo || {},
+        permitirLuego: true,
+        nombre: 'envioEmpresa'
+    });
 }
 
 // Muestra en el modal de confirmación el tipo de entrega (siempre Envío)
@@ -5604,8 +5651,8 @@ function pintarResumenTipoEntrega() {
     resumen.innerHTML = `
         <i class="fas fa-truck"></i>
         <span>
-            <strong>Envío a domicilio</strong>
-            <span class="entrega-resumen-sub">Coordinamos el despacho con los datos que cargaste.</span>
+            <strong>Envío</strong>
+            <span class="entrega-resumen-sub">Abajo elegís cómo: flete a tu dirección o retiro en una sucursal de transporte.</span>
         </span>
     `;
 }
@@ -5627,6 +5674,9 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmarBtn.addEventListener('click', function() {
         // Sin tipo de entrega no se genera el pedido
         if (!tipoEntrega && !modoEdicion) return;
+        // Envío: hay que elegir transportista y sucursal, o "Lo decido después"
+        const seccionEnvio = document.getElementById('envioEmpresaSection');
+        if (selectorEnvio && seccionEnvio && !seccionEnvio.hidden && !selectorEnvio.validar()) return;
         confirmacionModal.style.display = 'none';
         enviarPedidoFinal(); // Función del mayorista.js
     });

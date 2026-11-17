@@ -1,0 +1,548 @@
+/* ==========================================================================
+   ENVIOS AR · selector de tipo de entrega (envios-ar.js)
+   Compartido por pedidos.html, catalogo.html y catalogoInterior.html. Usa los
+   tokens de cada página (--superficie, --verde-*, --ambar-*, …), así que el
+   modo oscuro se repinta solo.
+
+   Lenguaje: la cobertura vive dentro de cada tarjeta, como una píldora de
+   estado debajo del logo — verde "hay sucursal", ámbar "la más cercana",
+   gris "no hay" — en vez de avisos sueltos. Elegir una transportista abre,
+   debajo, la lista de sucursales.
+   ========================================================================== */
+
+/* container-type: el selector vive en lugares de ancho muy distinto (la
+   página del pedido, el modal angosto de confirmación del catálogo, un
+   celular), así que se adapta al espacio que tiene y no al de la pantalla. */
+.env {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    container-type: inline-size;
+}
+
+/* ---------- Ubicación del cliente ---------- */
+.env-ubic {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    font-size: .82rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--tinta-700);
+}
+
+.env-ubic[hidden] { display: none; }
+
+.env-ubic > i { color: var(--verde-600); font-size: .95em; }
+
+.env-ubic-cambiar,
+.env-aviso-accion {
+    padding: 0;
+    background: none;
+    border: none;
+    font: inherit;
+    font-weight: 700;
+    color: var(--verde-700);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition: text-decoration-color var(--t);
+}
+
+.env-ubic-cambiar:hover,
+.env-aviso-accion:hover { text-decoration-color: currentColor; }
+
+/* ---------- Aviso (localidad no reconocida / sin red) ---------- */
+.env-aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 14px;
+    background: var(--ambar-050);
+    border: 1px solid var(--ambar-borde, #f0c98a);
+    border-radius: var(--radio-sm);
+    font-size: .8rem;
+    line-height: 1.45;
+    color: var(--ambar-700);
+}
+
+.env-aviso[hidden] { display: none; }
+
+.env-aviso > i { margin-top: 2px; flex: none; }
+
+.env-aviso-accion { color: inherit; text-decoration-color: currentColor; }
+
+/* ---------- Tarjetas ---------- */
+.env-opciones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
+    gap: 10px;
+}
+
+.env-op {
+    position: relative;
+    display: block;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.env-op[hidden] { display: none; }
+
+.env-op > input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.env-op-cuerpo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 100%;
+    min-height: 104px;
+    padding: 18px 10px 12px;
+    background: var(--superficie);
+    border: 1px solid var(--borde-fuerte);
+    border-radius: var(--radio-md);
+    text-align: center;
+    user-select: none;
+    transition: border-color var(--t), background var(--t), box-shadow var(--t), transform var(--t), opacity var(--t);
+}
+
+/* "Lo decido después" no compite con las transportistas: barra baja a todo
+   el ancho, debajo de ellas, con borde punteado. */
+.env-op-luego { grid-column: 1 / -1; }
+
+.env-op-luego .env-op-cuerpo {
+    min-height: 0;
+    flex-direction: row;
+    justify-content: center;
+    gap: 14px;
+    padding: 12px;
+    border-style: dashed;
+}
+
+.env-op-luego .env-op-marca { flex: none; flex-direction: row; min-height: 0; }
+.env-op-luego .env-op-marca > i { font-size: 1.05rem; }
+
+.env-op-marca {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 1;
+    min-height: 26px;
+    max-width: 100%;
+}
+
+.env-op-marca > i {
+    font-size: 1.45rem;
+    line-height: 1;
+    color: var(--tinta-400);
+    transition: color var(--t);
+}
+
+.env-logo {
+    display: block;
+    height: 22px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* Con logo se ve sólo el logo: el ícono es la reserva para cuando la imagen
+   no carga (su onerror la saca del DOM), y el nombre queda para el lector de
+   pantalla. Flete y "Lo decido después" no tienen logo: ahí el nombre se ve. */
+.env-op-marca:has(img) > i { display: none; }
+
+.env-op-nombre {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.env-op-marca:not(:has(img)) .env-op-nombre,
+.env-op-nombre-visible {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    font-size: .86rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--tinta-900);
+}
+
+/* Modo oscuro: Flecha Carga tiene versión propia para fondo oscuro; el azul
+   del Correo se pierde sobre gris oscuro, así que pasa a blanco monocromo. */
+.env-logo-oscuro { display: none; }
+:root[data-theme="dark"] .env-logo-oscuro { display: block; }
+:root[data-theme="dark"] .env-op-marca:has(.env-logo-oscuro) .env-logo:not(.env-logo-oscuro) { display: none; }
+:root[data-theme="dark"] .env-op[data-empresa="c"] .env-logo { filter: brightness(0) invert(1); opacity: .9; }
+
+/* Píldora de cobertura */
+.env-pildora {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 4px 10px;
+    border-radius: var(--radio-full);
+    background: var(--superficie-2);
+    font-size: .69rem;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: .005em;
+    color: var(--tinta-600);
+    transition: background var(--t), color var(--t);
+}
+
+.env-pildora::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    flex: none;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.env-op[data-estado="domicilio"] .env-pildora::before,
+.env-op[data-estado="luego"] .env-pildora::before,
+.env-op[data-estado="sin-datos"] .env-pildora::before { display: none; }
+
+.env-op[data-estado="local"] .env-pildora   { background: var(--verde-050); color: var(--verde-800); }
+.env-op[data-estado="cercana"] .env-pildora { background: var(--ambar-050); color: var(--ambar-700); }
+.env-op[data-estado="sin"] .env-pildora     { color: var(--tinta-400); }
+.env-op[data-estado="sin"] .env-pildora::before { background: none; box-shadow: inset 0 0 0 1.5px currentColor; }
+
+.env-op[data-estado="cargando"] .env-pildora {
+    color: var(--tinta-400);
+    background: linear-gradient(90deg, var(--superficie-2) 0%, var(--borde) 50%, var(--superficie-2) 100%) 0 0 / 200% 100%;
+    animation: env-brillo 1.3s linear infinite;
+}
+
+.env-op[data-estado="cargando"] .env-pildora::before { animation: env-latido 1.3s ease-in-out infinite; }
+
+@keyframes env-brillo { to { background-position: -200% 0; } }
+@keyframes env-latido { 50% { opacity: .3; } }
+
+/* Interacción */
+.env-op:hover > input:not(:disabled) + .env-op-cuerpo {
+    border-color: var(--verde-600);
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-2);
+}
+
+.env-op > input:checked + .env-op-cuerpo {
+    border-color: var(--verde-600);
+    background: var(--verde-050);
+    box-shadow: 0 0 0 3px rgba(55,101,80,.14);
+}
+
+.env-op > input:checked + .env-op-cuerpo .env-op-marca > i { color: var(--verde-600); }
+.env-op > input:checked + .env-op-cuerpo .env-pildora { background: var(--superficie); }
+
+.env-op > input:focus-visible + .env-op-cuerpo {
+    outline: 2px solid var(--verde-600);
+    outline-offset: 2px;
+}
+
+.env-op:has(> input:disabled) { cursor: not-allowed; }
+
+.env-op.is-sin-cobertura > input:disabled + .env-op-cuerpo {
+    background: var(--superficie-2);
+    border-style: dashed;
+}
+
+.env-op.is-sin-cobertura .env-op-marca { opacity: .45; filter: grayscale(1); }
+
+/* Pedido cerrado: se lee la elección, nada responde */
+.env.is-bloqueado .env-op > input:not(:checked) + .env-op-cuerpo { opacity: .5; }
+.env.is-bloqueado .env-ubic-cambiar,
+.env.is-bloqueado .env-ver-todas,
+.env.is-bloqueado .env-aviso-accion { display: none; }
+
+/* ---------- Panel de sucursales ---------- */
+.env-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 280ms cubic-bezier(.4,0,.2,1);
+}
+
+.env-panel[data-abierto="true"] { grid-template-rows: 1fr; }
+
+.env-panel-interior { min-height: 0; overflow: hidden; }
+
+.env-panel-caja {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    background: var(--superficie-2);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-md);
+}
+
+.env-panel-cabecera {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 0 2px 2px;
+    font-size: .76rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    line-height: 1.4;
+    color: var(--tinta-600);
+}
+
+.env-panel-cabecera.es-cercana { color: var(--ambar-700); }
+.env-panel-cabecera > i { margin-top: 2px; }
+
+.env-sucursales { display: grid; gap: 6px; }
+
+/* Lista completa en ciudades grandes: filtro arriba y scroll propio, para no
+   estirar la página con 70 sucursales. */
+.env-panel.es-larga .env-sucursales {
+    max-height: 380px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 2px 4px 2px 2px;
+    margin-right: -4px;
+}
+
+.env-sucursales.sin-animacion .env-suc { animation: none; }
+
+.env-filtro {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.env-filtro[hidden] { display: none; }
+
+.env-filtro > i {
+    position: absolute;
+    left: 13px;
+    font-size: .8rem;
+    color: var(--tinta-400);
+    pointer-events: none;
+}
+
+.env-filtro input {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px 0 36px;
+    background: var(--superficie);
+    border: 1px solid var(--borde-fuerte);
+    border-radius: var(--radio-sm);
+    font-family: inherit;
+    font-size: .84rem;
+    color: var(--tinta-900);
+    transition: border-color var(--t), box-shadow var(--t);
+}
+
+.env-filtro input::placeholder { color: var(--tinta-400); }
+
+.env-filtro input:focus {
+    outline: none;
+    border-color: var(--verde-600);
+    box-shadow: 0 0 0 3px rgba(55,101,80,.14);
+}
+
+.env-suc-vacio {
+    margin: 4px 2px;
+    font-size: .8rem;
+    color: var(--tinta-600);
+}
+
+.env-suc {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 12px;
+    padding: 11px 12px;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-sm);
+    cursor: pointer;
+    transition: border-color var(--t), background var(--t);
+    animation: env-entrada .26s ease both;
+}
+
+.env-suc:nth-child(2) { animation-delay: 30ms; }
+.env-suc:nth-child(3) { animation-delay: 60ms; }
+.env-suc:nth-child(4) { animation-delay: 90ms; }
+.env-suc:nth-child(n+5) { animation-delay: 120ms; }
+
+@keyframes env-entrada { from { opacity: 0; transform: translateY(4px); } }
+
+.env-suc > input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.env-suc:hover { border-color: var(--borde-fuerte); }
+
+.env-suc.is-elegida {
+    border-color: var(--verde-600);
+    background: var(--verde-050);
+}
+
+.env-suc:has(> input:focus-visible) { outline: 2px solid var(--verde-600); outline-offset: 2px; }
+
+.env-suc:has(> input:disabled) { cursor: default; }
+
+.env-suc-marca {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    border-radius: 50%;
+    border: 2px solid var(--borde-fuerte);
+    background: var(--superficie);
+    transition: border-color var(--t), box-shadow var(--t), background var(--t);
+}
+
+.env-suc.is-elegida .env-suc-marca {
+    border-color: var(--verde-600);
+    background: var(--verde-600);
+    box-shadow: inset 0 0 0 3px var(--superficie);
+}
+
+.env-suc-cuerpo { display: grid; gap: 2px; min-width: 0; }
+
+.env-suc-nombre {
+    font-size: .86rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--tinta-900);
+}
+
+.env-suc-km {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 1px 7px;
+    border-radius: var(--radio-full);
+    background: var(--ambar-050);
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--ambar-700);
+    vertical-align: 1px;
+}
+
+.env-suc-dato {
+    font-size: .76rem;
+    line-height: 1.4;
+    color: var(--tinta-600);
+}
+
+/* El horario puede ser larguísimo: una línea, y entero al pasar el mouse,
+   con foco, o en la sucursal elegida. */
+.env-suc-horario {
+    color: var(--tinta-400);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.env-suc:hover .env-suc-horario,
+.env-suc:focus-within .env-suc-horario,
+.env-suc.is-elegida .env-suc-horario { white-space: normal; }
+
+.env-suc-mapa {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-full);
+    background: var(--superficie);
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--verde-700);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background var(--t), border-color var(--t);
+}
+
+.env-suc-mapa:hover { background: var(--verde-050); border-color: var(--verde-100); }
+
+.env-ver-todas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px;
+    background: none;
+    border: 1px dashed var(--borde-fuerte);
+    border-radius: var(--radio-sm);
+    font-family: inherit;
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--verde-700);
+    cursor: pointer;
+    transition: background var(--t), border-color var(--t);
+}
+
+.env-ver-todas[hidden] { display: none; }
+.env-ver-todas:hover { background: var(--superficie); border-color: var(--verde-600); }
+
+/* ---------- Resumen y error ---------- */
+.env-resumen {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 0;
+    padding: 10px 13px;
+    background: var(--verde-050);
+    border-left: 3px solid var(--verde-600);
+    border-radius: var(--radio-sm);
+    font-size: .8rem;
+    line-height: 1.45;
+    color: var(--tinta-700);
+    animation: env-entrada .22s ease both;
+}
+
+.env-resumen[hidden],
+.env-error[hidden] { display: none; }
+
+.env-resumen > i { margin-top: 3px; color: var(--verde-600); flex: none; }
+.env-resumen strong { color: var(--tinta-900); }
+
+.env-resumen.es-alerta { background: var(--ambar-050); border-left-color: var(--ambar); }
+.env-resumen.es-alerta > i { color: var(--ambar); }
+
+.env-error {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--rojo);
+}
+
+/* ---------- Espacio angosto (modal, celular) ----------
+   Con menos de ~600 px no entran cuatro tarjetas cómodas: 2 × 2, siempre
+   parejo, en vez de 3 + 1. */
+@container (max-width: 600px) {
+    .env-opciones { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .env-op:not(.env-op-luego) .env-op-cuerpo { min-height: 96px; padding: 14px 8px 10px; }
+    .env-suc-mapa span { display: none; }
+    .env-suc-mapa { padding: 7px 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .env-panel,
+    .env-op-cuerpo { transition: none; }
+    .env-suc,
+    .env-resumen,
+    .env-op[data-estado="cargando"] .env-pildora,
+    .env-op[data-estado="cargando"] .env-pildora::before { animation: none; }
+}
