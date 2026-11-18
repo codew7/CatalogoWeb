@@ -34,7 +34,11 @@
     'use strict';
 
     // Subir la versión al regenerar el JSON: invalida la caché del navegador.
-    var URL_DATOS = 'localidades-ar.json?v=2026-11-17';
+    // Se resuelve junto al propio script (no junto a la página) para que otras
+    // apps lo carguen desde el catálogo y usen este mismo listado
+    // (pedidosv2: modal de editar cliente).
+    var URL_DATOS = new URL('localidades-ar.json?v=2026-11-17',
+        (document.currentScript && document.currentScript.src) || location.href).href;
     var MAX_RESULTADOS = 60;
 
     /* ---------- Datos (compartidos) ---------- */
