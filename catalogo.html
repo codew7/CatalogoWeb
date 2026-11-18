@@ -1940,6 +1940,7 @@
     }
 
     .form-error[hidden] { display: none; }
+    .form-hint[hidden] { display: none; }
 
     .form-error i { font-size: .9em; flex: none; }
 
@@ -4737,11 +4738,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="direccionInput">Dirección</label>
-                        <input id="direccionInput" type="text" placeholder="Calle y número">
-                    </div>
-
-                    <div class="form-group">
                         <label for="localidadInput">Localidad</label>
                         <input id="localidadInput" type="text" placeholder="Tu localidad" required>
                     </div>
@@ -4776,6 +4772,18 @@
                             <option value="Tierra del Fuego">Tierra del Fuego</option>
                             <option value="Tucumán">Tucumán</option>
                         </select>
+                        <small class="form-hint" id="direccionAviso" hidden>Fuera de CABA y Gran Buenos Aires enviamos a una sucursal de transporte: no necesitamos tu dirección.</small>
+                    </div>
+
+                    <!-- Dirección: sólo CABA y Gran Buenos Aires, donde se entrega por
+                         flete a domicilio. En el resto del país el envío es únicamente
+                         a sucursal de transporte y no hace falta. La muestra/oculta el
+                         script del modal según la provincia (que también se completa
+                         sola al elegir la localidad). -->
+                    <div class="form-group" id="direccionGrupo" hidden>
+                        <label for="direccionInput">Dirección</label>
+                        <input id="direccionInput" type="text" placeholder="Calle y número" disabled>
+                        <small class="form-hint">Para el envío por flete a domicilio.</small>
                     </div>
 
                     <div class="form-group">
@@ -4984,6 +4992,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const formUsuarioRegistrado = document.getElementById('formUsuarioRegistrado');
     const initialMessage = document.getElementById('initialMessage');
 
+    // Dirección sólo para CABA y Gran Buenos Aires (flete a domicilio). Fuera
+    // de esas regiones el envío es únicamente a sucursal: el campo se oculta y
+    // se deshabilita, y el handler de "Continuar" no lo envía. El 'change' del
+    // select también llega cuando ubicaciones-ar.js completa la provincia al
+    // elegir la localidad.
+    const provinciaSelect = document.getElementById('provinciaInput');
+    const direccionGrupo = document.getElementById('direccionGrupo');
+    const direccionCampo = document.getElementById('direccionInput');
+    const direccionAviso = document.getElementById('direccionAviso');
+    function actualizarCampoDireccion() {
+        const prov = provinciaSelect.value;
+        const conDomicilio = prov === 'CABA' || prov === 'Gran Buenos Aires';
+        direccionGrupo.hidden = !conDomicilio;
+        direccionCampo.disabled = !conDomicilio;
+        direccionAviso.hidden = !prov || conDomicilio;
+    }
+    if (provinciaSelect && direccionGrupo && direccionCampo && direccionAviso) {
+        provinciaSelect.addEventListener('change', actualizarCampoDireccion);
+        actualizarCampoDireccion();
+    }
+
     btnNuevoUsuario.addEventListener('click', function() {
         // Ocultar mensaje inicial
         if (initialMessage) initialMessage.style.display = 'none';
@@ -5166,7 +5195,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 nombre: nombre,
                                 email: email,
                                 telefono: telefono,
-                                direccion: document.getElementById('direccionInput').value.trim(),
+                                // Sólo CABA/GBA: fuera de esas regiones el campo está deshabilitado
+                                direccion: document.getElementById('direccionInput').disabled ? '' : document.getElementById('direccionInput').value.trim(),
                                 localidad: localidad,
                                 provincia: provincia,
                                 dni: dni,
