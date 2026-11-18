@@ -39,7 +39,10 @@
 (function () {
     'use strict';
 
-    var BASE = 'envios/';
+    // Junto al propio script (no junto a la página): así otras apps lo cargan
+    // desde el catálogo y consultan estos mismos datos (pedidosv2).
+    var BASE = new URL('envios/',
+        (document.currentScript && document.currentScript.src) || location.href).href;
 
     // web: buscador oficial de sucursales de cada empresa, que se ofrece
     // debajo de las opciones al elegirla ("Más información en …").
