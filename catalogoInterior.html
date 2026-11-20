@@ -4883,7 +4883,10 @@
             <span class="cart-ahorro-icono"><i class="fas fa-piggy-bank" aria-hidden="true"></i></span>
             <span class="cart-ahorro-texto">
                 <span class="cart-ahorro-titulo">Te estás ahorrando <strong id="cartAhorroMonto">$0</strong></span>
-                <span class="cart-ahorro-nota" id="cartAhorroNota">frente al valor de lista</span>
+                <!-- Nota "X% menos que el valor de lista" · oculta por ahora.
+                     actualizarCarrito() la sigue llenando; para volver a
+                     mostrarla basta con quitar el style="display:none;" -->
+                <span class="cart-ahorro-nota" id="cartAhorroNota" style="display:none;">frente al valor de lista</span>
             </span>
         </div>
         <div class="cart-buttons-container">
@@ -5080,7 +5083,10 @@
                             <span class="cart-ahorro-icono"><i class="fas fa-piggy-bank" aria-hidden="true"></i></span>
                             <span class="cart-ahorro-texto">
                                 <span class="cart-ahorro-titulo">Te estás ahorrando <strong id="totalAhorroMonto">$0</strong></span>
-                                <span class="cart-ahorro-nota" id="totalAhorroNota">frente al valor de lista</span>
+                                <!-- Nota "X% menos que el valor de lista" · oculta por ahora.
+                                     Se sigue llenando por JS; para volver a
+                                     mostrarla basta con quitar el style="display:none;" -->
+                                <span class="cart-ahorro-nota" id="totalAhorroNota" style="display:none;">frente al valor de lista</span>
                             </span>
                         </div>
                     </div>
